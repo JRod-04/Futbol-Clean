@@ -39,7 +39,7 @@ public class EventosPartido {
         if (minuto == null) {
             return "0:00";
         }
-        return String.format("%d:%02d", minuto.getMinute(), minuto.getSecond());
+        return String.format("%d'", minuto.getMinute());
     }
     
     //Verifica si el evento es un gol

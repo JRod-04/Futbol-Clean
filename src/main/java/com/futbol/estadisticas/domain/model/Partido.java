@@ -65,22 +65,24 @@ public class Partido {
 
     //Finaliza el partido
     public void finalizarPartido() {
-        if (this.estado == EstadoPartido.FINALIZADO || 
-            this.estado == EstadoPartido.CANCELADO ||
-            this.estado == EstadoPartido.SUSPENDIDO) {
-            throw new IllegalStateException("El partido ya ha finalizado");
-        }
-        this.estado = EstadoPartido.FINALIZADO;
-        
-        EventosPartido eventoFin = EventosPartido.builder()
-            .idEvento(UUID.randomUUID())
-            .minuto(java.time.LocalTime.now())
-            .descripcion("Finalización del partido")
-            .tipoEvento(TipoEvento.FIN_PARTIDO)
-            .partido(this)
-            .build();
-        agregarEvento(eventoFin);
+    if (this.estado == EstadoPartido.FINALIZADO || 
+        this.estado == EstadoPartido.CANCELADO ||
+        this.estado == EstadoPartido.SUSPENDIDO) {
+        throw new IllegalStateException("El partido ya ha finalizado");
     }
+    
+    EventosPartido eventoFin = EventosPartido.builder()
+        .idEvento(UUID.randomUUID())
+        .minuto(java.time.LocalTime.now())
+        .descripcion("Finalización del partido")
+        .tipoEvento(TipoEvento.FIN_PARTIDO)
+        .partido(this)
+        .build();
+    this.eventos.add(eventoFin);  
+    eventoFin.setPartido(this);
+    
+    this.estado = EstadoPartido.FINALIZADO;
+}
     
     //Agrega un evento al partido
     public void agregarEvento(EventosPartido evento) {
