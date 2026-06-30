@@ -18,17 +18,15 @@ import lombok.RequiredArgsConstructor;
 
 @Component
 @RequiredArgsConstructor
-public class LesionRepositoryAdapter implements LesionRepositoryPort{
+public class LesionRepositoryAdapter implements LesionRepositoryPort {
 
     private final LesionJPARepository  repository;
     private final InfrastructureMapper mapper;
  
     @Override
     public Lesion save(Lesion lesion) {
-        // Buscar el jugador JPA desde la lesión de dominio si tiene referencia
         JugadorJPAEntity jugadorJPA = null;
         if (lesion.getIdLesion() != null) {
-            // Intento de recuperar jugador vinculado desde BD
             jugadorJPA = repository.findById(lesion.getIdLesion())
                     .map(e -> e.getJugador())
                     .orElse(null);

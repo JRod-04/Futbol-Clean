@@ -19,4 +19,6 @@ public interface DatosDeportivosRepositoryPort {
     List<DatosDeportivos> findByEstado(EstadoJugador estado);
  
     boolean existsByJugador(UUID idJugador);
+
+    void deleteById(UUID idHistorialDeportivo);
 }

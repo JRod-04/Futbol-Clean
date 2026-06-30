@@ -13,9 +13,7 @@ public interface PersonalDeportivoRepositoryPort {
     Optional<PersonalDeportivo> findById(UUID idPersonal);
  
     List<PersonalDeportivo> findAll();
- 
-    List<PersonalDeportivo> findByTipo(TipoPersonal tipoPersonal);
- 
+  
     List<PersonalDeportivo> findByNombreOrApellido(String termino);
  
     boolean existsById(UUID idPersonal);

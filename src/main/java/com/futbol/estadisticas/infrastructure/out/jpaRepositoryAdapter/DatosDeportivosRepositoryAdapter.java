@@ -19,7 +19,7 @@ import lombok.RequiredArgsConstructor;
 
 @Component
 @RequiredArgsConstructor
-public class DatosDeportivosRepositoryAdapter implements DatosDeportivosRepositoryPort{
+public class DatosDeportivosRepositoryAdapter implements DatosDeportivosRepositoryPort {
 
     private final DatosDeportivosJPARepository repository;
     private final JugadorJPARepository         jugadorRepo;
@@ -57,5 +57,10 @@ public class DatosDeportivosRepositoryAdapter implements DatosDeportivosReposito
     @Override
     public boolean existsByJugador(UUID idJugador) {
         return repository.existsByJugadorIdPersonal(idJugador);
+    }
+
+    @Override
+    public void deleteById(UUID idHistorialDeportivo) {
+        repository.deleteById(idHistorialDeportivo);
     }
 }

@@ -10,6 +10,9 @@ import com.futbol.estadisticas.application.port.out.PersonalDeportivoRepositoryP
 import com.futbol.estadisticas.domain.model.PersonalDeportivo;
 import com.futbol.estadisticas.domain.model.enums.TipoPersonal;
 import com.futbol.estadisticas.infrastructure.out.InfrastructureMapper;
+import com.futbol.estadisticas.infrastructure.out.jpaEntity.JugadorJPAEntity;
+import com.futbol.estadisticas.infrastructure.out.jpaEntity.PersonalDeportivoJPAEntity;
+import com.futbol.estadisticas.infrastructure.out.jpaEntity.TecnicoJPAEntity;
 import com.futbol.estadisticas.infrastructure.out.jpaRepository.PersonalDeportivoJPARepository;
 
 import lombok.RequiredArgsConstructor;
@@ -23,7 +26,6 @@ public class PersonalDeportivoRepositoryAdapter implements PersonalDeportivoRepo
  
     @Override
     public PersonalDeportivo save(PersonalDeportivo personal) {
-        // No se usa directamente; guardado se delega a JugadorAdapter / TecnicoAdapter
         throw new UnsupportedOperationException(
                 "Usa JugadorRepositoryPort o TecnicoRepositoryPort para guardar personal específico");
     }
@@ -36,12 +38,6 @@ public class PersonalDeportivoRepositoryAdapter implements PersonalDeportivoRepo
     @Override
     public List<PersonalDeportivo> findAll() {
         return repository.findAll().stream().map(mapper::toDomain).toList();
-    }
- 
-    @Override
-    public List<PersonalDeportivo> findByTipo(TipoPersonal tipoPersonal) {
-        return repository.findByTipoPersonal(tipoPersonal).stream()
-                .map(mapper::toDomain).toList();
     }
  
     @Override
