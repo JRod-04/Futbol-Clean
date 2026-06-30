@@ -47,7 +47,7 @@ public class ClubJPAEntity {
     private EstadioJPAEntity estadio;
  
     // Técnico actual (opcional)
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "id_tecnico_actual", foreignKey = @ForeignKey(name = "fk_club_tecnico_actual"))
     private TecnicoJPAEntity tecnicoActual;
  

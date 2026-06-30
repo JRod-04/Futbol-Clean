@@ -16,6 +16,7 @@ import com.futbol.estadisticas.domain.model.Lesion;
 import com.futbol.estadisticas.domain.model.Partido;
 import com.futbol.estadisticas.domain.model.PersonalDeportivo;
 import com.futbol.estadisticas.domain.model.Tecnico;
+import com.futbol.estadisticas.domain.model.enums.TipoPersonal;
 import com.futbol.estadisticas.infrastructure.out.jpaEntity.ArbitroJPAEntity;
 import com.futbol.estadisticas.infrastructure.out.jpaEntity.ClubJPAEntity;
 import com.futbol.estadisticas.infrastructure.out.jpaEntity.CompeticionJPAEntity;
@@ -216,33 +217,37 @@ public class InfrastructureMapper {
     // ──────────────────────────── CLUB ────────────────────────────
  
     public Club toDomain(ClubJPAEntity e) {
-        if (e == null) return null;
-        Club club = Club.builder()
-                .idEquipo(e.getIdEquipo())
-                .nombre(e.getNombre())
-                .nombreCorto(e.getNombreCorto())
-                .fechaFundacion(e.getFechaFundacion())
-                .contratos(new ArrayList<>())
-                .partidosLocal(new ArrayList<>())
-                .partidosVisitante(new ArrayList<>())
-                .tecnicos(new ArrayList<>())
-                .build();
- 
-        if (e.getEstadio() != null) {
-            club.setEstadio(toDomain(e.getEstadio()));
-        }
-        if (e.getTecnicoActual() != null) {
-            club.setTecnicoActual(toDomain(e.getTecnicoActual()));
-        }
-        if (e.getContratos() != null) {
-            e.getContratos().forEach(c -> {
-                Contrato contrato = toDomainSinRelaciones(c);
-                contrato.setClub(club);
-                club.getContratos().add(contrato);
-            });
-        }
-        return club;
+    if (e == null) return null;
+    Club club = Club.builder()
+            .idEquipo(e.getIdEquipo())
+            .nombre(e.getNombre())
+            .nombreCorto(e.getNombreCorto())
+            .fechaFundacion(e.getFechaFundacion())
+            .contratos(new ArrayList<>())
+            .partidosLocal(new ArrayList<>())
+            .partidosVisitante(new ArrayList<>())
+            .tecnicos(new ArrayList<>())
+            .build();
+
+    // Solo acceder al estadio si está inicializado (sesión abierta)
+    if (e.getEstadio() != null && org.hibernate.Hibernate.isInitialized(e.getEstadio())) {
+        club.setEstadio(toDomain(e.getEstadio()));
     }
+
+    // Solo acceder al técnico si está inicializado
+    if (e.getTecnicoActual() != null && org.hibernate.Hibernate.isInitialized(e.getTecnicoActual())) {
+        club.setTecnicoActual(toDomain(e.getTecnicoActual()));
+    }
+
+    if (e.getContratos() != null && org.hibernate.Hibernate.isInitialized(e.getContratos())) {
+        e.getContratos().forEach(c -> {
+            Contrato contrato = toDomainSinRelaciones(c);
+            contrato.setClub(club);
+            club.getContratos().add(contrato);
+        });
+    }
+    return club;
+}
  
     public ClubJPAEntity toJpa(Club d) {
         if (d == null) return null;
@@ -402,11 +407,21 @@ public class InfrastructureMapper {
  
     // ──────────────────────────── PERSONAL GENÉRICO ────────────────────────────
  
-    public PersonalDeportivo toDomain(PersonalDeportivoJPAEntity e) {
-        if (e == null) return null;
-        if (e instanceof JugadorJPAEntity j) return toDomain(j);
-        if (e instanceof TecnicoJPAEntity t) return toDomain(t);
-        // Caso base — otros tipos de personal no tienen subclase propia aún
-        return null;
-    }
+    public PersonalDeportivo toDomain(PersonalDeportivoJPAEntity entity) {
+    if (entity == null) return null;
+    
+    TipoPersonal tipo = null;
+    if (entity instanceof JugadorJPAEntity) tipo = TipoPersonal.JUGADOR;
+    else if (entity instanceof TecnicoJPAEntity) tipo = TipoPersonal.TECNICO;
+    
+    
+    return PersonalDeportivo.builder()
+            .idPersonal(entity.getIdPersonal())
+            .nombre(entity.getNombre())
+            .apellido(entity.getApellido())
+            .fechaNacimiento(entity.getFechaNacimiento())
+            .nacionalidad(entity.getNacionalidad())
+            .tipoPersonal(tipo)
+            .build();
+}
 }

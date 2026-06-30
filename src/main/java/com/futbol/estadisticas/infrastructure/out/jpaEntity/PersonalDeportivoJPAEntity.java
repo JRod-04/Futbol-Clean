@@ -56,7 +56,7 @@ public class PersonalDeportivoJPAEntity {
     private Nacion nacionalidad;
  
     @Enumerated(EnumType.STRING)
-    @Column(name = "tipo_personal", length = 30, insertable = false, updatable = false)
+    @Column(name = "tipo_personal", length = 30,insertable = false, updatable = false)
     private TipoPersonal tipoPersonal;
  
     // Contratos del personal

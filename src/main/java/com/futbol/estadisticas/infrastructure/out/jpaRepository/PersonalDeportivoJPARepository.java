@@ -12,8 +12,7 @@ import com.futbol.estadisticas.infrastructure.out.jpaEntity.PersonalDeportivoJPA
 
 public interface PersonalDeportivoJPARepository extends JpaRepository<PersonalDeportivoJPAEntity,UUID> {
 
-    List<PersonalDeportivoJPAEntity> findByTipoPersonal(TipoPersonal tipoPersonal);
- 
+   
     @Query("SELECT p FROM PersonalDeportivoJPAEntity p WHERE " +
            "LOWER(p.nombre) LIKE LOWER(CONCAT('%', :termino, '%')) OR " +
            "LOWER(p.apellido) LIKE LOWER(CONCAT('%', :termino, '%'))")

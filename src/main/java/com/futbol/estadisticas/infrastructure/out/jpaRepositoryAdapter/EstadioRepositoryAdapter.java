@@ -15,7 +15,7 @@ import lombok.RequiredArgsConstructor;
 
 @Component
 @RequiredArgsConstructor
-public class EstadioJPARepositoryAdapter implements EstadioRepositoryPort{
+public class EstadioRepositoryAdapter implements EstadioRepositoryPort { 
     private final EstadioJPARepository repository;
     private final InfrastructureMapper  mapper;
  
