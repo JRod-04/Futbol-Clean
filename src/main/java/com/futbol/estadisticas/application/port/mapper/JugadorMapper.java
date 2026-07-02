@@ -1,6 +1,7 @@
 package com.futbol.estadisticas.application.port.mapper;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.UUID;
 
 import org.springframework.stereotype.Component;
@@ -11,6 +12,7 @@ import com.futbol.estadisticas.domain.model.Club;
 import com.futbol.estadisticas.domain.model.DatosDeportivos;
 import com.futbol.estadisticas.domain.model.Jugador;
 import com.futbol.estadisticas.domain.model.enums.EstadoJugador;
+import com.futbol.estadisticas.domain.model.enums.PosicionJugador;
 import com.futbol.estadisticas.domain.model.enums.TipoPersonal;
 
 @Component
@@ -18,9 +20,14 @@ public class JugadorMapper {
       public Jugador toEntity(CrearJugadorRequest request) {
         UUID idPersonal = UUID.randomUUID();
  
+        ArrayList<PosicionJugador> posicionesIniciales = new ArrayList<>();
+        if (request.posicion() != null) {
+            posicionesIniciales.add(request.posicion()); 
+        }
+
         DatosDeportivos datosDeportivos = DatosDeportivos.builder()
                 .idHistorialDeportivo(UUID.randomUUID())
-                .posicion(request.posicion())
+                .posiciones(posicionesIniciales)
                 .estadoJugador(EstadoJugador.SUPLENTE)
                 .valorMercado(request.valorMercado())
                 .fechaActualizacion(LocalDate.now())
@@ -62,8 +69,8 @@ public class JugadorMapper {
                 jugador.getPieHabil(),
                 jugador.getAltura(),
                 jugador.getPeso(),
-                datos != null ? datos.getPosicion() : null,
-                datos != null && datos.getPosicion() != null ? datos.getPosicion().getDisplayName() : null,
+                datos != null ? datos.getPosicionActual() : null,
+                datos != null ? datos.getDorsal() : null,
                 datos != null ? datos.getEstadoJugador() : null,
                 datos != null ? datos.getValorMercado() : null,
                 datos != null ? datos.getValorMercadoEnMillones() : 0.0,

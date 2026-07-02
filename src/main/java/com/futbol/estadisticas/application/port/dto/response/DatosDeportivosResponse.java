@@ -5,10 +5,14 @@ import java.util.UUID;
 import com.futbol.estadisticas.domain.model.enums.EstadoJugador;
 import com.futbol.estadisticas.domain.model.enums.PosicionJugador;
 
+import lombok.Builder;
+
+
+@Builder
 public record DatosDeportivosResponse (
         UUID idHistorialDeportivo,
         PosicionJugador posicion,
-        String posicionDisplayName,
+        Integer dorsal,
         EstadoJugador estadoJugador,
         Double valorMercado,
         double valorMercadoEnMillones,

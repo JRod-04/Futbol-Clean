@@ -1,4 +1,4 @@
-package com.futbol.estadisticas.application.sevice;
+package com.futbol.estadisticas.application.service;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -97,8 +97,12 @@ public class JugadorService implements JugadoresUseCase {
         if (request.altura() != null)    jugador.setAltura(request.altura());
         if (request.peso() != null)      jugador.setPeso(request.peso());
  
+        if (request.dorsal() != null && jugador.getDatosDeportivos() != null) {
+        jugador.getDatosDeportivos().actualizarDorsal(request.dorsal());
+        }
+
         if (request.posicion() != null && jugador.getDatosDeportivos() != null) {
-            jugador.getDatosDeportivos().agregarPosicion(request.posicion());
+        jugador.getDatosDeportivos().agregarPosicion(request.posicion());
         }
         if (request.valorMercado() != null && jugador.getDatosDeportivos() != null) {
             jugador.getDatosDeportivos().actualizarValorMercado(request.valorMercado());

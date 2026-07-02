@@ -17,20 +17,18 @@ import com.futbol.estadisticas.domain.model.enums.PosicionJugador;
 
 import lombok.RequiredArgsConstructor;
 
-
 @RestController
 @RequestMapping("/apifutbol/jugadores/{idJugador}/datos-deportivos")
 @RequiredArgsConstructor
 public class DatosDeportivosController {
 
-
     private final DatosDeportivosUseCase datosDeportivosUseCase;
- 
+
     @GetMapping
     public ResponseEntity<DatosDeportivosResponse> obtener(@PathVariable UUID idJugador) {
         return ResponseEntity.ok(datosDeportivosUseCase.obtenerPorJugador(idJugador));
     }
- 
+
     @PatchMapping("/valor-mercado")
     public ResponseEntity<DatosDeportivosResponse> actualizarValor(
             @PathVariable UUID idJugador,
@@ -38,7 +36,7 @@ public class DatosDeportivosController {
         return ResponseEntity.ok(
                 datosDeportivosUseCase.actualizarValorMercado(idJugador, nuevoValor));
     }
- 
+
     @PatchMapping("/posicion")
     public ResponseEntity<DatosDeportivosResponse> cambiarPosicion(
             @PathVariable UUID idJugador,
@@ -46,17 +44,25 @@ public class DatosDeportivosController {
         return ResponseEntity.ok(
                 datosDeportivosUseCase.cambiarPosicion(idJugador, nuevaPosicion));
     }
- 
+
+    @PatchMapping("/dorsal")
+    public ResponseEntity<DatosDeportivosResponse> actualizarDorsal(
+            @PathVariable UUID idJugador,
+            @RequestParam Integer nuevoDorsal) {
+        return ResponseEntity.ok(
+            datosDeportivosUseCase.actualizarDorsal(idJugador, nuevoDorsal));
+    }
+
     @PatchMapping("/promover-titular")
     public ResponseEntity<DatosDeportivosResponse> promoverATitular(@PathVariable UUID idJugador) {
         return ResponseEntity.ok(datosDeportivosUseCase.promoverATitular(idJugador));
     }
- 
+
     @PatchMapping("/pasar-suplente")
     public ResponseEntity<DatosDeportivosResponse> pasarASuplente(@PathVariable UUID idJugador) {
         return ResponseEntity.ok(datosDeportivosUseCase.cambiarASuplente(idJugador));
     }
- 
+
     @PatchMapping("/estado")
     public ResponseEntity<DatosDeportivosResponse> actualizarEstado(
             @PathVariable UUID idJugador,
@@ -65,4 +71,3 @@ public class DatosDeportivosController {
                 datosDeportivosUseCase.actualizarEstado(idJugador, nuevoEstado));
     }
 }
-

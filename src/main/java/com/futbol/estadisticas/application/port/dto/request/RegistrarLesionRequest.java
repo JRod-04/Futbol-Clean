@@ -7,7 +7,9 @@ import com.futbol.estadisticas.domain.model.enums.Gravedad;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PastOrPresent;
+import lombok.Builder;
 
+@Builder
 public record RegistrarLesionRequest(
     
         @NotBlank(message = "El nombre de la lesión es obligatorio")

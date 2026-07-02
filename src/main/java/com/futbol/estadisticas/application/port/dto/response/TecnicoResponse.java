@@ -5,6 +5,9 @@ import java.util.UUID;
 
 import com.futbol.estadisticas.domain.model.enums.Nacion;
 
+import lombok.Builder;
+
+@Builder
 public record TecnicoResponse(
         UUID idPersonal,
         String nombre,

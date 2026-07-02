@@ -17,8 +17,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -26,6 +28,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
+@Transactional
 class DatosDeportivosJPARepositoryTest extends PostgresTestContainerConfig {
 
     @DynamicPropertySource
@@ -97,11 +100,12 @@ class DatosDeportivosJPARepositoryTest extends PostgresTestContainerConfig {
 
         jugadorRepository.saveAll(List.of(jugador1, jugador2, jugador3));
 
-        // Crear datos deportivos (asociados a los jugadores)
+        // Crear datos deportivos con lista de posiciones y dorsal
         DatosDeportivosJPAEntity datos1 = DatosDeportivosJPAEntity.builder()
                 .idHistorialDeportivo(ID_DATOS_1)
                 .jugador(jugador1)
-                .posicion(PosicionJugador.EXTREMO_DERECHO)
+                .posiciones(new ArrayList<>(List.of(PosicionJugador.EXTREMO_DERECHO)))  // ✅ Lista
+                .dorsal(7)  // ✅ Dorsal
                 .estadoJugador(EstadoJugador.TITULAR)
                 .valorMercado(85000000.0)
                 .fechaActualizacion(LocalDate.now())
@@ -110,7 +114,8 @@ class DatosDeportivosJPARepositoryTest extends PostgresTestContainerConfig {
         DatosDeportivosJPAEntity datos2 = DatosDeportivosJPAEntity.builder()
                 .idHistorialDeportivo(ID_DATOS_2)
                 .jugador(jugador2)
-                .posicion(PosicionJugador.DELANTERO)
+                .posiciones(new ArrayList<>(List.of(PosicionJugador.DELANTERO)))  // ✅ Lista
+                .dorsal(9)  // ✅ Dorsal
                 .estadoJugador(EstadoJugador.TITULAR)
                 .valorMercado(200000000.0)
                 .fechaActualizacion(LocalDate.now())
@@ -119,7 +124,8 @@ class DatosDeportivosJPARepositoryTest extends PostgresTestContainerConfig {
         DatosDeportivosJPAEntity datos3 = DatosDeportivosJPAEntity.builder()
                 .idHistorialDeportivo(ID_DATOS_3)
                 .jugador(jugador3)
-                .posicion(PosicionJugador.MEDIOCENTRO)
+                .posiciones(new ArrayList<>(List.of(PosicionJugador.MEDIOCENTRO)))  // ✅ Lista
+                .dorsal(20)  // ✅ Dorsal
                 .estadoJugador(EstadoJugador.LESIONADO)
                 .valorMercado(70000000.0)
                 .fechaActualizacion(LocalDate.now())
@@ -133,11 +139,11 @@ class DatosDeportivosJPARepositoryTest extends PostgresTestContainerConfig {
     void testFindById() {
         Optional<DatosDeportivos> datos = adapter.findById(ID_DATOS_1);
         assertThat(datos).isPresent();
-        assertThat(datos.get().getPosicion()).isEqualTo(PosicionJugador.EXTREMO_DERECHO);
+        assertThat(datos.get().getPosicionActual()).isEqualTo(PosicionJugador.EXTREMO_DERECHO);  // ✅ Usar getPosicionActual()
+        assertThat(datos.get().getPosiciones()).hasSize(1);  // ✅ Verificar lista
+        assertThat(datos.get().getDorsal()).isEqualTo(7);  // ✅ Verificar dorsal
         assertThat(datos.get().getValorMercado()).isEqualTo(85000000.0);
         assertThat(datos.get().getEstadoJugador()).isEqualTo(EstadoJugador.TITULAR);
-        // El jugador puede ser null si el mapper no lo mapea correctamente
-        // Por ahora solo verificamos que los datos existan
     }
 
     @Test
@@ -145,9 +151,9 @@ class DatosDeportivosJPARepositoryTest extends PostgresTestContainerConfig {
     void testFindByJugador() {
         Optional<DatosDeportivos> datos = adapter.findByJugador(ID_JUGADOR_1);
         assertThat(datos).isPresent();
-        assertThat(datos.get().getPosicion()).isEqualTo(PosicionJugador.EXTREMO_DERECHO);
+        assertThat(datos.get().getPosicionActual()).isEqualTo(PosicionJugador.EXTREMO_DERECHO);
+        assertThat(datos.get().getDorsal()).isEqualTo(7);
         assertThat(datos.get().getValorMercado()).isEqualTo(85000000.0);
-        // Verificamos que los datos existen, el jugador puede ser null
     }
 
     @Test
@@ -177,16 +183,9 @@ class DatosDeportivosJPARepositoryTest extends PostgresTestContainerConfig {
     @Test
     @DisplayName("existsByJugador: debe verificar existencia de datos deportivos por jugador")
     void testExistsByJugador() {
-        // Jugador 1 tiene datos deportivos
         assertThat(adapter.existsByJugador(ID_JUGADOR_1)).isTrue();
-        
-        // Jugador 2 tiene datos deportivos
         assertThat(adapter.existsByJugador(ID_JUGADOR_2)).isTrue();
-        
-        // Jugador 3 tiene datos deportivos
         assertThat(adapter.existsByJugador(ID_JUGADOR_3)).isTrue();
-        
-        // ID aleatorio no existe
         assertThat(adapter.existsByJugador(UUID.randomUUID())).isFalse();
     }
 
@@ -207,13 +206,14 @@ class DatosDeportivosJPARepositoryTest extends PostgresTestContainerConfig {
     @Test
     @DisplayName("save: debe guardar nuevos datos deportivos para un jugador existente")
     void testSave() {
+        // Crear nuevo jugador
         UUID nuevoJugadorId = UUID.fromString("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
         JugadorJPAEntity nuevoJugador = JugadorJPAEntity.builder()
                 .idPersonal(nuevoJugadorId)
                 .nombre("Nuevo")
                 .apellido("Jugador")
                 .fechaNacimiento(LocalDate.of(1995, 5, 5))
-                .nacionalidad(Nacion.ESPANA)
+                .nacionalidad(Nacion.ESPAÑA)
                 .pieHabil(JuegoPies.DERECHO)
                 .altura(180)
                 .peso(75)
@@ -221,6 +221,7 @@ class DatosDeportivosJPARepositoryTest extends PostgresTestContainerConfig {
                 .build();
         jugadorRepository.save(nuevoJugador);
 
+        // Crear datos deportivos con lista de posiciones y dorsal
         Jugador jugadorDomain = Jugador.builder()
                 .idPersonal(nuevoJugadorId)
                 .nombre("Nuevo")
@@ -231,7 +232,8 @@ class DatosDeportivosJPARepositoryTest extends PostgresTestContainerConfig {
         DatosDeportivos nuevosDatos = DatosDeportivos.builder()
                 .idHistorialDeportivo(nuevoId)
                 .jugador(jugadorDomain)
-                .posicion(PosicionJugador.CENTRAL)
+                .posiciones(new ArrayList<>(List.of(PosicionJugador.CENTRAL)))  // ✅ Lista con posición inicial
+                .dorsal(10)  // ✅ Dorsal
                 .estadoJugador(EstadoJugador.SUPLENTE)
                 .valorMercado(50000000.0)
                 .build();
@@ -240,7 +242,9 @@ class DatosDeportivosJPARepositoryTest extends PostgresTestContainerConfig {
         
         assertThat(guardado).isNotNull();
         assertThat(guardado.getIdHistorialDeportivo()).isEqualTo(nuevoId);
-        assertThat(guardado.getPosicion()).isEqualTo(PosicionJugador.CENTRAL);
+        assertThat(guardado.getPosicionActual()).isEqualTo(PosicionJugador.CENTRAL);
+        assertThat(guardado.getPosiciones()).hasSize(1);
+        assertThat(guardado.getDorsal()).isEqualTo(10);
         assertThat(guardado.getValorMercado()).isEqualTo(50000000.0);
         assertThat(guardado.getEstadoJugador()).isEqualTo(EstadoJugador.SUPLENTE);
 
@@ -249,6 +253,7 @@ class DatosDeportivosJPARepositoryTest extends PostgresTestContainerConfig {
         Optional<DatosDeportivos> encontrado = adapter.findById(nuevoId);
         assertThat(encontrado).isPresent();
         assertThat(encontrado.get().getValorMercado()).isEqualTo(50000000.0);
+        assertThat(encontrado.get().getDorsal()).isEqualTo(10);
     }
 
     @Test
@@ -261,27 +266,34 @@ class DatosDeportivosJPARepositoryTest extends PostgresTestContainerConfig {
         
         DatosDeportivos datos = datosOptional.get();
         assertThat(datos.getValorMercado()).isEqualTo(85000000.0);
+        assertThat(datos.getDorsal()).isEqualTo(7);
         
         Jugador jugador = Jugador.builder()
                 .idPersonal(ID_JUGADOR_1)
                 .build();
         
+        // Agregar nueva posición y actualizar dorsal
         DatosDeportivos datosActualizados = DatosDeportivos.builder()
                 .idHistorialDeportivo(datos.getIdHistorialDeportivo())
                 .jugador(jugador)
-                .posicion(datos.getPosicion())
+                .posiciones(new ArrayList<>(List.of(PosicionJugador.EXTREMO_DERECHO, PosicionJugador.DELANTERO)))  // ✅ Agregar nueva posición
+                .dorsal(11)  // ✅ Nuevo dorsal
                 .estadoJugador(datos.getEstadoJugador())
-                .valorMercado(90000000.0) // Nuevo valor
+                .valorMercado(90000000.0)
                 .build();
         
         DatosDeportivos guardado = adapter.save(datosActualizados);
         
         assertThat(guardado).isNotNull();
         assertThat(guardado.getIdHistorialDeportivo()).isEqualTo(ID_DATOS_1);
+        assertThat(guardado.getPosiciones()).hasSize(2);
+        assertThat(guardado.getPosicionActual()).isEqualTo(PosicionJugador.DELANTERO);
+        assertThat(guardado.getDorsal()).isEqualTo(11);
         assertThat(guardado.getValorMercado()).isEqualTo(90000000.0);
         
         Optional<DatosDeportivos> encontrado = adapter.findById(ID_DATOS_1);
         assertThat(encontrado).isPresent();
+        assertThat(encontrado.get().getDorsal()).isEqualTo(11);
         assertThat(encontrado.get().getValorMercado()).isEqualTo(90000000.0);
         
         assertThat(adapter.existsByJugador(ID_JUGADOR_1)).isTrue();
@@ -297,7 +309,7 @@ class DatosDeportivosJPARepositoryTest extends PostgresTestContainerConfig {
                 .nombre("Sin")
                 .apellido("Datos")
                 .fechaNacimiento(LocalDate.of(1990, 1, 1))
-                .nacionalidad(Nacion.ESPANA)
+                .nacionalidad(Nacion.ESPAÑA)
                 .pieHabil(JuegoPies.DERECHO)
                 .altura(180)
                 .peso(75)
@@ -318,7 +330,7 @@ class DatosDeportivosJPARepositoryTest extends PostgresTestContainerConfig {
                 .nombre("Sin")
                 .apellido("Datos")
                 .fechaNacimiento(LocalDate.of(1990, 1, 1))
-                .nacionalidad(Nacion.ESPANA)
+                .nacionalidad(Nacion.ESPAÑA)
                 .pieHabil(JuegoPies.DERECHO)
                 .altura(180)
                 .peso(75)

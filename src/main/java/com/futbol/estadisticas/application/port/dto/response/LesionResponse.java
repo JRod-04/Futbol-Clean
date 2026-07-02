@@ -5,6 +5,9 @@ import java.util.UUID;
 
 import com.futbol.estadisticas.domain.model.enums.Gravedad;
 
+import lombok.Builder;
+
+@Builder
 public record LesionResponse(
     
         UUID idLesion,

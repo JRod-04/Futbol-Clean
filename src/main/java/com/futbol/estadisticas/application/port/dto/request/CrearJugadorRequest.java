@@ -6,11 +6,13 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Past;
 import jakarta.validation.constraints.Positive;
+import lombok.Builder;
 
 import com.futbol.estadisticas.domain.model.enums.JuegoPies;
 import com.futbol.estadisticas.domain.model.enums.Nacion;
 import com.futbol.estadisticas.domain.model.enums.PosicionJugador;
 
+@Builder
 public record CrearJugadorRequest(
         @NotBlank(message = "El nombre es obligatorio")
         String nombre,
@@ -29,9 +31,12 @@ public record CrearJugadorRequest(
         JuegoPies pieHabil,
  
         Integer altura,
- 
+        
         Integer peso,
- 
+        
+        @Positive(message = "El dorsal debe ser positivo")
+        Integer dorsal,
+
         @NotNull(message = "La posición es obligatoria")
         PosicionJugador posicion,
  

@@ -1,5 +1,6 @@
-package com.futbol.estadisticas.application.sevice;
+package com.futbol.estadisticas.application.service;
 
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
@@ -10,6 +11,7 @@ import com.futbol.estadisticas.application.port.in.DatosDeportivosUseCase;
 import com.futbol.estadisticas.application.port.mapper.DatosDeportivosMapper;
 import com.futbol.estadisticas.application.port.out.DatosDeportivosRepositoryPort;
 import com.futbol.estadisticas.application.port.out.JugadorRepositoryPort;
+import com.futbol.estadisticas.domain.model.Club;
 import com.futbol.estadisticas.domain.model.DatosDeportivos;
 import com.futbol.estadisticas.domain.model.Jugador;
 import com.futbol.estadisticas.domain.model.enums.EstadoJugador;
@@ -74,7 +76,38 @@ public class DatosDeportivosService implements DatosDeportivosUseCase{
         datos.actualizarEstado(nuevoEstado);
         return datosDeportivosMapper.toResponse(datosDeportivosRepository.save(datos), jugador);
     }
- 
+       public DatosDeportivosResponse actualizarDorsal(UUID idJugador, Integer nuevoDorsal) {
+        Jugador jugador = findJugadorOrThrow(idJugador);
+        DatosDeportivos datos = findDatosOrThrow(idJugador);
+        
+        // ✅ VALIDAR: El dorsal no puede ser usado por otro jugador del mismo club
+        validarDorsalUnicoEnClub(jugador, nuevoDorsal);
+        
+        datos.actualizarDorsal(nuevoDorsal);
+        return datosDeportivosMapper.toResponse(datosDeportivosRepository.save(datos), jugador);
+    }
+
+    // ── VALIDACIÓN PRIVADA ──
+    
+    private void validarDorsalUnicoEnClub(Jugador jugador, Integer dorsal) {
+        if (dorsal == null) return;
+        
+        Club club = jugador.getClubActual();
+        if (club == null) return; 
+        
+        List<Jugador> jugadoresClub = jugadorRepository.findByClub(club.getIdEquipo());
+        
+        boolean dorsalOcupado = jugadoresClub.stream()
+                .filter(j -> !j.getIdPersonal().equals(jugador.getIdPersonal()))
+                .anyMatch(j -> j.getDatosDeportivos() != null 
+                        && j.getDatosDeportivos().getDorsal() != null
+                        && j.getDatosDeportivos().getDorsal().equals(dorsal));
+        
+        if (dorsalOcupado) {
+            throw new IllegalArgumentException(
+                    "El dorsal " + dorsal + " ya está asignado a otro jugador del club " + club.getNombre());
+        }
+    }
     // ── helpers privados ───────────────────────────────────────────────────────
  
     private Jugador findJugadorOrThrow(UUID idJugador) {

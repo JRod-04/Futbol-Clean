@@ -98,7 +98,7 @@ class TecnicoJPARepositoryTest extends PostgresTestContainerConfig {
                 .nombre("Mikel")
                 .apellido("Arteta")
                 .fechaNacimiento(LocalDate.of(1982, 3, 26))
-                .nacionalidad(Nacion.ESPANA)
+                .nacionalidad(Nacion.ESPAÑA)
                 .estiloJuego("Presión alta y posesión")
                 .alineacionFavorita("4-3-3")
                 .build();
@@ -116,7 +116,7 @@ class TecnicoJPARepositoryTest extends PostgresTestContainerConfig {
                 .nombre("Pep")
                 .apellido("Guardiola")
                 .fechaNacimiento(LocalDate.of(1971, 1, 18))
-                .nacionalidad(Nacion.ESPANA)
+                .nacionalidad(Nacion.ESPAÑA)
                 .estiloJuego("Fútbol posicional")
                 .alineacionFavorita("4-3-3")
                 .build();
@@ -182,7 +182,7 @@ class TecnicoJPARepositoryTest extends PostgresTestContainerConfig {
         assertThat(tecnico).isPresent();
         assertThat(tecnico.get().getNombre()).isEqualTo("Mikel");
         assertThat(tecnico.get().getApellido()).isEqualTo("Arteta");
-        assertThat(tecnico.get().getNacionalidad()).isEqualTo(Nacion.ESPANA);
+        assertThat(tecnico.get().getNacionalidad()).isEqualTo(Nacion.ESPAÑA);
         assertThat(tecnico.get().getEstiloJuego()).isEqualTo("Presión alta y posesión");
     }
 

@@ -7,6 +7,8 @@ import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -32,13 +34,13 @@ class JugadorTest {
 
         DatosDeportivos datos = DatosDeportivos.builder()
                 .estadoJugador(EstadoJugador.TITULAR)
-                .posicion(PosicionJugador.EXTREMO_DERECHO)
+                .posiciones(new ArrayList<>(List.of(PosicionJugador.EXTREMO_DERECHO)))  
+                .dorsal(7)  
                 .valorMercado(85_000_000.0)
                 .build();
 
         jugador.setDatosDeportivos(datos);
 
-        // Agregar contrato vigente
         Club club = Club.builder()
                 .idEquipo(UUID.randomUUID())
                 .nombre("Arsenal FC")
@@ -131,7 +133,6 @@ class JugadorTest {
     void testEstaDisponible() {
         assertThat(jugador.estaDisponible()).isTrue();
 
-        // Agregar lesión
         Lesion lesion = Lesion.builder()
                 .idLesion(UUID.randomUUID())
                 .nombreLesion("Lesión activa")
@@ -156,5 +157,127 @@ class JugadorTest {
     void testEstaDisponible_Retirado() {
         jugador.getDatosDeportivos().setEstadoJugador(EstadoJugador.RETIRADO);
         assertThat(jugador.estaDisponible()).isFalse();
+    }
+
+
+    @Test
+    @DisplayName("getDatosDeportivos: debe tener dorsal asignado")
+    void testGetDorsal() {
+        assertThat(jugador.getDatosDeportivos()).isNotNull();
+        assertThat(jugador.getDatosDeportivos().getDorsal()).isEqualTo(7);
+    }
+
+    @Test
+    @DisplayName("getDatosDeportivos: debe tener lista de posiciones")
+    void testGetPosiciones() {
+        assertThat(jugador.getDatosDeportivos()).isNotNull();
+        assertThat(jugador.getDatosDeportivos().getPosiciones())
+                .containsExactly(PosicionJugador.EXTREMO_DERECHO);
+        assertThat(jugador.getDatosDeportivos().getPosicionActual())
+                .isEqualTo(PosicionJugador.EXTREMO_DERECHO);
+    }
+
+    @Test
+    @DisplayName("actualizarDorsal: debe actualizar el dorsal correctamente")
+    void testActualizarDorsal() {
+        DatosDeportivos datos = jugador.getDatosDeportivos();
+        assertThat(datos.getDorsal()).isEqualTo(7);
+
+        datos.actualizarDorsal(10);
+        assertThat(datos.getDorsal()).isEqualTo(10);
+        assertThat(datos.getFechaActualizacion()).isEqualTo(LocalDate.now());
+    }
+
+    @Test
+    @DisplayName("actualizarDorsal: debe lanzar excepción cuando el dorsal es null")
+    void testActualizarDorsal_Nulo() {
+        DatosDeportivos datos = jugador.getDatosDeportivos();
+
+        assertThatThrownBy(() -> datos.actualizarDorsal(null))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("El dorsal no puede ser nulo");
+    }
+
+    @Test
+    @DisplayName("actualizarDorsal: debe lanzar excepción cuando el dorsal es negativo")
+    void testActualizarDorsal_Negativo() {
+        DatosDeportivos datos = jugador.getDatosDeportivos();
+
+        assertThatThrownBy(() -> datos.actualizarDorsal(-1))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("El dorsal debe ser positivo");
+    }
+
+    @Test
+    @DisplayName("actualizarDorsal: debe lanzar excepción cuando el dorsal es cero")
+    void testActualizarDorsal_Cero() {
+        DatosDeportivos datos = jugador.getDatosDeportivos();
+
+        assertThatThrownBy(() -> datos.actualizarDorsal(0))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("El dorsal debe ser positivo");
+    }
+
+    @Test
+    @DisplayName("agregarPosicion: debe agregar una nueva posición a la lista")
+    void testAgregarPosicion() {
+        DatosDeportivos datos = jugador.getDatosDeportivos();
+        assertThat(datos.getPosiciones()).hasSize(1);
+        assertThat(datos.getPosicionActual()).isEqualTo(PosicionJugador.EXTREMO_DERECHO);
+
+        datos.agregarPosicion(PosicionJugador.DELANTERO);
+
+        assertThat(datos.getPosiciones()).hasSize(2);
+        assertThat(datos.getPosiciones())
+                .containsExactly(PosicionJugador.EXTREMO_DERECHO, PosicionJugador.DELANTERO);
+        assertThat(datos.getPosicionActual()).isEqualTo(PosicionJugador.DELANTERO);
+        assertThat(datos.getFechaActualizacion()).isEqualTo(LocalDate.now());
+    }
+
+    @Test
+    @DisplayName("agregarPosicion: no debe agregar posiciones duplicadas")
+    void testAgregarPosicion_Duplicada() {
+        DatosDeportivos datos = jugador.getDatosDeportivos();
+        assertThat(datos.getPosiciones()).hasSize(1);
+
+        datos.agregarPosicion(PosicionJugador.EXTREMO_DERECHO); 
+
+        assertThat(datos.getPosiciones()).hasSize(1);
+        assertThat(datos.getPosiciones())
+                .containsExactly(PosicionJugador.EXTREMO_DERECHO);
+    }
+
+    @Test
+    @DisplayName("agregarPosicion: debe lanzar excepción cuando la posición es nula")
+    void testAgregarPosicion_Nula() {
+        DatosDeportivos datos = jugador.getDatosDeportivos();
+
+        assertThatThrownBy(() -> datos.agregarPosicion(null))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("La posición no puede ser nula");
+    }
+
+    @Test
+    @DisplayName("getPosicionActual: debe retornar la última posición de la lista")
+    void testGetPosicionActual() {
+        DatosDeportivos datos = jugador.getDatosDeportivos();
+        
+        assertThat(datos.getPosicionActual()).isEqualTo(PosicionJugador.EXTREMO_DERECHO);
+
+        datos.agregarPosicion(PosicionJugador.DELANTERO);
+        assertThat(datos.getPosicionActual()).isEqualTo(PosicionJugador.DELANTERO);
+
+        datos.agregarPosicion(PosicionJugador.MEDIOCENTRO);
+        assertThat(datos.getPosicionActual()).isEqualTo(PosicionJugador.MEDIOCENTRO);
+    }
+
+    @Test
+    @DisplayName("getPosicionActual: debe retornar null cuando la lista está vacía")
+    void testGetPosicionActual_ListaVacia() {
+        DatosDeportivos datos = DatosDeportivos.builder()
+                .posiciones(new ArrayList<>())
+                .build();
+
+        assertThat(datos.getPosicionActual()).isNull();
     }
 }

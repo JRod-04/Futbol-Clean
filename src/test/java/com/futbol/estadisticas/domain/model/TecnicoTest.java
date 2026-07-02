@@ -23,7 +23,7 @@ class TecnicoTest {
                 .nombre("Mikel")
                 .apellido("Arteta")
                 .fechaNacimiento(LocalDate.of(1982, 3, 26))
-                .nacionalidad(Nacion.ESPANA)
+                .nacionalidad(Nacion.ESPAÑA)
                 .estiloJuego("Presión alta y posesión")
                 .alineacionFavorita("4-3-3")
                 .build();

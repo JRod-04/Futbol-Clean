@@ -4,7 +4,9 @@ import com.futbol.estadisticas.domain.model.enums.JuegoPies;
 import com.futbol.estadisticas.domain.model.enums.PosicionJugador;
 
 import jakarta.validation.constraints.Positive;
+import lombok.Builder;
 
+@Builder
 public record ActualizarJugadorRequest(String nombre,
         String apellido,
         JuegoPies pieHabil,
@@ -13,6 +15,10 @@ public record ActualizarJugadorRequest(String nombre,
         PosicionJugador posicion,
  
         @Positive(message = "El valor de mercado debe ser positivo")
-        Double valorMercado) {
+        Double valorMercado,
+        
+        @Positive(message = "El dorsal debe ser positivo")
+        Integer dorsal
+) {
 
 }
