@@ -3,6 +3,9 @@ package com.futbol.estadisticas.application.port.dto.response;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+import lombok.Builder;
+
+@Builder
 public record CompeticionResponse(
     
         UUID idCompeticion,

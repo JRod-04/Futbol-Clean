@@ -28,7 +28,6 @@ public class LesionController {
 
     private final LesionUseCase lesionUseCase;
  
-    // POST /api/v1/jugadores/{idJugador}/lesiones
     @PostMapping("/jugadores/{idJugador}/lesiones")
     public ResponseEntity<LesionResponse> registrar(
             @PathVariable UUID idJugador,
@@ -37,37 +36,31 @@ public class LesionController {
                 .body(lesionUseCase.registrarLesion(idJugador, request));
     }
  
-    // GET /api/v1/jugadores/{idJugador}/lesiones
     @GetMapping("/jugadores/{idJugador}/lesiones")
     public ResponseEntity<List<LesionResponse>> porJugador(@PathVariable UUID idJugador) {
         return ResponseEntity.ok(lesionUseCase.obtenerLesionesPorJugador(idJugador));
     }
  
-    // GET /api/v1/jugadores/{idJugador}/lesiones/activas
     @GetMapping("/jugadores/{idJugador}/lesiones/activas")
     public ResponseEntity<List<LesionResponse>> activasPorJugador(@PathVariable UUID idJugador) {
         return ResponseEntity.ok(lesionUseCase.obtenerLesionesActivasPorJugador(idJugador));
     }
  
-    // GET /api/v1/lesiones/{id}
     @GetMapping("/lesiones/{id}")
     public ResponseEntity<LesionResponse> obtenerPorId(@PathVariable UUID id) {
         return ResponseEntity.ok(lesionUseCase.obtenerLesionPorId(id));
     }
  
-    // GET /api/v1/lesiones/activas
     @GetMapping("/lesiones/activas")
     public ResponseEntity<List<LesionResponse>> todasLasActivas() {
         return ResponseEntity.ok(lesionUseCase.obtenerLesionesActivasEnSistema());
     }
  
-    // GET /api/v1/lesiones/gravedad/{gravedad}
     @GetMapping("/lesiones/gravedad/{gravedad}")
     public ResponseEntity<List<LesionResponse>> porGravedad(@PathVariable Gravedad gravedad) {
         return ResponseEntity.ok(lesionUseCase.obtenerLesionesPorGravedad(gravedad));
     }
  
-    // PATCH /api/v1/lesiones/{id}/curar
     @PatchMapping("/lesiones/{id}/curar")
     public ResponseEntity<LesionResponse> curar(@PathVariable UUID id) {
         return ResponseEntity.ok(lesionUseCase.curarLesion(id));

@@ -1,12 +1,16 @@
 package com.futbol.estadisticas.infrastructure.out.jpaEntity;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 import com.futbol.estadisticas.domain.model.enums.EstadoJugador;
 import com.futbol.estadisticas.domain.model.enums.PosicionJugador;
 
+import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -43,11 +47,21 @@ public class DatosDeportivosJPAEntity {
  
     @Column(name = "valor_mercado")
     private Double valorMercado;
- 
+
+    @ElementCollection
     @Enumerated(EnumType.STRING)
-    @Column(name = "posicion", length = 40)
-    private PosicionJugador posicion;
- 
+    @CollectionTable(
+        name = "jugador_posiciones",
+        joinColumns = @JoinColumn(name = "id_historial")
+    )
+    @Column(name = "posicion")
+    @Builder.Default
+    private List<PosicionJugador> posiciones = new ArrayList<>();
+
+    @Column(name = "dorsal")
+    private Integer dorsal;
+
+   
     // Dueño de la FK hacia jugadores
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_jugador", nullable = false, unique = true,

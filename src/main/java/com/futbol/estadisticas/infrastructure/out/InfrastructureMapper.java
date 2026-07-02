@@ -1,6 +1,7 @@
 package com.futbol.estadisticas.infrastructure.out;
 
 import java.util.ArrayList;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Component;
 
@@ -82,30 +83,35 @@ public class InfrastructureMapper {
  
     // ──────────────────────────── DATOS DEPORTIVOS ────────────────────────────
  
-    public DatosDeportivos toDomain(DatosDeportivosJPAEntity e) {
-        if (e == null) return null;
+    public DatosDeportivos toDomain(DatosDeportivosJPAEntity entity) {
+        if (entity == null) return null;
+
         return DatosDeportivos.builder()
-                .idHistorialDeportivo(e.getIdHistorialDeportivo())
-                .fechaActualizacion(e.getFechaActualizacion())
-                .estadoJugador(e.getEstadoJugador())
-                .valorMercado(e.getValorMercado())
-                .posicion(e.getPosicion())
-                // jugador se enlaza en JugadorAdapter
+                .idHistorialDeportivo(entity.getIdHistorialDeportivo())
+                .fechaActualizacion(entity.getFechaActualizacion())
+                .estadoJugador(entity.getEstadoJugador())
+                .valorMercado(entity.getValorMercado())
+                .posiciones(entity.getPosiciones() != null ? entity.getPosiciones() : new ArrayList<>())
+                .dorsal(entity.getDorsal())
                 .build();
     }
- 
-    public DatosDeportivosJPAEntity toJpa(DatosDeportivos d, JugadorJPAEntity jugadorJPA) {
-        if (d == null) return null;
+
+    // ── DATOS DEPORTIVOS: DOMAIN → JPA ──
+
+    public DatosDeportivosJPAEntity toJpa(DatosDeportivos domain, JugadorJPAEntity jugadorJPA) {
+        if (domain == null) return null;
+
         return DatosDeportivosJPAEntity.builder()
-                .idHistorialDeportivo(d.getIdHistorialDeportivo())
-                .fechaActualizacion(d.getFechaActualizacion())
-                .estadoJugador(d.getEstadoJugador())
-                .valorMercado(d.getValorMercado())
-                .posicion(d.getPosicion())
+                .idHistorialDeportivo(domain.getIdHistorialDeportivo())
+                .fechaActualizacion(domain.getFechaActualizacion())
+                .estadoJugador(domain.getEstadoJugador())
+                .valorMercado(domain.getValorMercado())
+                .posiciones(domain.getPosiciones() != null ? domain.getPosiciones() : new ArrayList<>())
+                .dorsal(domain.getDorsal())
                 .jugador(jugadorJPA)
                 .build();
     }
- 
+    
     // ──────────────────────────── LESIÓN ────────────────────────────
  
     public Lesion toDomain(LesionJPAEntity e) {
@@ -133,42 +139,45 @@ public class InfrastructureMapper {
                 .build();
     }
  
-    // ──────────────────────────── JUGADOR ────────────────────────────
+    // ──────────────────────────── JUGADOR: JPA → DOMAIN ────────────────────────────
  
-    public Jugador toDomain(JugadorJPAEntity e) {
-        if (e == null) return null;
-        Jugador jugador = Jugador.builder()
-                .idPersonal(e.getIdPersonal())
-                .nombre(e.getNombre())
-                .apellido(e.getApellido())
-                .fechaNacimiento(e.getFechaNacimiento())
-                .nacionalidad(e.getNacionalidad())
-                .tipoPersonal(e.getTipoPersonal())
-                .pieHabil(e.getPieHabil())
-                .altura(e.getAltura())
-                .peso(e.getPeso())
-                .fechaActualizacion(e.getFechaActualizacion())
-                .contratos(new ArrayList<>())
-                .eventos(new ArrayList<>())
-                .lesiones(new ArrayList<>())
-                .build();
- 
-        if (e.getDatosDeportivos() != null) {
-            DatosDeportivos datos = toDomain(e.getDatosDeportivos());
-            datos.setJugador(jugador);
-            jugador.setDatosDeportivos(datos);
+    public Jugador toDomain(JugadorJPAEntity entity) {
+        if (entity == null) return null;
+        
+        Jugador.JugadorBuilder builder = Jugador.builder()
+                .idPersonal(entity.getIdPersonal())
+                .nombre(entity.getNombre())
+                .apellido(entity.getApellido())
+                .fechaNacimiento(entity.getFechaNacimiento())
+                .nacionalidad(entity.getNacionalidad())
+                .tipoPersonal(entity.getTipoPersonal())
+                .pieHabil(entity.getPieHabil())
+                .altura(entity.getAltura())
+                .peso(entity.getPeso())
+                .fechaActualizacion(entity.getFechaActualizacion());
+
+        // Mapear datos deportivos - AHORA SIN RELACIÓN CIRCULAR
+        if (entity.getDatosDeportivos() != null) {
+            DatosDeportivos datosDeportivos = toDomain(entity.getDatosDeportivos());
+            builder.datosDeportivos(datosDeportivos);
         }
- 
-        if (e.getLesiones() != null) {
-            e.getLesiones().forEach(l -> jugador.getLesiones().add(toDomain(l)));
+
+        // Mapear lesiones
+        if (entity.getLesiones() != null && !entity.getLesiones().isEmpty()) {
+            builder.lesiones(entity.getLesiones().stream()
+                    .map(this::toDomain)
+                    .collect(Collectors.toList()));
         }
- 
-        return jugador;
+
+        return builder.build();
     }
+
+    // ──────────────────────────── JUGADOR: DOMAIN → JPA ────────────────────────────
  
     public JugadorJPAEntity toJpa(Jugador d) {
         if (d == null) return null;
-        return JugadorJPAEntity.builder()
+
+        JugadorJPAEntity.JugadorJPAEntityBuilder builder = JugadorJPAEntity.builder()
                 .idPersonal(d.getIdPersonal())
                 .nombre(d.getNombre())
                 .apellido(d.getApellido())
@@ -178,8 +187,26 @@ public class InfrastructureMapper {
                 .pieHabil(d.getPieHabil())
                 .altura(d.getAltura())
                 .peso(d.getPeso())
-                .fechaActualizacion(d.getFechaActualizacion())
-                .build();
+                .fechaActualizacion(d.getFechaActualizacion());
+
+        // Crear la entidad temporal para establecer relaciones
+        JugadorJPAEntity entity = builder.build();
+
+        // Mapear DATOS DEPORTIVOS
+        if (d.getDatosDeportivos() != null) {
+            DatosDeportivosJPAEntity datosJPA = toJpa(d.getDatosDeportivos(), entity);
+            entity.setDatosDeportivos(datosJPA);
+        }
+
+        // Mapear LESIONES
+        if (d.getLesiones() != null && !d.getLesiones().isEmpty()) {
+            java.util.List<LesionJPAEntity> lesionesJPA = d.getLesiones().stream()
+                    .map(lesion -> toJpa(lesion, entity))
+                    .collect(Collectors.toList());
+            entity.setLesiones(lesionesJPA);
+        }
+
+        return entity;
     }
  
     // ──────────────────────────── TÉCNICO ────────────────────────────
@@ -410,10 +437,11 @@ public class InfrastructureMapper {
     public PersonalDeportivo toDomain(PersonalDeportivoJPAEntity entity) {
     if (entity == null) return null;
     
-    TipoPersonal tipo = null;
-    if (entity instanceof JugadorJPAEntity) tipo = TipoPersonal.JUGADOR;
-    else if (entity instanceof TecnicoJPAEntity) tipo = TipoPersonal.TECNICO;
-    
+    if (entity instanceof JugadorJPAEntity) {
+        return toDomain((JugadorJPAEntity) entity);
+    } else if (entity instanceof TecnicoJPAEntity) {
+        return toDomain((TecnicoJPAEntity) entity);
+    }
     
     return PersonalDeportivo.builder()
             .idPersonal(entity.getIdPersonal())
@@ -421,7 +449,7 @@ public class InfrastructureMapper {
             .apellido(entity.getApellido())
             .fechaNacimiento(entity.getFechaNacimiento())
             .nacionalidad(entity.getNacionalidad())
-            .tipoPersonal(tipo)
+            .tipoPersonal(entity.getTipoPersonal())
             .build();
 }
 }

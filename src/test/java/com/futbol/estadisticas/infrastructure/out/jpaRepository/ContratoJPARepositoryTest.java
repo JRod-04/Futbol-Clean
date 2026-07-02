@@ -116,7 +116,7 @@ class ContratoJPARepositoryTest extends PostgresTestContainerConfig {
                 .nombre("Jugador")
                 .apellido("Uno")
                 .fechaNacimiento(LocalDate.of(1995, 1, 1))
-                .nacionalidad(Nacion.ESPANA)
+                .nacionalidad(Nacion.ESPAÑA)
                 .pieHabil(JuegoPies.DERECHO)
                 .altura(180)
                 .peso(75)

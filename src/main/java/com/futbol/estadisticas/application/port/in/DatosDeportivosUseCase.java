@@ -18,4 +18,7 @@ public interface DatosDeportivosUseCase {
     DatosDeportivosResponse cambiarASuplente(UUID idJugador);
  
     DatosDeportivosResponse actualizarEstado(UUID idJugador, EstadoJugador nuevoEstado);
+    
+    DatosDeportivosResponse actualizarDorsal(UUID idJugador, Integer nuevoDorsal);
+
 }

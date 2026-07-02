@@ -6,7 +6,9 @@ import java.util.UUID;
 import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
+import lombok.Builder;
 
+@Builder
 public record CrearContratoRequest(
         @NotNull(message = "El personal es obligatorio")
         UUID idPersonal,

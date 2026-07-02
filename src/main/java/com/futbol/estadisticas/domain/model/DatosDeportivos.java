@@ -1,6 +1,7 @@
 package com.futbol.estadisticas.domain.model;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -18,7 +19,7 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
+@Builder 
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class DatosDeportivos {
 
@@ -28,8 +29,11 @@ public class DatosDeportivos {
     private LocalDate fechaActualizacion;
     private EstadoJugador estadoJugador;
     private Double valorMercado;
-    private PosicionJugador posicion;
+    private Integer dorsal;
     private Jugador jugador;
+     @Builder.Default
+    private List<PosicionJugador> posiciones = new ArrayList<>();
+
 
 
 
@@ -59,11 +63,30 @@ public class DatosDeportivos {
     
 
     //Cambia la posición del jugador
-    public void agregarPosicion(PosicionJugador nuevaPosicion) {
+  public void agregarPosicion(PosicionJugador nuevaPosicion) {
         if (nuevaPosicion == null) {
             throw new IllegalArgumentException("La posición no puede ser nula");
         }
-        this.setPosicion(nuevaPosicion);
+        if (!posiciones.contains(nuevaPosicion)) {
+            posiciones.add(nuevaPosicion);
+        }
+        this.fechaActualizacion = LocalDate.now();
+    }
+
+    public PosicionJugador getPosicionActual() {
+        return posiciones.isEmpty() ? null : posiciones.get(posiciones.size() - 1);
+    }
+
+    // ── PARA DORSAL ──
+    
+    public void actualizarDorsal(Integer nuevoDorsal) {
+        if (nuevoDorsal == null) {
+            throw new IllegalArgumentException("El dorsal no puede ser nulo");
+        }
+        if (nuevoDorsal <= 0) {
+            throw new IllegalArgumentException("El dorsal debe ser positivo");
+        }
+        this.dorsal = nuevoDorsal;
         this.fechaActualizacion = LocalDate.now();
     }
     

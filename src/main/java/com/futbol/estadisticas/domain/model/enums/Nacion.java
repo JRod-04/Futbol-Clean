@@ -7,7 +7,7 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum Nacion {
     ARGENTINA("Argentina", "ARG"),
-    ESPANA("España", "ESP"),
+    ESPAÑA("España", "ESP"),
     FRANCIA("Francia", "FRA"),
     INGLATERRA("Inglaterra", "ENG"),
     PORTUGAL("Portugal", "POR"),

@@ -1,5 +1,7 @@
 package com.futbol.estadisticas.application.port.mapper;
 
+import java.util.ArrayList;
+
 import org.springframework.stereotype.Component;
 
 import com.futbol.estadisticas.application.port.dto.response.DatosDeportivosResponse;
@@ -12,8 +14,8 @@ public class DatosDeportivosMapper {
      public DatosDeportivosResponse toResponse(DatosDeportivos datos, Jugador jugador) {
         return new DatosDeportivosResponse(
                 datos.getIdHistorialDeportivo(),
-                datos.getPosicion(),
-                datos.getPosicion() != null ? datos.getPosicion().getDisplayName() : null,
+                datos.getPosicionActual(),
+                datos.getDorsal(),
                 datos.getEstadoJugador(),
                 datos.getValorMercado(),
                 datos.getValorMercadoEnMillones(),

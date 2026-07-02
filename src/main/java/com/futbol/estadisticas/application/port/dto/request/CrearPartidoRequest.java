@@ -6,7 +6,9 @@ import java.util.UUID;
 import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
+import lombok.Builder;
 
+@Builder
 public record CrearPartidoRequest(        
         @NotNull(message = "El equipo local es obligatorio")
         UUID idEquipoLocal,

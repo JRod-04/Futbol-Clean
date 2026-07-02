@@ -5,6 +5,9 @@ import java.util.UUID;
 
 import com.futbol.estadisticas.domain.model.enums.TipoEvento;
 
+import lombok.Builder;
+
+@Builder
 public record EventoPartidoResponse(
         UUID idEvento,
         LocalTime minuto,

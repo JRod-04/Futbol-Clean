@@ -24,7 +24,7 @@ public record JugadorResponse(
         Integer altura,
         Integer peso,
         PosicionJugador posicion,
-        String posicionDisplayName,
+        Integer dorsal,
         EstadoJugador estadoJugador,
         Double valorMercado,
         Double valorMercadoEnMillones,

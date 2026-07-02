@@ -1,4 +1,4 @@
-package com.futbol.estadisticas.application.sevice;
+package com.futbol.estadisticas.application.service;
 
 import java.util.List;
 import java.util.UUID;
@@ -181,7 +181,6 @@ public class PartidoService implements PartidoUseCase{
         partidoRepository.save(partido);
     }
  
-    // ── helpers privados ───────────────────────────────────────────────────────
  
     private Partido getPartidoOrThrow(UUID idPartido) {
         return partidoRepository.findById(idPartido)

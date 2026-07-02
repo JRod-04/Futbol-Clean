@@ -1,4 +1,4 @@
-package com.futbol.estadisticas.application.sevice;
+package com.futbol.estadisticas.application.service;
 
 import java.util.List;
 import java.util.UUID;

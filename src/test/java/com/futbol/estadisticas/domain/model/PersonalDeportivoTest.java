@@ -24,7 +24,7 @@ class PersonalDeportivoTest {
                 .nombre("Mikel")
                 .apellido("Arteta")
                 .fechaNacimiento(LocalDate.of(1982, 3, 26))
-                .nacionalidad(Nacion.ESPANA)
+                .nacionalidad(Nacion.ESPAÑA)
                 .tipoPersonal(TipoPersonal.TECNICO)
                 .build();
     }

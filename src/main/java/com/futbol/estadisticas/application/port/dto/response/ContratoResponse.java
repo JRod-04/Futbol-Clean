@@ -5,6 +5,9 @@ import java.util.UUID;
 
 import com.futbol.estadisticas.domain.model.enums.EstadoContrato;
 
+import lombok.Builder;
+
+@Builder
 public record ContratoResponse(
         UUID idContrato,
         LocalDateTime fechaInicio,

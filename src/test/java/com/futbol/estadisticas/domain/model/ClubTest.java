@@ -196,4 +196,179 @@ class ClubTest {
                 .estado(EstadoContrato.ACTIVO)
                 .build();
     }
+
+    @Test
+    void testAgregarContrato2() {
+        
+    }
+
+    @Test
+    void testAgregarPartidoLocal() {
+        
+    }
+
+    @Test
+    void testAgregarPartidoVisitante() {
+        
+    }
+
+    @Test
+    void testAsignarTecnico2() {
+        
+    }
+
+    @Test
+    void testBuilder() {
+        
+    }
+
+    @Test
+    void testCanEqual() {
+        
+    }
+
+    @Test
+    void testDesvincularTecnico2() {
+        
+    }
+
+    @Test
+    void testEquals() {
+        
+    }
+
+    @Test
+    void testGetContratos() {
+        
+    }
+
+    @Test
+    void testGetEstadio() {
+        
+    }
+
+    @Test
+    void testGetFechaFundacion() {
+        
+    }
+
+    @Test
+    void testGetIdEquipo() {
+        
+    }
+
+    @Test
+    void testGetJugadoresActivos2() {
+        
+    }
+
+    @Test
+    void testGetJugadoresDisponibles() {
+        
+    }
+
+    @Test
+    void testGetJugadoresLesionados() {
+        
+    }
+
+    @Test
+    void testGetJugadoresTitulares2() {
+        
+    }
+
+    @Test
+    void testGetNombre() {
+        
+    }
+
+    @Test
+    void testGetNombreCorto() {
+        
+    }
+
+    @Test
+    void testGetPartidosLocal() {
+        
+    }
+
+    @Test
+    void testGetPartidosVisitante() {
+        
+    }
+
+    @Test
+    void testGetTecnicoActual() {
+        
+    }
+
+    @Test
+    void testGetTecnicos() {
+        
+    }
+
+    @Test
+    void testGetTodosLosPartidos() {
+        
+    }
+
+    @Test
+    void testGetValorPlantillaTotal2() {
+        
+    }
+
+    @Test
+    void testHashCode() {
+        
+    }
+
+    @Test
+    void testSetContratos() {
+        
+    }
+
+    @Test
+    void testSetEstadio() {
+        
+    }
+
+    @Test
+    void testSetFechaFundacion() {
+        
+    }
+
+    @Test
+    void testSetIdEquipo() {
+        
+    }
+
+    @Test
+    void testSetNombre() {
+        
+    }
+
+    @Test
+    void testSetNombreCorto() {
+        
+    }
+
+    @Test
+    void testSetPartidosLocal() {
+        
+    }
+
+    @Test
+    void testSetPartidosVisitante() {
+        
+    }
+
+    @Test
+    void testSetTecnicoActual() {
+        
+    }
+
+    @Test
+    void testSetTecnicos() {
+        
+    }
 }

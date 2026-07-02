@@ -13,8 +13,7 @@ import com.futbol.estadisticas.infrastructure.out.jpaEntity.JugadorJPAEntity;
 
 public interface JugadorJPARepository extends JpaRepository<JugadorJPAEntity, UUID>{
 
-    // Jugadores que tienen contrato vigente con un club específico
-    @Query("""
+     @Query("""
            SELECT DISTINCT j FROM JugadorJPAEntity j
            JOIN j.contratos c
            WHERE c.club.idEquipo = :idClub
@@ -28,8 +27,8 @@ public interface JugadorJPARepository extends JpaRepository<JugadorJPAEntity, UU
     @Query("SELECT j FROM JugadorJPAEntity j WHERE j.datosDeportivos.estadoJugador = :estado")
     List<JugadorJPAEntity> findByEstado(@Param("estado") EstadoJugador estado);
  
-    // Jugadores con una posición específica
-    @Query("SELECT j FROM JugadorJPAEntity j WHERE j.datosDeportivos.posicion = :posicion")
+    // ✅ Jugadores con una posición específica (usa MEMBER OF porque posiciones es una lista)
+    @Query("SELECT j FROM JugadorJPAEntity j WHERE :posicion MEMBER OF j.datosDeportivos.posiciones")
     List<JugadorJPAEntity> findByPosicion(@Param("posicion") PosicionJugador posicion);
  
     // Jugadores disponibles (TITULAR o SUPLENTE)
