@@ -218,4 +218,177 @@ class PartidoTest {
         partido.setFechaYHora(LocalDateTime.now().plusDays(1));
         assertThat(partido.esHoy()).isFalse();
     }
+
+    @Test
+    @DisplayName("getPuntosParaClub: partido FINALIZADO - victoria local")
+    void testGetPuntosParaClub_VictoriaLocal() {
+        partido.setEstado(EstadoPartido.FINALIZADO);
+        partido.setGolesLocal(3);
+        partido.setGolesVisitante(1);
+
+        assertThat(partido.getPuntosParaClub(equipoLocal.getIdEquipo())).isEqualTo(3);
+        assertThat(partido.getPuntosParaClub(equipoVisitante.getIdEquipo())).isEqualTo(0);
+    }
+
+    @Test
+    @DisplayName("getPuntosParaClub: partido FINALIZADO - empate")
+    void testGetPuntosParaClub_Empate() {
+        partido.setEstado(EstadoPartido.FINALIZADO);
+        partido.setGolesLocal(2);
+        partido.setGolesVisitante(2);
+
+        assertThat(partido.getPuntosParaClub(equipoLocal.getIdEquipo())).isEqualTo(1);
+        assertThat(partido.getPuntosParaClub(equipoVisitante.getIdEquipo())).isEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("getPuntosParaClub: partido FINALIZADO - derrota local")
+    void testGetPuntosParaClub_DerrotaLocal() {
+        partido.setEstado(EstadoPartido.FINALIZADO);
+        partido.setGolesLocal(0);
+        partido.setGolesVisitante(2);
+
+        assertThat(partido.getPuntosParaClub(equipoLocal.getIdEquipo())).isEqualTo(0);
+        assertThat(partido.getPuntosParaClub(equipoVisitante.getIdEquipo())).isEqualTo(3);
+    }
+
+    @Test
+    @DisplayName("getPuntosParaClub: partido FINALIZADO - victoria visitante con goleada")
+    void testGetPuntosParaClub_VictoriaVisitanteGoleada() {
+        partido.setEstado(EstadoPartido.FINALIZADO);
+        partido.setGolesLocal(1);
+        partido.setGolesVisitante(5);
+
+        assertThat(partido.getPuntosParaClub(equipoLocal.getIdEquipo())).isEqualTo(0);
+        assertThat(partido.getPuntosParaClub(equipoVisitante.getIdEquipo())).isEqualTo(3);
+    }
+
+    @Test
+    @DisplayName("getPuntosParaClub: partido EN CURSO - local ganando")
+    void testGetPuntosParaClub_EnCursoLocalGanando() {
+        partido.setEstado(EstadoPartido.SEGUNDO_TIEMPO);
+        partido.setGolesLocal(2);
+        partido.setGolesVisitante(0);
+
+        assertThat(partido.getPuntosParaClub(equipoLocal.getIdEquipo())).isEqualTo(3);
+        assertThat(partido.getPuntosParaClub(equipoVisitante.getIdEquipo())).isEqualTo(0);
+    }
+
+    @Test
+    @DisplayName("getPuntosParaClub: partido EN CURSO - empate")
+    void testGetPuntosParaClub_EnCursoEmpate() {
+        partido.setEstado(EstadoPartido.PRIMER_TIEMPO);
+        partido.setGolesLocal(1);
+        partido.setGolesVisitante(1);
+
+        assertThat(partido.getPuntosParaClub(equipoLocal.getIdEquipo())).isEqualTo(1);
+        assertThat(partido.getPuntosParaClub(equipoVisitante.getIdEquipo())).isEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("getPuntosParaClub: partido EN CURSO - local perdiendo")
+    void testGetPuntosParaClub_EnCursoLocalPerdiendo() {
+        partido.setEstado(EstadoPartido.ENTRETIEMPO);
+        partido.setGolesLocal(0);
+        partido.setGolesVisitante(3);
+
+        assertThat(partido.getPuntosParaClub(equipoLocal.getIdEquipo())).isEqualTo(0);
+        assertThat(partido.getPuntosParaClub(equipoVisitante.getIdEquipo())).isEqualTo(3);
+    }
+
+    @Test
+    @DisplayName("getPuntosParaClub: partido EN CURSO - empate a cero")
+    void testGetPuntosParaClub_EnCursoEmpateCero() {
+        partido.setEstado(EstadoPartido.PRIMER_TIEMPO);
+        partido.setGolesLocal(0);
+        partido.setGolesVisitante(0);
+
+        assertThat(partido.getPuntosParaClub(equipoLocal.getIdEquipo())).isEqualTo(1);
+        assertThat(partido.getPuntosParaClub(equipoVisitante.getIdEquipo())).isEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("getPuntosParaClub: todos los estados EN CURSO")
+    void testGetPuntosParaClub_TodosLosEstadosEnCurso() {
+        EstadoPartido[] estadosEnCurso = {
+                EstadoPartido.PRIMER_TIEMPO,
+                EstadoPartido.SEGUNDO_TIEMPO,
+                EstadoPartido.ENTRETIEMPO,
+                EstadoPartido.PRORROGA,
+                EstadoPartido.PENALTIS
+        };
+
+        for (EstadoPartido estado : estadosEnCurso) {
+            Partido partidoTest = Partido.builder()
+                    .idPartido(UUID.randomUUID())
+                    .equipoLocal(equipoLocal)
+                    .equipoVisitante(equipoVisitante)
+                    .estado(estado)
+                    .golesLocal(2)
+                    .golesVisitante(1)
+                    .build();
+
+            assertThat(partidoTest.getPuntosParaClub(equipoLocal.getIdEquipo()))
+                    .as("Estado: " + estado)
+                    .isEqualTo(3);
+            assertThat(partidoTest.getPuntosParaClub(equipoVisitante.getIdEquipo()))
+                    .as("Estado: " + estado)
+                    .isEqualTo(0);
+        }
+    }
+
+    @Test
+    @DisplayName("getPuntosParaClub: partido PROGRAMADO - retorna 0")
+    void testGetPuntosParaClub_Programado() {
+        partido.setEstado(EstadoPartido.PROGRAMADO);
+        partido.setGolesLocal(0);
+        partido.setGolesVisitante(0);
+
+        assertThat(partido.getPuntosParaClub(equipoLocal.getIdEquipo())).isEqualTo(0);
+        assertThat(partido.getPuntosParaClub(equipoVisitante.getIdEquipo())).isEqualTo(0);
+    }
+
+    @Test
+    @DisplayName("getPuntosParaClub: partido CANCELADO - retorna 0")
+    void testGetPuntosParaClub_Cancelado() {
+        partido.setEstado(EstadoPartido.CANCELADO);
+        partido.setGolesLocal(0);
+        partido.setGolesVisitante(0);
+
+        assertThat(partido.getPuntosParaClub(equipoLocal.getIdEquipo())).isEqualTo(0);
+        assertThat(partido.getPuntosParaClub(equipoVisitante.getIdEquipo())).isEqualTo(0);
+    }
+
+    @Test
+    @DisplayName("getPuntosParaClub: partido SUSPENDIDO - retorna 0")
+    void testGetPuntosParaClub_Suspendido() {
+        partido.setEstado(EstadoPartido.SUSPENDIDO);
+        partido.setGolesLocal(0);
+        partido.setGolesVisitante(0);
+
+        assertThat(partido.getPuntosParaClub(equipoLocal.getIdEquipo())).isEqualTo(0);
+        assertThat(partido.getPuntosParaClub(equipoVisitante.getIdEquipo())).isEqualTo(0);
+    }
+
+    @Test
+    @DisplayName("getPuntosParaClub: club inexistente - retorna 0")
+    void testGetPuntosParaClub_ClubInexistente() {
+        partido.setEstado(EstadoPartido.FINALIZADO);
+        partido.setGolesLocal(2);
+        partido.setGolesVisitante(1);
+
+        UUID idClubInexistente = UUID.randomUUID();
+        assertThat(partido.getPuntosParaClub(idClubInexistente)).isEqualTo(0);
+    }
+
+    @Test
+    @DisplayName("getPuntosParaClub: partido con goles negativos - validación")
+    void testGetPuntosParaClub_GolesNegativos() {
+        partido.setEstado(EstadoPartido.FINALIZADO);
+        partido.setGolesLocal(-1);
+        partido.setGolesVisitante(0);
+
+
+        assertThat(partido.getPuntosParaClub(equipoLocal.getIdEquipo())).isEqualTo(0);
+    }
 }
