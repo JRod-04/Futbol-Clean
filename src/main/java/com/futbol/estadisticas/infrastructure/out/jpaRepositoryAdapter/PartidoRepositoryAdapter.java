@@ -73,7 +73,12 @@ public class PartidoRepositoryAdapter implements PartidoRepositoryPort {
         return repository.findByCompeticionIdCompeticion(idCompeticion).stream()
                 .map(mapper::toDomain).toList();
     }
- 
+    @Override
+    public List<Partido> findClasificacion(UUID idCompeticion) {
+        return repository.findClasificacion(idCompeticion).stream()
+                .map(mapper::toDomain)
+                .toList();
+    }
     @Override
     public List<Partido> findByEstado(EstadoPartido estado) {
         return repository.findByEstado(estado).stream().map(mapper::toDomain).toList();

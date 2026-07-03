@@ -22,7 +22,7 @@ import lombok.RequiredArgsConstructor;
 @Service
 @Transactional
 @RequiredArgsConstructor
-public class CompeticionService implements CompeticionUseCase{
+public class CompeticionService implements CompeticionUseCase {
  private final CompeticionRepositoryPort competicionRepository;
     private final PartidoRepositoryPort     partidoRepository;
     private final CompeticionMapper         competicionMapper;

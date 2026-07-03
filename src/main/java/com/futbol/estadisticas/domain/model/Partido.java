@@ -181,12 +181,10 @@ public class Partido {
             return 0;
         }
         
-        // Si los eventos tienen timestamps, usarlos
-        return 90; // Duración estándar
+        return 90;
     }
     
 
-    //Obtiene los eventos de gol del partido
     public List<EventosPartido> getGoles() {
         return eventos.stream()
             .filter(e -> e.getTipoEvento() == com.futbol.estadisticas.domain.model.enums.TipoEvento.GOL ||
@@ -194,17 +192,39 @@ public class Partido {
             .toList();
     }
     
-    //Verifica si el partido se juega en una fecha futura
     public boolean esFuturo() {
         return fechaYHora != null && fechaYHora.isAfter(LocalDateTime.now());
     }
     
-    //Verifica si el partido se juega hoy
     public boolean esHoy() {
         if (fechaYHora == null) {
             return false;
         }
         LocalDateTime hoy = LocalDateTime.now();
         return fechaYHora.toLocalDate().equals(hoy.toLocalDate());
+    }
+    public int getPuntosParaClub(UUID idClub) {
+        if (this.estado == EstadoPartido.CANCELADO ||
+                this.estado == EstadoPartido.SUSPENDIDO) {
+            return 0;
+        }
+
+        if (!haFinalizado() && !estaEnCurso()) {
+            return 0;
+        }
+
+        boolean esLocal = equipoLocal.getIdEquipo().equals(idClub);
+        int golesFavor = esLocal ? golesLocal : golesVisitante;
+        int golesContra = esLocal ? golesVisitante : golesLocal;
+
+        if (!haFinalizado() && estaEnCurso()) {
+            if (golesFavor > golesContra) return 3;
+            if (golesFavor == golesContra) return 1;
+            return 0;
+        }
+
+        if (golesFavor > golesContra) return 3;
+        if (golesFavor == golesContra) return 1;
+        return 0;
     }
 }

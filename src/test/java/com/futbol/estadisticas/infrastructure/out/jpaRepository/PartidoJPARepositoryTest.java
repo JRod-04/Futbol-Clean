@@ -462,4 +462,215 @@ class PartidoJPARepositoryTest extends PostgresTestContainerConfig {
         List<Partido> partidos = adapter.findByArbitro(idArbitroSinPartidos);
         assertThat(partidos).isEmpty();
     }
+
+    @Test
+    @DisplayName("findClasificacion: debe retornar solo partidos FINALIZADOS y EN CURSO")
+    void testFindClasificacion() {
+        ClubJPAEntity clubLocal = clubRepository.findById(ID_CLUB_1).orElseThrow();
+        ClubJPAEntity clubVisitante = clubRepository.findById(ID_CLUB_2).orElseThrow();
+        CompeticionJPAEntity competicion = competicionRepository.findById(ID_COMPETICION).orElseThrow();
+        ArbitroJPAEntity arbitro = arbitroRepository.findById(ID_ARBITRO_1).orElseThrow();
+        EstadioJPAEntity estadio = estadioRepository.findById(ID_ESTADIO_1).orElseThrow();
+
+        UUID idPartidoEnCurso = UUID.fromString("ffffffff-0000-1111-2222-333333333333");
+        PartidoJPAEntity partidoEnCurso = PartidoJPAEntity.builder()
+                .idPartido(idPartidoEnCurso)
+                .equipoLocal(clubLocal)
+                .equipoVisitante(clubVisitante)
+                .fechaYHora(LocalDateTime.now().minusHours(1))
+                .jornada(10)
+                .competicion(competicion)
+                .arbitro(arbitro)
+                .estadio(estadio)
+                .estado(EstadoPartido.SEGUNDO_TIEMPO)  // EN CURSO
+                .golesLocal(1)
+                .golesVisitante(0)
+                .build();
+        repository.save(partidoEnCurso);
+
+        UUID idPartidoCancelado = UUID.fromString("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
+        PartidoJPAEntity partidoCancelado = PartidoJPAEntity.builder()
+                .idPartido(idPartidoCancelado)
+                .equipoLocal(clubLocal)
+                .equipoVisitante(clubVisitante)
+                .fechaYHora(LocalDateTime.now().minusDays(1))
+                .jornada(9)
+                .competicion(competicion)
+                .arbitro(arbitro)
+                .estadio(estadio)
+                .estado(EstadoPartido.CANCELADO)
+                .golesLocal(0)
+                .golesVisitante(0)
+                .build();
+        repository.save(partidoCancelado);
+
+        UUID idPartidoSuspendido = UUID.fromString("bbbbbbbb-cccc-dddd-eeee-ffffffffffff");
+        PartidoJPAEntity partidoSuspendido = PartidoJPAEntity.builder()
+                .idPartido(idPartidoSuspendido)
+                .equipoLocal(clubLocal)
+                .equipoVisitante(clubVisitante)
+                .fechaYHora(LocalDateTime.now().minusDays(2))
+                .jornada(8)
+                .competicion(competicion)
+                .arbitro(arbitro)
+                .estadio(estadio)
+                .estado(EstadoPartido.SUSPENDIDO)
+                .golesLocal(0)
+                .golesVisitante(0)
+                .build();
+        repository.save(partidoSuspendido);
+
+        UUID idPartidoProgramado = UUID.fromString("cccccccc-dddd-eeee-ffff-000000000001");
+        PartidoJPAEntity partidoProgramado = PartidoJPAEntity.builder()
+                .idPartido(idPartidoProgramado)
+                .equipoLocal(clubLocal)
+                .equipoVisitante(clubVisitante)
+                .fechaYHora(LocalDateTime.now().plusDays(7))
+                .jornada(11)
+                .competicion(competicion)
+                .arbitro(arbitro)
+                .estadio(estadio)
+                .estado(EstadoPartido.PROGRAMADO)
+                .golesLocal(0)
+                .golesVisitante(0)
+                .build();
+        repository.save(partidoProgramado);
+
+        List<PartidoJPAEntity> clasificacion = repository.findClasificacion(ID_COMPETICION);
+
+        // VERIFICAR: Solo deben aparecer FINALIZADO y EN CURSO (3 partidos)
+        // - ID_PARTIDO_1: FINALIZADO
+        // - idPartidoEnCurso: SEGUNDO_TIEMPO
+        // - ID_PARTIDO_3: PROGRAMADO (NO debe aparecer - es programado)
+        // - ID_PARTIDO_2: PROGRAMADO (NO debe aparecer)
+        // - partidoCancelado: CANCELADO (NO debe aparecer)
+        // - partidoSuspendido: SUSPENDIDO (NO debe aparecer)
+        // - partidoProgramado: PROGRAMADO (NO debe aparecer)
+
+        assertThat(clasificacion).hasSize(2);
+
+        assertThat(clasificacion)
+                .extracting(PartidoJPAEntity::getIdPartido)
+                .containsExactlyInAnyOrder(
+                        ID_PARTIDO_1,          // FINALIZADO
+                        idPartidoEnCurso       // SEGUNDO_TIEMPO
+                );
+
+        assertThat(clasificacion)
+                .extracting(PartidoJPAEntity::getIdPartido)
+                .doesNotContain(
+                        ID_PARTIDO_2,          // PROGRAMADO
+                        ID_PARTIDO_3,          // PROGRAMADO
+                        idPartidoCancelado,    // CANCELADO
+                        idPartidoSuspendido,   // SUSPENDIDO
+                        idPartidoProgramado    // PROGRAMADO
+                );
+
+        assertThat(clasificacion)
+                .extracting(PartidoJPAEntity::getEstado)
+                .containsExactlyInAnyOrder(
+                        EstadoPartido.FINALIZADO,
+                        EstadoPartido.SEGUNDO_TIEMPO
+                );
+    }
+
+    @Test
+    @DisplayName("findClasificacion: debe retornar lista vacía si no hay partidos FINALIZADOS o EN CURSO")
+    void testFindClasificacion_Vacia() {
+        UUID idCompeticionTest = UUID.fromString("99999999-9999-9999-9999-999999999999");
+
+        CompeticionJPAEntity competicionTest = CompeticionJPAEntity.builder()
+                .idCompeticion(idCompeticionTest)
+                .nombre("Test League")
+                .fechaInicio(LocalDateTime.now().minusMonths(1))
+                .fechaFin(LocalDateTime.now().plusMonths(5))
+                .build();
+        competicionRepository.save(competicionTest);
+
+        ClubJPAEntity clubLocal = clubRepository.findById(ID_CLUB_1).orElseThrow();
+        ClubJPAEntity clubVisitante = clubRepository.findById(ID_CLUB_2).orElseThrow();
+        ArbitroJPAEntity arbitro = arbitroRepository.findById(ID_ARBITRO_1).orElseThrow();
+        EstadioJPAEntity estadio = estadioRepository.findById(ID_ESTADIO_1).orElseThrow();
+
+        PartidoJPAEntity partidoProgramado1 = PartidoJPAEntity.builder()
+                .idPartido(UUID.randomUUID())
+                .equipoLocal(clubLocal)
+                .equipoVisitante(clubVisitante)
+                .fechaYHora(LocalDateTime.now().plusDays(5))
+                .jornada(1)
+                .competicion(competicionTest)
+                .arbitro(arbitro)
+                .estadio(estadio)
+                .estado(EstadoPartido.PROGRAMADO)
+                .golesLocal(0)
+                .golesVisitante(0)
+                .build();
+        repository.save(partidoProgramado1);
+
+        PartidoJPAEntity partidoProgramado2 = PartidoJPAEntity.builder()
+                .idPartido(UUID.randomUUID())
+                .equipoLocal(clubLocal)
+                .equipoVisitante(clubVisitante)
+                .fechaYHora(LocalDateTime.now().plusDays(10))
+                .jornada(2)
+                .competicion(competicionTest)
+                .arbitro(arbitro)
+                .estadio(estadio)
+                .estado(EstadoPartido.PROGRAMADO)
+                .golesLocal(0)
+                .golesVisitante(0)
+                .build();
+        repository.save(partidoProgramado2);
+
+        List<PartidoJPAEntity> clasificacion = repository.findClasificacion(idCompeticionTest);
+
+        assertThat(clasificacion).isEmpty();
+    }
+
+    @Test
+    @DisplayName("findClasificacion: debe incluir todos los estados EN CURSO")
+    void testFindClasificacion_TodosLosEstadosEnCurso() {
+        ClubJPAEntity clubLocal = clubRepository.findById(ID_CLUB_1).orElseThrow();
+        ClubJPAEntity clubVisitante = clubRepository.findById(ID_CLUB_2).orElseThrow();
+        CompeticionJPAEntity competicion = competicionRepository.findById(ID_COMPETICION).orElseThrow();
+        ArbitroJPAEntity arbitro = arbitroRepository.findById(ID_ARBITRO_1).orElseThrow();
+        EstadioJPAEntity estadio = estadioRepository.findById(ID_ESTADIO_1).orElseThrow();
+
+        EstadoPartido[] estadosEnCurso = {
+                EstadoPartido.PRIMER_TIEMPO,
+                EstadoPartido.SEGUNDO_TIEMPO,
+                EstadoPartido.ENTRETIEMPO,
+                EstadoPartido.PRORROGA,
+                EstadoPartido.PENALTIS
+        };
+
+        for (EstadoPartido estado : estadosEnCurso) {
+            PartidoJPAEntity partido = PartidoJPAEntity.builder()
+                    .idPartido(UUID.randomUUID())
+                    .equipoLocal(clubLocal)
+                    .equipoVisitante(clubVisitante)
+                    .fechaYHora(LocalDateTime.now().minusHours(1))
+                    .jornada(15)
+                    .competicion(competicion)
+                    .arbitro(arbitro)
+                    .estadio(estadio)
+                    .estado(estado)
+                    .golesLocal(0)
+                    .golesVisitante(0)
+                    .build();
+            repository.save(partido);
+        }
+
+        List<PartidoJPAEntity> clasificacion = repository.findClasificacion(ID_COMPETICION);
+
+        assertThat(clasificacion)
+                .extracting(PartidoJPAEntity::getEstado)
+                .contains(
+                        EstadoPartido.PRIMER_TIEMPO,
+                        EstadoPartido.SEGUNDO_TIEMPO,
+                        EstadoPartido.ENTRETIEMPO,
+                        EstadoPartido.PRORROGA,
+                        EstadoPartido.PENALTIS
+                );
+    }
 }

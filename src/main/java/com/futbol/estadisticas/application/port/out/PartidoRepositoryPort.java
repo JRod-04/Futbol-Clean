@@ -21,7 +21,9 @@ public interface PartidoRepositoryPort {
     List<Partido> findByCompeticion(UUID idCompeticion);
  
     List<Partido> findByEstado(EstadoPartido estado);
- 
+
+    List<Partido> findClasificacion(UUID idCcompeticion);
+
     List<Partido> findByFechaBetween(LocalDateTime desde, LocalDateTime hasta);
  
     List<Partido> findByArbitro(UUID idArbitro);
