@@ -10,7 +10,9 @@ import com.futbol.estadisticas.domain.model.enums.PosicionJugador;
 
 public interface JugadorRepositoryPort {
     Jugador save(Jugador jugador);
- 
+
+    List<Jugador> saveAll(List<Jugador> jugadores);
+
     Optional<Jugador> findById(UUID idPersonal);
  
     List<Jugador> findAll();

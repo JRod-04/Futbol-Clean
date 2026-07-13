@@ -52,25 +52,35 @@ public class ClubService implements ClubUseCase {
     @Override
     @Transactional(readOnly = true)
     public List<JugadorResponse> obtenerJugadoresActivosDeClub(UUID idClub) {
-        Club club = clubRepository.findById(idClub)
+        Club club = clubRepository.findByIdWithContratos(idClub)
                 .orElseThrow(() -> new IllegalArgumentException(
                         "Club no encontrado con id: " + idClub));
         return club.getJugadoresActivos().stream()
                 .map(jugadorMapper::toResponse)
                 .toList();
     }
- 
+
+    @Override
+    public List<JugadorResponse> obtenerTitulares(UUID idClub) {
+        Club club = clubRepository.findByIdWithContratos(idClub)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Club no encontrado con id: " + idClub));
+        return club.getJugadoresTitulares().stream()
+                .map(jugadorMapper::toResponse)
+                .toList();
+    }
+
     @Override
     @Transactional(readOnly = true)
     public List<JugadorResponse> obtenerJugadoresDisponiblesDeClub(UUID idClub) {
-        Club club = clubRepository.findById(idClub)
+        Club club = clubRepository.findByIdWithContratos(idClub)
                 .orElseThrow(() -> new IllegalArgumentException(
                         "Club no encontrado con id: " + idClub));
         return club.getJugadoresDisponibles().stream()
                 .map(jugadorMapper::toResponse)
                 .toList();
     }
- 
+
     @Override
     @Transactional(readOnly = true)
     public Double obtenerValorPlantilla(UUID idClub) {

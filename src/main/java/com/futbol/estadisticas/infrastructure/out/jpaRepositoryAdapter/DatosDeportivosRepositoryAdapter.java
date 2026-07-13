@@ -28,12 +28,18 @@ public class DatosDeportivosRepositoryAdapter implements DatosDeportivosReposito
     @Override
     public DatosDeportivos save(DatosDeportivos datos) {
         JugadorJPAEntity jugadorJPA = null;
-        if (datos.getJugador() != null) {
-            jugadorJPA = jugadorRepo
-                    .findById(datos.getJugador().getIdPersonal())
-                    .orElse(null);
+        if (datos.getJugador() != null && datos.getJugador().getIdPersonal() != null) {
+            jugadorJPA = jugadorRepo.findById(datos.getJugador().getIdPersonal())
+                    .orElseThrow(() -> new IllegalArgumentException(
+                            "Jugador no encontrado con id: " + datos.getJugador().getIdPersonal()));
         }
+
         DatosDeportivosJPAEntity entity = mapper.toJpa(datos, jugadorJPA);
+
+        if (jugadorJPA != null) {
+            entity.setJugador(jugadorJPA);
+        }
+
         return mapper.toDomain(repository.save(entity));
     }
 

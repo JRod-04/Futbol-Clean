@@ -1,5 +1,6 @@
 package com.futbol.estadisticas.application.port.in;
 
+import java.util.List;
 import java.util.UUID;
 
 import com.futbol.estadisticas.application.port.dto.response.DatosDeportivosResponse;
@@ -12,7 +13,11 @@ public interface DatosDeportivosUseCase {
     DatosDeportivosResponse actualizarValorMercado(UUID idJugador, Double nuevoValor);
  
     DatosDeportivosResponse cambiarPosicion(UUID idJugador, PosicionJugador nuevaPosicion);
- 
+
+    DatosDeportivosResponse eliminarPosicion(UUID idJugador, PosicionJugador posicionAEliminar);
+
+    List<PosicionJugador> obtenerPosiciones(UUID idJugador);
+
     DatosDeportivosResponse promoverATitular(UUID idJugador);
  
     DatosDeportivosResponse cambiarASuplente(UUID idJugador);

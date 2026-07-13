@@ -58,7 +58,7 @@ public class PersonalDeportivo {
             .orElse(null);
     }
       public void agregarContrato(Contrato contrato) {
-      if (contrato != null && contrato.estaVigente()) {
+      if (contrato != null) {
           this.contratos.add(contrato);
           contrato.setPersonal(this);
       }

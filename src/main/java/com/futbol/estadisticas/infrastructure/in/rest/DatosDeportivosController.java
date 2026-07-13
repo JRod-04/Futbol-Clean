@@ -1,14 +1,11 @@
 package com.futbol.estadisticas.infrastructure.in.rest;
 
+import java.util.List;
 import java.util.UUID;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.futbol.estadisticas.application.port.dto.response.DatosDeportivosResponse;
 import com.futbol.estadisticas.application.port.in.DatosDeportivosUseCase;
@@ -32,25 +29,41 @@ public class DatosDeportivosController {
     @PatchMapping("/valor-mercado")
     public ResponseEntity<DatosDeportivosResponse> actualizarValor(
             @PathVariable UUID idJugador,
-            @RequestParam Double nuevoValor) {
+            @RequestBody Double nuevoValor) {
         return ResponseEntity.ok(
                 datosDeportivosUseCase.actualizarValorMercado(idJugador, nuevoValor));
     }
 
-    @PatchMapping("/posicion")
-    public ResponseEntity<DatosDeportivosResponse> cambiarPosicion(
-            @PathVariable UUID idJugador,
-            @RequestParam PosicionJugador nuevaPosicion) {
+    @GetMapping("/posiciones")
+    public ResponseEntity<List<PosicionJugador>> obtenerPosiciones(
+            @PathVariable UUID idJugador) {
         return ResponseEntity.ok(
-                datosDeportivosUseCase.cambiarPosicion(idJugador, nuevaPosicion));
+                datosDeportivosUseCase.obtenerPosiciones(idJugador));
+    }
+
+    @PostMapping("/posicion")
+    public ResponseEntity<DatosDeportivosResponse> agregarPosicion(
+            @PathVariable UUID idJugador,
+            @RequestBody PosicionJugador nuevaPosicion) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(datosDeportivosUseCase.cambiarPosicion(idJugador, nuevaPosicion));
+    }
+
+    @DeleteMapping("/posicion")
+    public ResponseEntity<DatosDeportivosResponse> eliminarPosicion(
+            @PathVariable UUID idJugador,
+            @RequestBody PosicionJugador posicionAEliminar) {
+        return ResponseEntity.ok(
+                datosDeportivosUseCase.eliminarPosicion(idJugador, posicionAEliminar));
     }
 
     @PatchMapping("/dorsal")
     public ResponseEntity<DatosDeportivosResponse> actualizarDorsal(
             @PathVariable UUID idJugador,
-            @RequestParam Integer nuevoDorsal) {
-        return ResponseEntity.ok(
-            datosDeportivosUseCase.actualizarDorsal(idJugador, nuevoDorsal));
+            @RequestBody int nuevoDorsal) {
+            return ResponseEntity.ok(
+                    datosDeportivosUseCase.actualizarDorsal(idJugador, nuevoDorsal));
+
     }
 
     @PatchMapping("/promover-titular")
@@ -66,7 +79,7 @@ public class DatosDeportivosController {
     @PatchMapping("/estado")
     public ResponseEntity<DatosDeportivosResponse> actualizarEstado(
             @PathVariable UUID idJugador,
-            @RequestParam EstadoJugador nuevoEstado) {
+            @RequestBody EstadoJugador nuevoEstado) {
         return ResponseEntity.ok(
                 datosDeportivosUseCase.actualizarEstado(idJugador, nuevoEstado));
     }

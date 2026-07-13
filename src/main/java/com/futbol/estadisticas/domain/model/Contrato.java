@@ -61,6 +61,8 @@ public class Contrato {
         }
         this.fechaFin = this.fechaFin.plusMonths(mesesAdicionales);
     }
+
+
         public void rescindir() {
         if (this.estado == EstadoContrato.FINALIZADO) {
             throw new IllegalStateException("No se puede Rescindir un contrato Finalizado");

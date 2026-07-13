@@ -24,7 +24,7 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 @Transactional
-public class ContratoService implements ContratoUseCase{
+public class ContratoService implements ContratoUseCase {
 
     private final ContratoRepositoryPort          contratoRepository;
     private final PersonalDeportivoRepositoryPort personalRepository;
@@ -120,5 +120,26 @@ public class ContratoService implements ContratoUseCase{
         }
         contrato.setEstado(EstadoContrato.RESCINDIDO);
         contratoRepository.save(contrato);
+    }
+
+    @Override
+    public void eliminarContrato(UUID idContrato) {
+        Contrato contrato = contratoRepository.findById(idContrato)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Contrato no encontrado con id: " + idContrato));
+
+        // Desvincular el contrato del personal y del club
+        PersonalDeportivo personal = contrato.getPersonal();
+        Club club = contrato.getClub();
+
+        if (personal != null) {
+            personal.getContratos().remove(contrato);
+        }
+
+        if (club != null) {
+            club.getContratos().remove(contrato);
+        }
+
+        contratoRepository.delete(contrato);
     }
 }

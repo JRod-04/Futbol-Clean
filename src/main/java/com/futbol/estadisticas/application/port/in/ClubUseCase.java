@@ -15,7 +15,9 @@ public interface ClubUseCase {
     List<ClubResponse> obtenerTodosLosClubs();
  
     List<JugadorResponse> obtenerJugadoresActivosDeClub(UUID idClub);
- 
+
+    List<JugadorResponse> obtenerTitulares(UUID idClub);
+
     List<JugadorResponse> obtenerJugadoresDisponiblesDeClub(UUID idClub);
  
     Double obtenerValorPlantilla(UUID idClub);

@@ -1,5 +1,6 @@
 package com.futbol.estadisticas.application.service;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -23,7 +24,7 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 @Transactional
-public class DatosDeportivosService implements DatosDeportivosUseCase{
+public class DatosDeportivosService implements DatosDeportivosUseCase {
     
     private final DatosDeportivosRepositoryPort datosDeportivosRepository;
     private final JugadorRepositoryPort         jugadorRepository;
@@ -36,57 +37,112 @@ public class DatosDeportivosService implements DatosDeportivosUseCase{
         DatosDeportivos datos = findDatosOrThrow(idJugador);
         return datosDeportivosMapper.toResponse(datos, jugador);
     }
- 
+
     @Override
     public DatosDeportivosResponse actualizarValorMercado(UUID idJugador, Double nuevoValor) {
         Jugador jugador = findJugadorOrThrow(idJugador);
         DatosDeportivos datos = findDatosOrThrow(idJugador);
+
         datos.actualizarValorMercado(nuevoValor);
-        return datosDeportivosMapper.toResponse(datosDeportivosRepository.save(datos), jugador);
+
+        datos.setJugador(jugador);
+
+        DatosDeportivos saved = datosDeportivosRepository.save(datos);
+        return datosDeportivosMapper.toResponse(saved, jugador);
     }
- 
+
     @Override
     public DatosDeportivosResponse cambiarPosicion(UUID idJugador, PosicionJugador nuevaPosicion) {
         Jugador jugador = findJugadorOrThrow(idJugador);
         DatosDeportivos datos = findDatosOrThrow(idJugador);
         datos.agregarPosicion(nuevaPosicion);
+        datos.setJugador(jugador);
         return datosDeportivosMapper.toResponse(datosDeportivosRepository.save(datos), jugador);
     }
- 
+
+    @Override
+    public DatosDeportivosResponse eliminarPosicion(UUID idJugador, PosicionJugador posicionAEliminar) {
+        Jugador jugador = findJugadorOrThrow(idJugador);
+        DatosDeportivos datos = findDatosOrThrow(idJugador);
+
+        datos.eliminarPosicion(posicionAEliminar);
+        datos.setJugador(jugador);
+
+        return datosDeportivosMapper.toResponse(datosDeportivosRepository.save(datos), jugador);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<PosicionJugador> obtenerPosiciones(UUID idJugador) {
+        Jugador jugador = findJugadorOrThrow(idJugador);
+        DatosDeportivos datos = findDatosOrThrow(idJugador);
+        return datos.getPosiciones();
+    }
+
     @Override
     public DatosDeportivosResponse promoverATitular(UUID idJugador) {
         Jugador jugador = findJugadorOrThrow(idJugador);
         DatosDeportivos datos = findDatosOrThrow(idJugador);
+
+        Club club = jugador.getClubActual();
+        validarLimiteTitularesEnClub(club, idJugador);
+
         datos.promoverATitular();
+        datos.setJugador(jugador);
+
         return datosDeportivosMapper.toResponse(datosDeportivosRepository.save(datos), jugador);
     }
- 
+
+    private void validarLimiteTitularesEnClub(Club club, UUID idJugadorExcluido) {
+        if (club == null) return;
+
+        long titularesEnClub = jugadorRepository.findByClub(club.getIdEquipo()).stream()
+                .filter(j -> j.getDatosDeportivos() != null
+                        && j.getDatosDeportivos().getEstadoJugador() == EstadoJugador.TITULAR
+                        && !j.getIdPersonal().equals(idJugadorExcluido))
+                .count();
+
+        if (titularesEnClub >= 11) {
+            throw new IllegalStateException(
+                    "El club " + club.getNombre() + " ya tiene 11 jugadores titulares");
+        }
+    }
+
+
     @Override
     public DatosDeportivosResponse cambiarASuplente(UUID idJugador) {
         Jugador jugador = findJugadorOrThrow(idJugador);
         DatosDeportivos datos = findDatosOrThrow(idJugador);
+
         datos.cambiarASuplente();
+        datos.setJugador(jugador);
+
         return datosDeportivosMapper.toResponse(datosDeportivosRepository.save(datos), jugador);
     }
- 
+
     @Override
     public DatosDeportivosResponse actualizarEstado(UUID idJugador, EstadoJugador nuevoEstado) {
         Jugador jugador = findJugadorOrThrow(idJugador);
         DatosDeportivos datos = findDatosOrThrow(idJugador);
+
         datos.actualizarEstado(nuevoEstado);
+        datos.setJugador(jugador);
+
         return datosDeportivosMapper.toResponse(datosDeportivosRepository.save(datos), jugador);
     }
-       public DatosDeportivosResponse actualizarDorsal(UUID idJugador, Integer nuevoDorsal) {
+    public DatosDeportivosResponse actualizarDorsal(UUID idJugador, Integer nuevoDorsal) {
         Jugador jugador = findJugadorOrThrow(idJugador);
         DatosDeportivos datos = findDatosOrThrow(idJugador);
-        
-        // ✅ VALIDAR: El dorsal no puede ser usado por otro jugador del mismo club
-        validarDorsalUnicoEnClub(jugador, nuevoDorsal);
-        
-        datos.actualizarDorsal(nuevoDorsal);
-        return datosDeportivosMapper.toResponse(datosDeportivosRepository.save(datos), jugador);
-    }
 
+        validarDorsalUnicoEnClub(jugador, nuevoDorsal);
+
+        datos.actualizarDorsal(nuevoDorsal);
+
+        datos.setJugador(jugador);
+
+        DatosDeportivos saved = datosDeportivosRepository.save(datos);
+        return datosDeportivosMapper.toResponse(saved, jugador);
+    }
     // ── VALIDACIÓN PRIVADA ──
     
     private void validarDorsalUnicoEnClub(Jugador jugador, Integer dorsal) {

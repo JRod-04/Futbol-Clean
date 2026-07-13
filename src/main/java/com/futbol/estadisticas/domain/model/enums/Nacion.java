@@ -1,5 +1,6 @@
 package com.futbol.estadisticas.domain.model.enums;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -103,8 +104,36 @@ public enum Nacion {
     
     private final String displayName;
     private final String codigoFIFA;
-    
-    
+
+    @JsonCreator
+    public static Nacion fromString(String value) {
+        if (value == null || value.isEmpty()) {
+            return null;
+        }
+
+        String normalized = value.trim().toUpperCase();
+
+        for (Nacion nacion : Nacion.values()) {
+            if (nacion.name().equals(normalized)) {
+                return nacion;
+            }
+        }
+
+        for (Nacion nacion : Nacion.values()) {
+            if (nacion.getDisplayName().toUpperCase().equals(normalized)) {
+                return nacion;
+            }
+        }
+
+        for (Nacion nacion : Nacion.values()) {
+            if (nacion.getCodigoFIFA().equalsIgnoreCase(normalized)) {
+                return nacion;
+            }
+        }
+
+        throw new IllegalArgumentException("Nacionalidad no válida: " + value);
+    }
+
     public static Nacion fromCodigoFIFA(String codigoFIFA) {
         for (Nacion nacion : values()) {
             if (nacion.getCodigoFIFA().equalsIgnoreCase(codigoFIFA)) {

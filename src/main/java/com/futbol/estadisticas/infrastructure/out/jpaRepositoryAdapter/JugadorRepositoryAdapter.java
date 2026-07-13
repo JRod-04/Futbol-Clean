@@ -24,6 +24,17 @@ public class JugadorRepositoryAdapter implements JugadorRepositoryPort {
     private final InfrastructureMapper mapper;
 
     @Override
+    public List<Jugador> saveAll(List<Jugador> jugadores) {
+        List<JugadorJPAEntity> entities = jugadores.stream()
+                .map(mapper::toJpa)
+                .toList();
+        List<JugadorJPAEntity> saved = repository.saveAll(entities);
+        return saved.stream()
+                .map(mapper::toDomain)
+                .toList();
+    }
+
+    @Override
     public Jugador save(Jugador jugador) {
         JugadorJPAEntity entity = mapper.toJpa(jugador);
         
@@ -41,7 +52,7 @@ public class JugadorRepositoryAdapter implements JugadorRepositoryPort {
 
     @Override
     public Optional<Jugador> findById(UUID idPersonal) {
-        return repository.findById(idPersonal).map(mapper::toDomain);
+        return repository.findByIdWithContratos(idPersonal).map(mapper::toDomain);
     }
 
     @Override

@@ -1,6 +1,7 @@
 package com.futbol.estadisticas.application.service;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -37,7 +38,23 @@ public class JugadorService implements JugadoresUseCase {
         Jugador jugador = jugadorMapper.toEntity(request);
         return jugadorMapper.toResponse(jugadorRepository.save(jugador));
     }
- 
+
+    @Override
+    @Transactional
+    public List<JugadorResponse> crearVariosJugadores(List<CrearJugadorRequest> requests) {
+        List<Jugador> jugadores = new ArrayList<>();
+
+        for (CrearJugadorRequest request : requests) {
+            Jugador jugador = jugadorMapper.toEntity(request);
+            jugadores.add(jugador);
+        }
+
+        List<Jugador> saved = jugadorRepository.saveAll(jugadores);
+        return saved.stream()
+                .map(jugadorMapper::toResponse)
+                .collect(Collectors.toList());
+    }
+
     @Override
     @Transactional(readOnly = true)
     public JugadorResponse obtenerJugadorPorId(UUID idJugador) {

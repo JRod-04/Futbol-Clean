@@ -14,7 +14,13 @@ public interface ContratoJPARepository extends JpaRepository <ContratoJPAEntity,
     List<ContratoJPAEntity> findByPersonalIdPersonal(UUID idPersonal);
  
     List<ContratoJPAEntity> findByClubIdEquipo(UUID idClub);
- 
+
+    @Query("SELECT c FROM ContratoJPAEntity c " +
+            "LEFT JOIN FETCH c.personal " +
+            "LEFT JOIN FETCH c.club " +
+            "WHERE c.idContrato = :id")
+    Optional<ContratoJPAEntity> findByIdWithRelations(@Param("id") UUID id);
+
     @Query("""
            SELECT c FROM ContratoJPAEntity c
            WHERE c.personal.idPersonal = :idPersonal
