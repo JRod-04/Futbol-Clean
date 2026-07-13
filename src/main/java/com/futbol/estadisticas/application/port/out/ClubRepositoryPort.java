@@ -12,7 +12,9 @@ public interface ClubRepositoryPort {
     Optional<Club> findById(UUID idEquipo);
  
     List<Club> findAll();
- 
+
+    Optional<Club> findByIdWithContratos(UUID id);
+
     List<Club> findByNombre(String nombre);
  
     boolean existsById(UUID idEquipo);

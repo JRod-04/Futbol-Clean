@@ -54,6 +54,10 @@ private final ClubUseCase clubUseCase;
     public ResponseEntity<List<JugadorResponse>> jugadoresDisponibles(@PathVariable UUID id) {
         return ResponseEntity.ok(clubUseCase.obtenerJugadoresDisponiblesDeClub(id));
     }
+    @GetMapping("/{id}/jugadores/titulares")
+    public ResponseEntity<List<JugadorResponse>> jugadoresTitulares(@PathVariable UUID id) {
+        return ResponseEntity.ok(clubUseCase.obtenerTitulares(id));
+    }
  
     @GetMapping("/{id}/valor-plantilla")
     public ResponseEntity<Double> valorPlantilla(@PathVariable UUID id) {

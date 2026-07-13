@@ -23,7 +23,6 @@ public record CrearPartidoRequest(
         UUID idArbitro,
  
         @NotNull(message = "La fecha y hora es obligatoria")
-        @Future(message = "La fecha del partido debe ser futura")
         LocalDateTime fechaYHora,
  
         @Positive(message = "La jornada debe ser positiva")

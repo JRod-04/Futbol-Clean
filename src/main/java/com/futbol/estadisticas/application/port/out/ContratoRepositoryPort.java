@@ -25,4 +25,6 @@ public interface ContratoRepositoryPort {
     boolean existsById(UUID idContrato);
  
     void deleteById(UUID idContrato);
+
+    void delete(Contrato contrato);
 }

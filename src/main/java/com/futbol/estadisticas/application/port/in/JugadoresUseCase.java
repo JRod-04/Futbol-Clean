@@ -12,7 +12,9 @@ import com.futbol.estadisticas.domain.model.enums.PosicionJugador;
 public interface JugadoresUseCase {
     
     JugadorResponse crearJugador(CrearJugadorRequest request);
- 
+
+    List<JugadorResponse> crearVariosJugadores(List<CrearJugadorRequest> requests);
+
     JugadorResponse obtenerJugadorPorId(UUID idJugador);
  
     List<JugadorResponse> obtenerTodosLosJugadores();

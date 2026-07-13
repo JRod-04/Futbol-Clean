@@ -58,7 +58,12 @@ public class ClubRepositoryAdapter implements ClubRepositoryPort{
     public List<Club> findAll() {
         return repository.findAll().stream().map(mapper::toDomain).toList();
     }
- 
+
+    @Override
+    public Optional<Club> findByIdWithContratos(UUID id) {
+        return repository.findByIdWithContratos(id).map(mapper::toDomain);
+            }
+
     @Override
     public List<Club> findByNombre(String nombre) {
         return repository.findByNombre(nombre).stream().map(mapper::toDomain).toList();

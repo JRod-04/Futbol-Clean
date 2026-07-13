@@ -38,7 +38,14 @@ public class JugadorController {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(jugadoresUseCase.crearJugador(request));
     }
- 
+
+    @PostMapping("/batch")
+    public ResponseEntity<List<JugadorResponse>> crearVarios(
+            @Valid @RequestBody List<CrearJugadorRequest> requests) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(jugadoresUseCase.crearVariosJugadores(requests));
+    }
+
     @GetMapping
     public ResponseEntity<List<JugadorResponse>> listarTodos() {
         return ResponseEntity.ok(jugadoresUseCase.obtenerTodosLosJugadores());

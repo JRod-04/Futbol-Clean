@@ -22,4 +22,6 @@ public interface ContratoUseCase {
     void finalizarContrato(UUID idContrato);
  
     void rescindirContrato(UUID idContrato);
+
+    void eliminarContrato( UUID idContrato);
 }

@@ -72,9 +72,18 @@ public class DatosDeportivos {
         }
         this.fechaActualizacion = LocalDate.now();
     }
+    public void eliminarPosicion(PosicionJugador posicionAEliminar) {
+        if (posicionAEliminar == null) {
+            throw new IllegalArgumentException("La posición a eliminar no puede ser nula");
+        }
+        if (!this.posiciones.remove(posicionAEliminar)) {
+            throw new IllegalArgumentException("La posición " + posicionAEliminar + " no está en la lista del jugador");
+        }
+        this.fechaActualizacion = LocalDate.now();
+    }
 
     public PosicionJugador getPosicionActual() {
-        return posiciones.isEmpty() ? null : posiciones.get(posiciones.size() - 1);
+        return posiciones.isEmpty() ? null : posiciones.getLast();
     }
 
     // ── PARA DORSAL ──

@@ -23,7 +23,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class ContratoRepositoryAdapter implements ContratoRepositoryPort {
 
-     private final ContratoJPARepository          repository;
+    private final ContratoJPARepository          repository;
     private final PersonalDeportivoJPARepository personalRepo;
     private final ClubJPARepository              clubRepo;
     private final InfrastructureMapper           mapper;
@@ -41,7 +41,7 @@ public class ContratoRepositoryAdapter implements ContratoRepositoryPort {
  
     @Override
     public Optional<Contrato> findById(UUID idContrato) {
-        return repository.findById(idContrato).map(mapper::toDomain);
+        return repository.findByIdWithRelations(idContrato).map(mapper::toDomain);
     }
  
     @Override
@@ -80,5 +80,17 @@ public class ContratoRepositoryAdapter implements ContratoRepositoryPort {
     @Override
     public void deleteById(UUID idContrato) {
         repository.deleteById(idContrato);
+    }
+
+    @Override
+    public void delete(Contrato contrato) {
+        if (contrato == null) {
+            throw new IllegalArgumentException("El contrato no puede ser nulo");
+        }
+        ContratoJPAEntity entity = repository.findById(contrato.getIdContrato())
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Contrato no encontrado con id: " + contrato.getIdContrato()));
+
+        repository.delete(entity);
     }
 }
