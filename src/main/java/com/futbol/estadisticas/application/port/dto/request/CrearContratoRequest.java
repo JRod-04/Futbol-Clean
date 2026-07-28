@@ -3,6 +3,7 @@ package com.futbol.estadisticas.application.port.dto.request;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+import com.futbol.estadisticas.domain.model.enums.EstadoContrato;
 import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -18,9 +19,11 @@ public record CrearContratoRequest(
  
         @NotNull(message = "La fecha de inicio es obligatoria")
         LocalDateTime fechaInicio,
- 
+
+        @NotNull
+        EstadoContrato estado,
+
         @NotNull(message = "La fecha de fin es obligatoria")
-        @Future(message = "La fecha de fin del contrato debe ser futura")
         LocalDateTime fechaFin,
  
         @NotNull(message = "El sueldo es obligatorio")

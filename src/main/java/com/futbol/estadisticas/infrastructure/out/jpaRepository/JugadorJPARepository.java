@@ -4,6 +4,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Range;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -51,4 +54,13 @@ public interface JugadorJPARepository extends JpaRepository<JugadorJPAEntity, UU
     // Jugadores lesionados
     @Query("SELECT j FROM JugadorJPAEntity j WHERE j.datosDeportivos.estadoJugador = 'LESIONADO'")
     List<JugadorJPAEntity> findLesionados();
+
+    @Query("SELECT j FROM JugadorJPAEntity j " +
+            "WHERE LOWER(CONCAT(COALESCE(j.nombre, ''), ' ', COALESCE(j.apellido, ''))) " +
+            "LIKE LOWER(CONCAT('%', :texto, '%'))")
+    Page<JugadorJPAEntity> buscarJugadorPorTexto(@Param("texto") String texto, Pageable pageable);
+
+
+
+
 }

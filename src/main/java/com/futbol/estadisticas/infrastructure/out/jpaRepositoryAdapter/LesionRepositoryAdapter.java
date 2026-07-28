@@ -4,7 +4,10 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
+import com.futbol.estadisticas.infrastructure.out.jpaEntity.LesionJPAEntity;
+import com.futbol.estadisticas.infrastructure.out.jpaRepository.JugadorJPARepository;
 import org.springframework.stereotype.Component;
 
 import com.futbol.estadisticas.application.port.out.LesionRepositoryPort;
@@ -20,45 +23,63 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class LesionRepositoryAdapter implements LesionRepositoryPort {
 
+    private final JugadorJPARepository jugadorRepo;
     private final LesionJPARepository  repository;
     private final InfrastructureMapper mapper;
  
     @Override
     public Lesion save(Lesion lesion) {
         JugadorJPAEntity jugadorJPA = null;
-        if (lesion.getIdLesion() != null) {
-            jugadorJPA = repository.findById(lesion.getIdLesion())
-                    .map(e -> e.getJugador())
-                    .orElse(null);
+        if (lesion.getJugadorLesionado() != null) {
+            jugadorJPA = jugadorRepo.findById(lesion.getJugadorLesionado().getIdPersonal()).orElse(null);
         }
-        return mapper.toDomain(repository.save(mapper.toJpa(lesion, jugadorJPA)));
+        LesionJPAEntity entity = mapper.LesiontoJpa(lesion, jugadorJPA);
+        return mapper.LesiontoDomain(repository.save(entity));
     }
- 
+
+    @Override
+    public List<Lesion> saveAll(List<Lesion> lesiones) {
+        List<LesionJPAEntity> entities = lesiones.stream()
+                .map(l -> {
+                    JugadorJPAEntity jugadorJPA = null;
+                    if (l.getJugadorLesionado() != null) {
+                        jugadorJPA = jugadorRepo.findById(l.getJugadorLesionado().getIdPersonal()).orElse(null);
+                    }
+                    return mapper.LesiontoJpa(l, jugadorJPA);
+                })
+                .toList();
+        return repository.saveAll(entities).stream()
+                .map(mapper::LesiontoDomain)
+                .toList();
+    }
+
     @Override
     public Optional<Lesion> findById(UUID idLesion) {
-        return repository.findById(idLesion).map(mapper::toDomain);
-    }
+            return repository.findByIdWithJugador(idLesion)
+                    .map(mapper::LesiontoDomain);
+        }
  
     @Override
     public List<Lesion> findByJugador(UUID idJugador) {
-        return repository.findByJugadorIdPersonal(idJugador).stream()
-                .map(mapper::toDomain).toList();
+        return repository.findByJugadorIdPersonalWithJugador(idJugador).stream()
+                .map(mapper::LesiontoDomain)
+                .collect(Collectors.toList());
     }
  
     @Override
     public List<Lesion> findActivasByJugador(UUID idJugador) {
         return repository.findActivasByJugador(idJugador, LocalDate.now()).stream()
-                .map(mapper::toDomain).toList();
+                .map(mapper::LesiontoDomain).toList();
     }
  
     @Override
     public List<Lesion> findByGravedad(Gravedad gravedad) {
-        return repository.findByGravedad(gravedad).stream().map(mapper::toDomain).toList();
+        return repository.findByGravedad(gravedad).stream().map(mapper::LesiontoDomain).toList();
     }
  
     @Override
     public List<Lesion> findActivas() {
-        return repository.findActivas(LocalDate.now()).stream().map(mapper::toDomain).toList();
+        return repository.findActivas(LocalDate.now()).stream().map(mapper::LesiontoDomain).toList();
     }
  
     @Override

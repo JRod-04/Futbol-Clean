@@ -6,8 +6,13 @@ import java.util.UUID;
 import com.futbol.estadisticas.application.port.dto.request.CrearClubRequest;
 import com.futbol.estadisticas.application.port.dto.response.ClubResponse;
 import com.futbol.estadisticas.application.port.dto.response.JugadorResponse;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 public interface ClubUseCase {
+
+    Page<ClubResponse> buscarClubes(String texto, Pageable pageable);
+
     ClubResponse crearClub(CrearClubRequest request);
  
     ClubResponse obtenerClubPorId(UUID idClub);

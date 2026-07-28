@@ -3,6 +3,7 @@ package com.futbol.estadisticas.infrastructure.out.jpaEntity;
 import java.time.LocalTime;
 import java.util.UUID;
 
+import com.futbol.estadisticas.domain.model.enums.EstadoPartido;
 import com.futbol.estadisticas.domain.model.enums.TipoEvento;
 
 import jakarta.persistence.Column;
@@ -41,7 +42,7 @@ public class EventosPartidoJPAEntity {
     @Enumerated(EnumType.STRING)
     @Column(name = "tipo_evento", length = 40)
     private TipoEvento tipoEvento;
- 
+
     // FK partido
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_partido", nullable = false,
@@ -59,4 +60,8 @@ public class EventosPartidoJPAEntity {
     @JoinColumn(name = "id_equipo_favorecido",
                 foreignKey = @ForeignKey(name = "fk_evento_equipo"))
     private ClubJPAEntity equipoFavorecido;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "estado_evento")
+    private EstadoPartido estadoEvento;
 }

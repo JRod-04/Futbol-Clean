@@ -1,8 +1,16 @@
 package com.futbol.estadisticas.application.service;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
+import com.futbol.estadisticas.application.port.dto.response.ClubResponse;
+import com.futbol.estadisticas.application.port.mapper.ClubMapper;
+import com.futbol.estadisticas.application.port.out.ClubRepositoryPort;
+import com.futbol.estadisticas.domain.model.Club;
+import com.futbol.estadisticas.domain.model.Partido;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,11 +31,23 @@ import lombok.RequiredArgsConstructor;
 @Transactional
 @RequiredArgsConstructor
 public class CompeticionService implements CompeticionUseCase {
- private final CompeticionRepositoryPort competicionRepository;
+
+    private final ClubRepositoryPort clubRepository;
+    private final CompeticionRepositoryPort competicionRepository;
     private final PartidoRepositoryPort     partidoRepository;
     private final CompeticionMapper         competicionMapper;
     private final PartidoMapper             partidoMapper;
- 
+    private final ClubMapper                clubMapper;
+
+    @Override
+    public Page<CompeticionResponse> buscarCompeticiones(String texto, Pageable pageable) {
+        if (texto == null || texto.trim().isEmpty()) {
+            return Page.empty(pageable);
+        }
+        Page<Competicion> page = competicionRepository.buscarCompeticionesPorNombre(texto.trim(), pageable);
+        return page.map(competicionMapper::toResponse);
+    }
+
     @Override
     public CompeticionResponse crearCompeticion(CrearCompeticionRequest request) {
         if (request.fechaFin().isBefore(request.fechaInicio())) {
@@ -41,16 +61,49 @@ public class CompeticionService implements CompeticionUseCase {
     @Override
     @Transactional(readOnly = true)
     public CompeticionResponse obtenerCompeticionPorId(UUID idCompeticion) {
-        return competicionRepository.findById(idCompeticion)
-                .map(competicionMapper::toResponse)
+        Competicion competicion = competicionRepository.findById(idCompeticion)
                 .orElseThrow(() -> new IllegalArgumentException(
                         "Competición no encontrada con id: " + idCompeticion));
+
+        List<Partido> partidos = partidoRepository.findByCompeticion(idCompeticion);
+
+        competicion.setPartidos(partidos);
+
+        partidos.forEach(p -> p.setCompeticion(competicion));
+
+        return competicionMapper.toResponse(competicion);
     }
- 
+
+    @Override
+    public List<ClubResponse> obtenerClubesParticipantes(UUID idCompeticion) {
+
+        Competicion competicion = competicionRepository.findByIdWithPartidosAndEquipos(idCompeticion)
+                .orElseThrow(() -> new IllegalArgumentException("Competición no encontrada"));
+
+        List<Club> clubes = competicion.getClubesParticipantes();
+
+
+        if (clubes.isEmpty()) {
+            throw new IllegalStateException("La competición no tiene partidos registrados");
+        }
+
+        return  clubes.stream()
+                .map(clubMapper::toResponse)
+                .toList();
+    }
+
     @Override
     @Transactional(readOnly = true)
     public List<CompeticionResponse> obtenerTodasLasCompeticiones() {
-        return competicionRepository.findAll().stream()
+        List<Competicion> competiciones = competicionRepository.findActivas();
+
+        for (Competicion competicion : competiciones) {
+            List<Partido> partidos = partidoRepository.findByCompeticion(competicion.getIdCompeticion());
+            competicion.setPartidos(partidos);
+            partidos.forEach(p -> p.setCompeticion(competicion));
+        }
+
+        return competiciones.stream()
                 .map(competicionMapper::toResponse)
                 .toList();
     }
@@ -62,7 +115,56 @@ public class CompeticionService implements CompeticionUseCase {
                 .map(competicionMapper::toResponse)
                 .toList();
     }
- 
+
+    @Override
+    public CompeticionResponse actualizarEquipoGanador(UUID idCompeticion, UUID idEquipoGanador) {
+        Competicion competicion = findCompeticionOrThrow(idCompeticion);
+
+        List<Partido> partidos = partidoRepository.findByCompeticion(idCompeticion);
+
+        if (partidos.isEmpty()) {
+            throw new IllegalStateException("La competición no tiene partidos registrados");
+        }
+
+        boolean hayPartidosNoFinalizados = partidos.stream()
+                .anyMatch(p -> !p.haFinalizado());
+
+        if (hayPartidosNoFinalizados) {
+            throw new IllegalStateException(
+                    "No se puede asignar un ganador porque hay partidos que aún no han finalizado"
+            );
+        }
+
+        if (idEquipoGanador == null) {
+            competicion.setEquipoGanador(null);
+            return competicionMapper.toResponse(competicionRepository.save(competicion));
+        }
+
+        Club ganador = clubRepository.findById(idEquipoGanador)
+                .orElseThrow(() -> new IllegalArgumentException("Club no encontrado con id: " + idEquipoGanador));
+
+        boolean participa = partidos.stream()
+                .anyMatch(p ->
+                        (p.getEquipoLocal() != null && p.getEquipoLocal().getIdEquipo().equals(idEquipoGanador)) ||
+                                (p.getEquipoVisitante() != null && p.getEquipoVisitante().getIdEquipo().equals(idEquipoGanador))
+                );
+
+        if (!participa) {
+            throw new IllegalStateException(
+                    "El club no participa en esta competición: " + ganador.getNombre()
+            );
+        }
+
+        competicion.setEquipoGanador(ganador);
+        return competicionMapper.toResponse(competicionRepository.save(competicion));
+    }
+
+    private Competicion findCompeticionOrThrow(UUID idCompeticion) {
+        return competicionRepository.findById(idCompeticion)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Competición no encontrada con id: " + idCompeticion));
+    }
+
     @Override
     @Transactional(readOnly = true)
     public List<PartidoResponse> obtenerPartidosPorCompeticion(UUID idCompeticion) {

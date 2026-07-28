@@ -1,8 +1,12 @@
 package com.futbol.estadisticas.application.service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
+import com.futbol.estadisticas.application.port.out.TecnicoRepositoryPort;
+import com.futbol.estadisticas.domain.model.Tecnico;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,6 +34,7 @@ public class ContratoService implements ContratoUseCase {
     private final PersonalDeportivoRepositoryPort personalRepository;
     private final ClubRepositoryPort              clubRepository;
     private final ContratoMapper                  contratoMapper;
+    private final TecnicoRepositoryPort           tecnicoRepository;
  
     @Override
     public ContratoResponse crearContrato(CrearContratoRequest request) {
@@ -48,14 +53,73 @@ public class ContratoService implements ContratoUseCase {
  
         Contrato contrato = contratoMapper.toEntity(
                 UUID.randomUUID(), personal, club,
-                request.fechaInicio(), request.fechaFin(), request.sueldo());
+                request.fechaInicio(), request.fechaFin(), request.estado(), request.sueldo());
  
         personal.agregarContrato(contrato);
         club.agregarContrato(contrato);
- 
-        return contratoMapper.toResponse(contratoRepository.save(contrato));
+
+        Contrato saved = contratoRepository.save(contrato);
+
+        if (personal instanceof Tecnico) {
+            Tecnico tecnico = (Tecnico) personal;
+            club.asignarTecnico(tecnico);
+            clubRepository.actualizarTecnicoActual(club.getIdEquipo(), tecnico.getIdPersonal());
+            tecnicoRepository.save(tecnico);
+        }
+
+
+        return contratoMapper.toResponse(saved);
     }
- 
+
+    @Override
+    public List<ContratoResponse> crearVariosContratos(List<CrearContratoRequest> requests) {
+        List<Contrato> contratos = new ArrayList<>();
+
+        for (CrearContratoRequest request : requests) {
+            PersonalDeportivo personal = personalRepository.findById(request.idPersonal())
+                    .orElseThrow(() -> new PersonalNotFoundException("Personal no encontrado"));
+
+            Club club = clubRepository.findById(request.idClub())
+                    .orElseThrow(() -> new IllegalArgumentException("Club no encontrado"));
+
+            contratoRepository.findVigenteByPersonal(request.idPersonal()).ifPresent(c -> {
+                throw new IllegalStateException("El personal ya tiene contrato vigente");
+            });
+
+            Contrato contrato = contratoMapper.toEntity(
+                    UUID.randomUUID(),
+                    personal,
+                    club,
+                    request.fechaInicio(),
+                    request.fechaFin(),
+                    request.estado(),
+                    request.sueldo()
+            );
+
+            personal.agregarContrato(contrato);
+            club.agregarContrato(contrato);
+            contratos.add(contrato);
+        }
+
+        List<Contrato> saved = contratoRepository.saveAll(contratos);
+
+        for (Contrato contrato : saved) {
+            PersonalDeportivo personal = contrato.getPersonal();
+            Club club = contrato.getClub();
+
+            if (personal instanceof Tecnico && club != null) {
+                Tecnico tecnico = (Tecnico) personal;
+                clubRepository.actualizarTecnicoActual(club.getIdEquipo(), tecnico.getIdPersonal());
+                club.asignarTecnico(tecnico);
+                tecnicoRepository.save(tecnico);
+            }
+        }
+
+        return saved.stream()
+                .map(contratoMapper::toResponse)
+                .collect(Collectors.toList());
+    }
+
     @Override
     @Transactional(readOnly = true)
     public ContratoResponse obtenerContratoPorId(UUID idContrato) {
@@ -104,8 +168,25 @@ public class ContratoService implements ContratoUseCase {
         Contrato contrato = contratoRepository.findById(idContrato)
                 .orElseThrow(() -> new IllegalArgumentException(
                         "Contrato no encontrado con id: " + idContrato));
+
+
+        PersonalDeportivo personal = contrato.getPersonal();
+        Club club = contrato.getClub();
+
         contrato.finalizar();
         contratoRepository.save(contrato);
+
+        if (personal instanceof Tecnico && club != null) {
+            if (club.getTecnicoActual() != null &&
+                    club.getTecnicoActual().getIdPersonal().equals(personal.getIdPersonal())) {
+
+                clubRepository.actualizarTecnicoActual(club.getIdEquipo(), null);
+
+                club.desvincularTecnico();
+
+                tecnicoRepository.save((Tecnico) personal);
+            }
+        }
     }
  
     @Override
@@ -118,8 +199,23 @@ public class ContratoService implements ContratoUseCase {
             throw new IllegalStateException(
                     "El contrato ya está " + contrato.getEstado().name().toLowerCase());
         }
+        PersonalDeportivo personal = contrato.getPersonal();
+        Club club = contrato.getClub();
+
         contrato.setEstado(EstadoContrato.RESCINDIDO);
         contratoRepository.save(contrato);
+
+        if (personal instanceof Tecnico && club != null) {
+            if (club.getTecnicoActual() != null &&
+                    club.getTecnicoActual().getIdPersonal().equals(personal.getIdPersonal())) {
+
+                clubRepository.actualizarTecnicoActual(club.getIdEquipo(), null);
+
+                club.desvincularTecnico();
+
+                tecnicoRepository.save((Tecnico) personal);
+            }
+        }
     }
 
     @Override
@@ -128,7 +224,6 @@ public class ContratoService implements ContratoUseCase {
                 .orElseThrow(() -> new IllegalArgumentException(
                         "Contrato no encontrado con id: " + idContrato));
 
-        // Desvincular el contrato del personal y del club
         PersonalDeportivo personal = contrato.getPersonal();
         Club club = contrato.getClub();
 

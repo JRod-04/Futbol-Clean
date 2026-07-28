@@ -6,8 +6,12 @@ import java.util.UUID;
 import com.futbol.estadisticas.application.port.dto.request.ActualizarTecnicoRequest;
 import com.futbol.estadisticas.application.port.dto.request.CrearTecnicoRequest;
 import com.futbol.estadisticas.application.port.dto.response.TecnicoResponse;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 public interface TecnicoUseCase {
+
+    Page<TecnicoResponse> buscarTecnicos(String texto, Pageable pageable);
 
     TecnicoResponse crearTecnico(CrearTecnicoRequest request);
  
@@ -18,10 +22,6 @@ public interface TecnicoUseCase {
     TecnicoResponse obtenerTecnicoActualDeClub(UUID idClub);
  
     TecnicoResponse actualizarTecnico(UUID idTecnico, ActualizarTecnicoRequest request);
- 
-    TecnicoResponse asignarTecnicoAClub(UUID idTecnico, UUID idClub);
- 
-    void desvincularTecnicoDeClub(UUID idClub);
- 
+
     void eliminarTecnico(UUID idTecnico);
 }

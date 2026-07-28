@@ -40,23 +40,23 @@ public class DatosDeportivosRepositoryAdapter implements DatosDeportivosReposito
             entity.setJugador(jugadorJPA);
         }
 
-        return mapper.toDomain(repository.save(entity));
+        return mapper.DatostoDomain(repository.save(entity));
     }
 
     @Override
     public Optional<DatosDeportivos> findById(UUID idHistorialDeportivo) {
-        return repository.findById(idHistorialDeportivo).map(mapper::toDomain);
+        return repository.findById(idHistorialDeportivo).map(mapper::DatostoDomain);
     }
 
     @Override
     public Optional<DatosDeportivos> findByJugador(UUID idJugador) {
-        return repository.findByJugadorIdPersonal(idJugador).map(mapper::toDomain);
+        return repository.findByJugadorIdPersonal(idJugador).map(mapper::DatostoDomain);
     }
 
     @Override
     public List<DatosDeportivos> findByEstado(EstadoJugador estado) {
         return repository.findByEstadoJugador(estado).stream()
-                .map(mapper::toDomain)
+                .map(mapper::DatostoDomain)
                 .toList();
     }
 

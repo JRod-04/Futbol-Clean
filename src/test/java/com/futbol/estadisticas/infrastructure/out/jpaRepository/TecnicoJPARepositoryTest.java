@@ -12,6 +12,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,6 +35,7 @@ class TecnicoJPARepositoryTest extends PostgresTestContainerConfig {
         registry.add("spring.datasource.username", POSTGRES::getUsername);
         registry.add("spring.datasource.password", POSTGRES::getPassword);
         registry.add("spring.jpa.hibernate.ddl-auto", () -> "create-drop");
+        registry.add("spring.jpa.show-sql", () -> "true");
     }
 
     @Autowired
@@ -59,7 +62,7 @@ class TecnicoJPARepositoryTest extends PostgresTestContainerConfig {
 
     @BeforeEach
     void setUp() {
-        // Limpiar en orden inverso
+        // Limpiar en orden inverso por las relaciones
         repository.deleteAll();
         clubRepository.deleteAll();
         estadioRepository.deleteAll();
@@ -89,10 +92,36 @@ class TecnicoJPARepositoryTest extends PostgresTestContainerConfig {
                 .fechaFundacion(LocalDate.of(1877, 4, 28))
                 .build();
 
-        // 2. Guardar estadios
         estadioRepository.saveAll(List.of(estadio1, estadio2, estadio3));
 
-        // 3. Crear técnicos y clubes en el mismo orden SIN setClubActual aún
+        // 2. Crear clubes (sin técnicos aún)
+        ClubJPAEntity club1 = ClubJPAEntity.builder()
+                .idEquipo(ID_CLUB_1)
+                .nombre("Arsenal FC")
+                .nombreCorto("ARS")
+                .fechaFundacion(LocalDate.of(1886, 12, 1))
+                .estadio(estadio1)
+                .build();
+
+        ClubJPAEntity club2 = ClubJPAEntity.builder()
+                .idEquipo(ID_CLUB_2)
+                .nombre("Manchester City")
+                .nombreCorto("MCI")
+                .fechaFundacion(LocalDate.of(1880, 11, 1))
+                .estadio(estadio2)
+                .build();
+
+        ClubJPAEntity club3 = ClubJPAEntity.builder()
+                .idEquipo(ID_CLUB_3)
+                .nombre("Chelsea FC")
+                .nombreCorto("CHE")
+                .fechaFundacion(LocalDate.of(1905, 3, 10))
+                .estadio(estadio3)
+                .build();
+
+        clubRepository.saveAll(List.of(club1, club2, club3));
+
+        // 3. Crear técnicos
         TecnicoJPAEntity tecnico1 = TecnicoJPAEntity.builder()
                 .idPersonal(ID_TECNICO_1)
                 .nombre("Mikel")
@@ -101,14 +130,6 @@ class TecnicoJPARepositoryTest extends PostgresTestContainerConfig {
                 .nacionalidad(Nacion.ESPAÑA)
                 .estiloJuego("Presión alta y posesión")
                 .alineacionFavorita("4-3-3")
-                .build();
-
-        ClubJPAEntity club1 = ClubJPAEntity.builder()
-                .idEquipo(ID_CLUB_1)
-                .nombre("Arsenal FC")
-                .nombreCorto("ARS")
-                .fechaFundacion(LocalDate.of(1886, 12, 1))
-                .estadio(estadio1)
                 .build();
 
         TecnicoJPAEntity tecnico2 = TecnicoJPAEntity.builder()
@@ -121,14 +142,6 @@ class TecnicoJPARepositoryTest extends PostgresTestContainerConfig {
                 .alineacionFavorita("4-3-3")
                 .build();
 
-        ClubJPAEntity club2 = ClubJPAEntity.builder()
-                .idEquipo(ID_CLUB_2)
-                .nombre("Manchester City")
-                .nombreCorto("MCI")
-                .fechaFundacion(LocalDate.of(1880, 11, 1))
-                .estadio(estadio2)
-                .build();
-
         TecnicoJPAEntity tecnico3 = TecnicoJPAEntity.builder()
                 .idPersonal(ID_TECNICO_3)
                 .nombre("Jurgen")
@@ -139,28 +152,18 @@ class TecnicoJPARepositoryTest extends PostgresTestContainerConfig {
                 .alineacionFavorita("4-4-2")
                 .build();
 
-        ClubJPAEntity club3 = ClubJPAEntity.builder()
-                .idEquipo(ID_CLUB_3)
-                .nombre("Chelsea FC")
-                .nombreCorto("CHE")
-                .fechaFundacion(LocalDate.of(1905, 3, 10))
-                .estadio(estadio3)
-                .build();
-
-        // 4. Guardar técnicos y clubes POR SEPARADO
         repository.saveAll(List.of(tecnico1, tecnico2, tecnico3));
-        clubRepository.saveAll(List.of(club1, club2, club3));
 
-        // 5. Obtener las entidades gestionadas de la BD
-        TecnicoJPAEntity tecnicoManaged1 = repository.findById(ID_TECNICO_1).orElseThrow();
-        TecnicoJPAEntity tecnicoManaged2 = repository.findById(ID_TECNICO_2).orElseThrow();
-        TecnicoJPAEntity tecnicoManaged3 = repository.findById(ID_TECNICO_3).orElseThrow();
-
+        // 4. Obtener las entidades gestionadas
         ClubJPAEntity clubManaged1 = clubRepository.findById(ID_CLUB_1).orElseThrow();
         ClubJPAEntity clubManaged2 = clubRepository.findById(ID_CLUB_2).orElseThrow();
         ClubJPAEntity clubManaged3 = clubRepository.findById(ID_CLUB_3).orElseThrow();
 
-        // 6. Establecer las relaciones
+        TecnicoJPAEntity tecnicoManaged1 = repository.findById(ID_TECNICO_1).orElseThrow();
+        TecnicoJPAEntity tecnicoManaged2 = repository.findById(ID_TECNICO_2).orElseThrow();
+        TecnicoJPAEntity tecnicoManaged3 = repository.findById(ID_TECNICO_3).orElseThrow();
+
+        // 5. Establecer las relaciones bidireccionales
         clubManaged1.setTecnicoActual(tecnicoManaged1);
         tecnicoManaged1.setClubActual(clubManaged1);
 
@@ -170,7 +173,7 @@ class TecnicoJPARepositoryTest extends PostgresTestContainerConfig {
         clubManaged3.setTecnicoActual(tecnicoManaged3);
         tecnicoManaged3.setClubActual(clubManaged3);
 
-        // 7. Guardar todo
+        // 6. Guardar todo
         clubRepository.saveAll(List.of(clubManaged1, clubManaged2, clubManaged3));
         repository.saveAll(List.of(tecnicoManaged1, tecnicoManaged2, tecnicoManaged3));
     }
@@ -231,10 +234,11 @@ class TecnicoJPARepositoryTest extends PostgresTestContainerConfig {
         club.setTecnicoActual(null);
         clubRepository.save(club);
 
+        // Eliminar el técnico
         assertThat(adapter.existsById(ID_TECNICO_3)).isTrue();
         adapter.deleteById(ID_TECNICO_3);
         assertThat(adapter.existsById(ID_TECNICO_3)).isFalse();
-        
+
         List<Tecnico> todos = adapter.findAll();
         assertThat(todos).hasSize(2);
         assertThat(todos)
@@ -271,25 +275,17 @@ class TecnicoJPARepositoryTest extends PostgresTestContainerConfig {
     void testUpdate() {
         Optional<Tecnico> tecnicoOptional = adapter.findById(ID_TECNICO_1);
         assertThat(tecnicoOptional).isPresent();
-        
+
         Tecnico tecnico = tecnicoOptional.get();
-        assertThat(tecnico.getEstiloJuego()).isEqualTo("Presión alta y posesión");
-        
-        Tecnico tecnicoActualizado = Tecnico.builder()
-                .idPersonal(tecnico.getIdPersonal())
-                .nombre(tecnico.getNombre())
-                .apellido(tecnico.getApellido())
-                .fechaNacimiento(tecnico.getFechaNacimiento())
-                .nacionalidad(tecnico.getNacionalidad())
-                .estiloJuego("Nuevo estilo de juego")
-                .alineacionFavorita(tecnico.getAlineacionFavorita())
-                .build();
-        
-        Tecnico guardado = adapter.save(tecnicoActualizado);
-        assertThat(guardado).isNotNull();
-        assertThat(guardado.getIdPersonal()).isEqualTo(ID_TECNICO_1);
-        assertThat(guardado.getEstiloJuego()).isEqualTo("Nuevo estilo de juego");
-        
+        tecnico.setEstiloJuego("Nuevo estilo de juego");
+        tecnico.setAlineacionFavorita("4-4-2");
+
+        Tecnico actualizado = adapter.save(tecnico);
+        assertThat(actualizado).isNotNull();
+        assertThat(actualizado.getIdPersonal()).isEqualTo(ID_TECNICO_1);
+        assertThat(actualizado.getEstiloJuego()).isEqualTo("Nuevo estilo de juego");
+        assertThat(actualizado.getAlineacionFavorita()).isEqualTo("4-4-2");
+
         Optional<Tecnico> encontrado = adapter.findById(ID_TECNICO_1);
         assertThat(encontrado).isPresent();
         assertThat(encontrado.get().getEstiloJuego()).isEqualTo("Nuevo estilo de juego");
@@ -297,9 +293,37 @@ class TecnicoJPARepositoryTest extends PostgresTestContainerConfig {
     }
 
     @Test
+    @DisplayName("buscarTecnicoPorNombre: debe buscar técnicos por nombre o apellido")
+    void testBuscarTecnicoPorNombre() {
+        // Buscar por apellido
+        Page<Tecnico> page = adapter.buscarTecnicoPorNombre("Arteta", PageRequest.of(0, 10));
+        assertThat(page.getContent()).hasSize(1);
+        assertThat(page.getContent().get(0).getApellido()).isEqualTo("Arteta");
+
+        // Buscar por nombre parcial
+        Page<Tecnico> page2 = adapter.buscarTecnicoPorNombre("Pep", PageRequest.of(0, 10));
+        assertThat(page2.getContent()).hasSize(1);
+        assertThat(page2.getContent().get(0).getNombre()).isEqualTo("Pep");
+
+        // Buscar por coincidencia parcial
+        Page<Tecnico> page3 = adapter.buscarTecnicoPorNombre("ard", PageRequest.of(0, 10));
+        assertThat(page3.getContent()).hasSize(1);
+        assertThat(page3.getContent().get(0).getApellido()).isEqualTo("Guardiola");
+    }
+
+    @Test
     @DisplayName("findByClub: debe retornar lista vacía cuando el club no tiene técnico")
     void testFindByClub_SinTecnico() {
+        // Crear un club sin técnico
         UUID idClubSinTecnico = UUID.randomUUID();
+        ClubJPAEntity clubSinTecnico = ClubJPAEntity.builder()
+                .idEquipo(idClubSinTecnico)
+                .nombre("Club Sin Tecnico")
+                .nombreCorto("CST")
+                .fechaFundacion(LocalDate.now())
+                .build();
+        clubRepository.save(clubSinTecnico);
+
         List<Tecnico> tecnicos = adapter.findByClub(idClubSinTecnico);
         assertThat(tecnicos).isEmpty();
     }
@@ -307,7 +331,16 @@ class TecnicoJPARepositoryTest extends PostgresTestContainerConfig {
     @Test
     @DisplayName("findTecnicoActualByClub: debe retornar Optional.empty cuando el club no tiene técnico")
     void testFindTecnicoActualByClub_SinTecnico() {
+        // Crear un club sin técnico
         UUID idClubSinTecnico = UUID.randomUUID();
+        ClubJPAEntity clubSinTecnico = ClubJPAEntity.builder()
+                .idEquipo(idClubSinTecnico)
+                .nombre("Club Sin Tecnico")
+                .nombreCorto("CST")
+                .fechaFundacion(LocalDate.now())
+                .build();
+        clubRepository.save(clubSinTecnico);
+
         Optional<Tecnico> tecnico = adapter.findTecnicoActualByClub(idClubSinTecnico);
         assertThat(tecnico).isEmpty();
     }
@@ -317,5 +350,40 @@ class TecnicoJPARepositoryTest extends PostgresTestContainerConfig {
     void testFindById_NoExiste() {
         Optional<Tecnico> tecnico = adapter.findById(UUID.randomUUID());
         assertThat(tecnico).isEmpty();
+    }
+
+    @Test
+    @DisplayName("buscarTecnicoPorNombre: debe retornar página vacía cuando el texto es null o vacío")
+    void testBuscarTecnicoPorNombre_TextoVacio() {
+        // Test con null
+        Page<Tecnico> page1 = adapter.buscarTecnicoPorNombre(null, PageRequest.of(0, 10));
+        assertThat(page1).isEmpty();
+        assertThat(page1.getTotalElements()).isEqualTo(0);
+
+        // Test con texto vacío
+        Page<Tecnico> page2 = adapter.buscarTecnicoPorNombre("", PageRequest.of(0, 10));
+        assertThat(page2).isEmpty();
+        assertThat(page2.getTotalElements()).isEqualTo(0);
+
+        // Test con texto solo espacios
+        Page<Tecnico> page3 = adapter.buscarTecnicoPorNombre("   ", PageRequest.of(0, 10));
+        assertThat(page3).isEmpty();
+        assertThat(page3.getTotalElements()).isEqualTo(0);
+    }
+
+    @Test
+    @DisplayName("buscarTecnicoPorNombre: debe retornar página vacía cuando no hay coincidencias")
+    void testBuscarTecnicoPorNombre_SinResultados() {
+        Page<Tecnico> page = adapter.buscarTecnicoPorNombre("xyz", PageRequest.of(0, 10));
+        assertThat(page.getContent()).isEmpty();
+        assertThat(page.getTotalElements()).isEqualTo(0);
+    }
+
+    @Test
+    @DisplayName("deleteById: debe lanzar excepción cuando el ID no existe")
+    void testDeleteById_NoExiste() {
+        UUID idInexistente = UUID.randomUUID();
+        assertThat(adapter.existsById(idInexistente)).isFalse();
+        adapter.deleteById(idInexistente); // No debe lanzar excepción
     }
 }

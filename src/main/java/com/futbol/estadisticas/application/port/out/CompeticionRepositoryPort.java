@@ -5,10 +5,18 @@ import java.util.Optional;
 import java.util.UUID;
 
 import com.futbol.estadisticas.domain.model.Competicion;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 public interface CompeticionRepositoryPort {
+
+    Page<Competicion> buscarCompeticionesPorNombre(String nombre, Pageable pageable);
+
     Competicion save(Competicion competicion);
- 
+
+    Optional<Competicion> findByIdWithPartidosAndEquipos(UUID idCompeticion);
+
+
     Optional<Competicion> findById(UUID idCompeticion);
  
     List<Competicion> findAll();

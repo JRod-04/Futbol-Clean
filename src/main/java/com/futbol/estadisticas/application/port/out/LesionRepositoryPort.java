@@ -10,7 +10,9 @@ import com.futbol.estadisticas.domain.model.enums.Gravedad;
 public interface LesionRepositoryPort {
     
     Lesion save(Lesion lesion);
- 
+
+    List<Lesion> saveAll(List<Lesion> lesiones);
+
     Optional<Lesion> findById(UUID idLesion);
  
     List<Lesion> findByJugador(UUID idJugador);

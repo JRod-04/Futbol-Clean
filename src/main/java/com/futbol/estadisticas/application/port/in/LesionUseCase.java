@@ -9,8 +9,10 @@ import com.futbol.estadisticas.domain.model.enums.Gravedad;
 
 public interface LesionUseCase {
     
-    LesionResponse registrarLesion(UUID idJugador, RegistrarLesionRequest request);
- 
+    LesionResponse registrarLesion(RegistrarLesionRequest request);
+
+    List<LesionResponse> registrarVariasLesiones(List<RegistrarLesionRequest> requests);
+
     LesionResponse obtenerLesionPorId(UUID idLesion);
  
     List<LesionResponse> obtenerLesionesPorJugador(UUID idJugador);

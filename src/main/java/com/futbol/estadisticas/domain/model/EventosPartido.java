@@ -3,6 +3,7 @@ package com.futbol.estadisticas.domain.model;
 import java.time.LocalTime;
 import java.util.UUID;
 
+import com.futbol.estadisticas.domain.model.enums.EstadoPartido;
 import com.futbol.estadisticas.domain.model.enums.TipoEvento;
 
 import lombok.AllArgsConstructor;
@@ -32,16 +33,78 @@ public class EventosPartido {
     private Partido partido;
     private PersonalDeportivo personal;
     private Club equipoFavorecido;
+    private EstadoPartido estadoEvento;
 
 
-    //Obtiene el minuto del evento en formato MM:SS
     public String getMinutoFormateado() {
-        if (minuto == null) {
-            return "0:00";
+        if (minuto == null || estadoEvento == null) {
+            return "0'";
         }
-        return String.format("%d'", minuto.getMinute());
+
+        int totalMinutos = (minuto.getHour()*60) + minuto.getMinute() + (minuto.getSecond() > 0 ? 1 : 0);
+
+        if (estadoEvento == EstadoPartido.ENTRETIEMPO ||
+                estadoEvento == EstadoPartido.ENTRETIEMPO_PRORROGA) {
+            return "Descanso";
+        }
+
+        if (estadoEvento == EstadoPartido.ESPERANDO_PRORROGA) {
+            return "Esperando prórroga";
+        }
+
+        if (estadoEvento == EstadoPartido.PENALTIS) {
+            return "Penaltis";
+        }
+
+        if (estadoEvento == EstadoPartido.CANCELADO ||
+                estadoEvento == EstadoPartido.FINALIZADO) {
+            if (totalMinutos > 90) {
+                return "90+" + (totalMinutos - 90) + "'";
+            }
+            return totalMinutos + "'";
+        }
+
+        if (estadoEvento == EstadoPartido.PROGRAMADO) {
+            return "Programado";
+        }
+
+        return switch (estadoEvento) {
+            case PRIMER_TIEMPO -> formatearPrimerTiempo(totalMinutos);
+            case AGREGADO_PRIMER_TIEMPO -> formatearAgregadoPrimerTiempo(totalMinutos);
+            case SEGUNDO_TIEMPO -> formatearSegundoTiempo(totalMinutos);
+            case AGREGADO_SEGUNDO_TIEMPO -> formatearAgregadoSegundoTiempo(totalMinutos);
+            case PRIMER_TIEMPO_PRORROGA -> formatearProrroga(totalMinutos);
+            case AGREGADO_PRORROGA_PRIMER -> formatearAgregadoProrroga(totalMinutos, 105);
+            case SEGUNDO_TIEMPO_PRORROGA -> formatearProrroga(totalMinutos);
+            case AGREGADO_PRORROGA_SEGUNDO -> formatearAgregadoProrroga(totalMinutos, 120);
+            default -> totalMinutos + "'";
+        };
     }
-    
+    private String formatearPrimerTiempo(int totalMinutos) {
+        return totalMinutos + "'";
+    }
+
+    private String formatearAgregadoPrimerTiempo(int totalMinutos) {
+        return "45+" + (totalMinutos - 45) + "'";
+    }
+
+    private String formatearSegundoTiempo(int totalMinutos) {
+        return totalMinutos + "'";
+    }
+
+    private String formatearAgregadoSegundoTiempo(int totalMinutos) {
+        return "90+" + (totalMinutos - 90) + "'";
+    }
+
+    private String formatearProrroga(int totalMinutos) {
+        return totalMinutos + "'";
+    }
+
+    private String formatearAgregadoProrroga(int totalMinutos, int inicio) {
+        if (totalMinutos <= inicio) return inicio + "+" + (totalMinutos - inicio) + "'";
+        return inicio + "+" + (totalMinutos - inicio) + "'";
+    }
+
     //Verifica si el evento es un gol
     public boolean esGol() {
         return tipoEvento == TipoEvento.GOL || 
@@ -98,7 +161,6 @@ public class EventosPartido {
     }
     
 
-    //Obtiene una descripción completa del evento
     public String getDescripcionCompleta() {
         if (descripcion != null && !descripcion.isEmpty()) {
             return descripcion;
@@ -119,13 +181,52 @@ public class EventosPartido {
         
         return sb.toString();
     }
-    
 
-    //Verifica si el evento es relevante para estadísticas
-    public boolean esEstadisticable() {
-        return tipoEvento != null && 
-               tipoEvento != TipoEvento.INICIO_PARTIDO &&
-               tipoEvento != TipoEvento.FIN_PARTIDO &&
-               tipoEvento != TipoEvento.AGREGADO;
+    public void validarMinutoCreate(Partido partido) {
+        if (minuto == null || partido == null) {
+            return;
+        }
+
+        EstadoPartido estado = partido.getEstado();
+        int totalMinutos = (minuto.getHour()*60) + minuto.getMinute() + (minuto.getSecond() > 0 ? 1 : 0);
+
+        if (estado == EstadoPartido.ENTRETIEMPO ||
+                estado == EstadoPartido.ENTRETIEMPO_PRORROGA ||
+                estado == EstadoPartido.ESPERANDO_PRORROGA) {
+            throw new IllegalStateException("No se pueden registrar eventos durante el " + estado.getDisplayName());
+        }
+
+        if (estado == EstadoPartido.FINALIZADO ||
+                estado == EstadoPartido.CANCELADO ||
+                estado == EstadoPartido.SUSPENDIDO) {
+            throw new IllegalStateException("No se pueden registrar eventos en un partido finalizado");
+        }
+
+        if (estado == EstadoPartido.PROGRAMADO) {
+            throw new IllegalStateException("No se pueden registrar eventos en un partido programado");
+        }
+
+        if (estado.esTiempoValido()) {
+            if (totalMinutos > 120) {
+                throw new IllegalStateException(
+                        "El minuto " + totalMinutos + "' excede el límite máximo permitido de 120'");
+            }
+            return;
+        }
+
+        int limite = estado.getMinutoLimite();
+        if (totalMinutos > limite) {
+            throw new IllegalStateException(
+                    "No se puede registrar un minuto mayor a " + limite +
+                            "' en " + estado.getDisplayName() + " sin tiempo agregado");
+        }
     }
+
+    public boolean esEstadisticable() {
+        if (tipoEvento == null) {
+            return false;
+        }
+        return tipoEvento.esGol() || tipoEvento == TipoEvento.ASISTENCIA || tipoEvento.esTarjeta();
+    }
+
 }

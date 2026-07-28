@@ -3,8 +3,12 @@ package com.futbol.estadisticas.domain.model;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
+import com.futbol.estadisticas.domain.model.enums.FaseTorneo;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -29,6 +33,7 @@ public class Competicion {
     private String nombre;
     private LocalDateTime fechaInicio;
     private LocalDateTime fechaFin;
+    private Club equipoGanador;
 
      @Builder.Default
     private List<Partido> partidos = new ArrayList<>();
@@ -92,5 +97,13 @@ public class Competicion {
         }
         long jugados = partidos.stream().filter(Partido::haFinalizado).count();
         return (double) jugados / partidos.size() * 100;
+    }
+
+    public List<Club> getClubesParticipantes() {
+        return this.partidos.stream()
+                .flatMap(p -> Stream.of(p.getEquipoLocal(), p.getEquipoVisitante()))
+                .filter(Objects::nonNull)
+                .distinct()
+                .collect(Collectors.toList());
     }
 }

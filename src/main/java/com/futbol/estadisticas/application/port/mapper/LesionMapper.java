@@ -11,18 +11,22 @@ import com.futbol.estadisticas.domain.model.Lesion;
 
 @Component
 public class LesionMapper {
-     public Lesion toEntity(RegistrarLesionRequest request) {
+     public Lesion toEntity(RegistrarLesionRequest request, Jugador jugador) {
         return Lesion.builder()
                 .idLesion(UUID.randomUUID())
                 .nombreLesion(request.nombreLesion())
                 .gravedad(request.gravedad())
                 .fechaInicio(request.fechaInicio())
                 .fechaFin(request.fechaFinEstimada())
+                .jugadorLesionado(jugador)
                 .curada(false)
                 .build();
     }
  
     public LesionResponse toResponse(Lesion lesion, Jugador jugador) {
+
+        Jugador jugadorFinal = jugador != null ? jugador : lesion.getJugadorLesionado();
+
         return new LesionResponse(
                 lesion.getIdLesion(),
                 lesion.getNombreLesion(),
@@ -36,8 +40,8 @@ public class LesionMapper {
                 lesion.getEstadoLesion(),
                 lesion.getDuracionDias(),
                 lesion.getDiasRestantesRecuperacion(),
-                jugador != null ? jugador.getIdPersonal() : null,
-                jugador != null ? jugador.getNombreCompleto() : null
+                jugadorFinal != null ? jugadorFinal.getIdPersonal() : null,
+                jugadorFinal != null ? jugadorFinal.getNombreCompleto() : null
         );
     }
 }

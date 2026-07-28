@@ -30,6 +30,7 @@ public class JugadorMapper {
                 .posiciones(posicionesIniciales)
                 .estadoJugador(EstadoJugador.SUPLENTE)
                 .valorMercado(request.valorMercado())
+                .dorsal(request.dorsal())
                 .fechaActualizacion(LocalDate.now())
                 .build();
  

@@ -5,15 +5,22 @@ import java.util.UUID;
 
 import com.futbol.estadisticas.application.port.dto.request.ActualizarJugadorRequest;
 import com.futbol.estadisticas.application.port.dto.request.CrearJugadorRequest;
+import com.futbol.estadisticas.application.port.dto.response.EstadisticasJugadorResponse;
 import com.futbol.estadisticas.application.port.dto.response.JugadorResponse;
 import com.futbol.estadisticas.domain.model.enums.EstadoJugador;
 import com.futbol.estadisticas.domain.model.enums.PosicionJugador;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 public interface JugadoresUseCase {
-    
+
+    Page<JugadorResponse> buscarJugadores(String texto, Pageable pageable);
+
     JugadorResponse crearJugador(CrearJugadorRequest request);
 
     List<JugadorResponse> crearVariosJugadores(List<CrearJugadorRequest> requests);
+
+    EstadisticasJugadorResponse obtenerEstadisticasJugador(UUID idJugador);
 
     JugadorResponse obtenerJugadorPorId(UUID idJugador);
  

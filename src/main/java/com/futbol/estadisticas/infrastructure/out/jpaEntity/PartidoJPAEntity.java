@@ -7,6 +7,8 @@ import java.util.UUID;
 
 import com.futbol.estadisticas.domain.model.enums.EstadoPartido;
 
+import com.futbol.estadisticas.domain.model.enums.FaseTorneo;
+import com.futbol.estadisticas.domain.model.enums.JornadaPartido;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -39,9 +41,7 @@ public class PartidoJPAEntity {
     @Column(name = "fecha_y_hora")
     private LocalDateTime fechaYHora;
  
-    @Column(name = "jornada")
-    private Integer jornada;
- 
+
     @Enumerated(EnumType.STRING)
     @Column(name = "estado", length = 30)
     private EstadoPartido estado;
@@ -51,6 +51,14 @@ public class PartidoJPAEntity {
  
     @Column(name = "goles_visitante", nullable = false)
     private int golesVisitante;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "fase")
+    private FaseTorneo fase;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "jornada_torneo")
+    private JornadaPartido jornadaTorneo;
  
     // FK equipo local
     @ManyToOne(fetch = FetchType.LAZY)

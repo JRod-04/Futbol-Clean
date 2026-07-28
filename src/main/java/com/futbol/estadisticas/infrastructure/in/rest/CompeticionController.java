@@ -3,15 +3,11 @@ package com.futbol.estadisticas.infrastructure.in.rest;
 import java.util.List;
 import java.util.UUID;
 
+import com.futbol.estadisticas.application.port.dto.request.ActualizarGanadorRequest;
+import com.futbol.estadisticas.application.port.dto.response.ClubResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.futbol.estadisticas.application.port.dto.request.CrearCompeticionRequest;
 import com.futbol.estadisticas.application.port.dto.response.CompeticionResponse;
@@ -23,6 +19,7 @@ import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/apifutbol/competiciones")
+@CrossOrigin(origins = "*")
 @RequiredArgsConstructor
 public class CompeticionController {
 
@@ -44,6 +41,12 @@ public class CompeticionController {
     public ResponseEntity<List<CompeticionResponse>> activas() {
         return ResponseEntity.ok(competicionUseCase.obtenerCompeticionesActivas());
     }
+
+    @GetMapping("/{id}/clubes")
+    public ResponseEntity<List<ClubResponse>> obtenerClubesParticipantes(
+            @PathVariable UUID id) {
+        return ResponseEntity.ok(competicionUseCase.obtenerClubesParticipantes(id));
+    }
  
     @GetMapping("/{id}")
     public ResponseEntity<CompeticionResponse> obtenerPorId(@PathVariable UUID id) {
@@ -64,7 +67,14 @@ public class CompeticionController {
     public ResponseEntity<Double> porcentajeAvance(@PathVariable UUID id) {
         return ResponseEntity.ok(competicionUseCase.obtenerPorcentajeAvance(id));
     }
- 
+
+    @PatchMapping("/{id}/ganador")
+    public ResponseEntity<CompeticionResponse> actualizarEquipoGanador(
+            @PathVariable UUID id,
+            @RequestBody ActualizarGanadorRequest request) {
+        return ResponseEntity.ok(competicionUseCase.actualizarEquipoGanador(id, request.idEquipoGanador()));
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminar(@PathVariable UUID id) {
         competicionUseCase.eliminarCompeticion(id);

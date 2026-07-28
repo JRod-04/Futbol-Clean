@@ -2,16 +2,18 @@ package com.futbol.estadisticas.application.port.dto.response;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
+import java.util.jar.JarOutputStream;
 
 import com.futbol.estadisticas.domain.model.enums.EstadoPartido;
 
+import com.futbol.estadisticas.domain.model.enums.FaseTorneo;
+import com.futbol.estadisticas.domain.model.enums.JornadaPartido;
 import lombok.Builder;
 
 @Builder
 public record PartidoResponse(
         UUID idPartido,
         LocalDateTime fechaYHora,
-        Integer jornada,
         EstadoPartido estado,
         String estadoDisplayName,
  
@@ -29,7 +31,8 @@ public record PartidoResponse(
         String nombreEstadio,
         String nombreCompeticion,
         UUID idCompeticion,
- 
+        FaseTorneo fase,
+        JornadaPartido jornada,
         boolean enCurso,
         boolean finalizado,
         boolean esFuturo,

@@ -3,6 +3,8 @@ package com.futbol.estadisticas.application.port.dto.request;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+import com.futbol.estadisticas.domain.model.enums.FaseTorneo;
+import com.futbol.estadisticas.domain.model.enums.JornadaPartido;
 import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -24,10 +26,9 @@ public record CrearPartidoRequest(
  
         @NotNull(message = "La fecha y hora es obligatoria")
         LocalDateTime fechaYHora,
- 
-        @Positive(message = "La jornada debe ser positiva")
-        Integer jornada,
- 
+
+        FaseTorneo fase,
+        JornadaPartido jornadaTorneo,
         UUID idEstadio
     
     ) {

@@ -22,7 +22,6 @@ public class PartidoMapper {
         return new PartidoResponse(
                 partido.getIdPartido(),
                 partido.getFechaYHora(),
-                partido.getJornada(),
                 partido.getEstado(),
                 partido.getEstado() != null ? partido.getEstado().getDisplayName() : null,
                 local != null ? local.getIdEquipo() : null,
@@ -36,6 +35,8 @@ public class PartidoMapper {
                 estadio != null ? estadio.getNombre() : null,
                 competicion != null ? competicion.getNombre() : null,
                 competicion != null ? competicion.getIdCompeticion() : null,
+                partido.getFase(),
+                partido.getJornada(),
                 partido.estaEnCurso(),
                 partido.haFinalizado(),
                 partido.esFuturo(),

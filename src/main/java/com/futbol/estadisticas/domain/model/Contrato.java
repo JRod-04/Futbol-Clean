@@ -42,7 +42,6 @@ public class Contrato {
                ahora.isBefore(fechaFin);
     }
     
-    //Finalizar un Contrato
     public void finalizar() {
         if (this.estado == EstadoContrato.FINALIZADO) {
             throw new IllegalStateException("El contrato ya está finalizado");
@@ -51,7 +50,6 @@ public class Contrato {
         this.fechaFin = LocalDateTime.now();
     }
     
-    //Renovar un contrato (Agrega Meses)
     public void renovar(int mesesAdicionales) {
         if (mesesAdicionales <= 0) {
             throw new IllegalArgumentException("Los meses deben ser positivos");

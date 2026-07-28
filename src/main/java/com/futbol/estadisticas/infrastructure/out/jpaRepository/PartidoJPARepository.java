@@ -1,10 +1,14 @@
 package com.futbol.estadisticas.infrastructure.out.jpaRepository;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -40,4 +44,13 @@ public interface PartidoJPARepository extends JpaRepository<PartidoJPAEntity, UU
              )
            """)
    List<PartidoJPAEntity> findClasificacion(@Param("idCompeticion") UUID idCompeticion);
+
+    @Modifying
+    @Query("UPDATE PartidoJPAEntity p SET p.golesLocal = :golesLocal, p.golesVisitante = :golesVisitante WHERE p.idPartido = :id")
+    void updateGoles(@Param("id") UUID id, @Param("golesLocal") int golesLocal, @Param("golesVisitante") int golesVisitante);
+
+    @Query("SELECT p FROM PartidoJPAEntity p " +
+            "WHERE DATE(p.fechaYHora) = :fecha " +
+            "ORDER BY p.fechaYHora ASC")
+    Page<PartidoJPAEntity> findByFecha(@Param("fecha") LocalDate fecha, Pageable pageable);
 }

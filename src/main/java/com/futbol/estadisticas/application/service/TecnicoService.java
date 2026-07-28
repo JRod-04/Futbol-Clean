@@ -3,6 +3,8 @@ package com.futbol.estadisticas.application.service;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,7 +30,16 @@ public class TecnicoService implements TecnicoUseCase{
     private final TecnicoRepositoryPort tecnicoRepository;
     private final ClubRepositoryPort    clubRepository;
     private final TecnicoMapper         tecnicoMapper;
- 
+
+    @Override
+    public Page<TecnicoResponse> buscarTecnicos(String texto, Pageable pageable) {
+        if (texto == null || texto.trim().isEmpty()) {
+            return Page.empty(pageable);
+        }
+        Page<Tecnico> page = tecnicoRepository.buscarTecnicoPorNombre(texto.trim(), pageable);
+        return page.map(tecnicoMapper::toResponse);
+    }
+
     @Override
     public TecnicoResponse crearTecnico(CrearTecnicoRequest request) {
         Tecnico tecnico = tecnicoMapper.toEntity(request);
@@ -73,30 +84,8 @@ public class TecnicoService implements TecnicoUseCase{
         return tecnicoMapper.toResponse(tecnicoRepository.save(tecnico));
     }
  
-    @Override
-    public TecnicoResponse asignarTecnicoAClub(UUID idTecnico, UUID idClub) {
-        Tecnico tecnico = findTecnicoOrThrow(idTecnico);
-        Club club = clubRepository.findById(idClub)
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "Club no encontrado con id: " + idClub));
- 
-        club.asignarTecnico(tecnico);
-        clubRepository.save(club);
- 
-        return tecnicoMapper.toResponse(tecnicoRepository.save(tecnico));
-    }
- 
-    @Override
-    public void desvincularTecnicoDeClub(UUID idClub) {
-        Club club = clubRepository.findById(idClub)
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "Club no encontrado con id: " + idClub));
-        if (club.getTecnicoActual() == null) {
-            throw new IllegalStateException("El club no tiene técnico asignado");
-        }
-        club.desvincularTecnico();
-        clubRepository.save(club);
-    }
+
+
  
     @Override
     public void eliminarTecnico(UUID idTecnico) {

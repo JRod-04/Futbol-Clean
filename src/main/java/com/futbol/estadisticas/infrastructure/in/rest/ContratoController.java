@@ -17,6 +17,8 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequestMapping("/apifutbol/contratos")
 @RequiredArgsConstructor
+@CrossOrigin(origins = "*")
+
 public class ContratoController {
 
     private final ContratoUseCase contratoUseCase;
@@ -26,7 +28,14 @@ public class ContratoController {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(contratoUseCase.crearContrato(request));
     }
- 
+
+    @PostMapping("/batch")
+    public ResponseEntity<List<ContratoResponse>> crearContratosBatch(
+            @Valid @RequestBody List<CrearContratoRequest> requests) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(contratoUseCase.crearVariosContratos(requests));
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<ContratoResponse> obtenerPorId(@PathVariable UUID id) {
         return ResponseEntity.ok(contratoUseCase.obtenerContratoPorId(id));
@@ -57,7 +66,7 @@ public class ContratoController {
     @PatchMapping("/{id}/finalizar")
     public ResponseEntity<Void> finalizar(@PathVariable UUID id) {
         contratoUseCase.finalizarContrato(id);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.accepted().build();
     }
  
     @PatchMapping("/{id}/rescindir")

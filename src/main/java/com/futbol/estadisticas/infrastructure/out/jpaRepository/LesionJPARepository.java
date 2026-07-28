@@ -2,6 +2,7 @@ package com.futbol.estadisticas.infrastructure.out.jpaRepository;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -12,7 +13,9 @@ import com.futbol.estadisticas.domain.model.enums.Gravedad;
 import com.futbol.estadisticas.infrastructure.out.jpaEntity.LesionJPAEntity;
 
 public interface LesionJPARepository extends JpaRepository<LesionJPAEntity, UUID>{
-    List<LesionJPAEntity> findByJugadorIdPersonal(UUID idJugador);
+
+    @Query("SELECT l FROM LesionJPAEntity l JOIN FETCH l.jugador WHERE l.jugador.idPersonal = :idJugador")
+    List<LesionJPAEntity> findByJugadorIdPersonalWithJugador(@Param("idJugador") UUID idJugador);
  
     @Query("""
            SELECT l FROM LesionJPAEntity l
@@ -33,4 +36,7 @@ public interface LesionJPARepository extends JpaRepository<LesionJPAEntity, UUID
              AND (l.fechaFin IS NULL OR l.fechaFin > :hoy)
            """)
     List<LesionJPAEntity> findActivas(@Param("hoy") LocalDate hoy);
+
+    @Query("SELECT l FROM LesionJPAEntity l JOIN FETCH l.jugador WHERE l.idLesion = :id")
+    Optional<LesionJPAEntity> findByIdWithJugador(@Param("id") UUID id);
 }

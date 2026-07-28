@@ -5,12 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.Id;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -36,7 +31,11 @@ public class CompeticionJPAEntity {
  
     @Column(name = "fecha_fin", nullable = false)
     private LocalDateTime fechaFin;
- 
+
+    @ManyToOne
+    @JoinColumn(name = "id_equipo_ganador")
+    private ClubJPAEntity equipoGanador;
+
     // Partidos de esta competición (relación inversa)
     @OneToMany(mappedBy = "competicion", fetch = FetchType.LAZY)
     @Builder.Default
