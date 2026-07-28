@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
 import com.futbol.estadisticas.application.port.out.JugadorRepositoryPort;
@@ -30,8 +32,14 @@ public class JugadorRepositoryAdapter implements JugadorRepositoryPort {
                 .toList();
         List<JugadorJPAEntity> saved = repository.saveAll(entities);
         return saved.stream()
-                .map(mapper::toDomain)
+                .map(mapper::JugadortoDomain)
                 .toList();
+    }
+
+    @Override
+    public Page<Jugador> buscarJugadorPorTexto(String texto, Pageable pageable) {
+        return repository.buscarJugadorPorTexto(texto, pageable)
+                .map(mapper::JugadortoDomain);
     }
 
     @Override
@@ -47,42 +55,42 @@ public class JugadorRepositoryAdapter implements JugadorRepositoryPort {
             entity.getLesiones().forEach(lesion -> lesion.setJugador(entity));
         }
         
-        return mapper.toDomain(repository.save(entity));
+        return mapper.JugadortoDomain(repository.save(entity));
     }
 
     @Override
     public Optional<Jugador> findById(UUID idPersonal) {
-        return repository.findByIdWithContratos(idPersonal).map(mapper::toDomain);
+        return repository.findByIdWithContratos(idPersonal).map(mapper::JugadortoDomain);
     }
 
     @Override
     public List<Jugador> findAll() {
-        return repository.findAll().stream().map(mapper::toDomain).toList();
+        return repository.findAll().stream().map(mapper::JugadortoDomain).toList();
     }
 
     @Override
     public List<Jugador> findByClub(UUID idClub) {
-        return repository.findByClub(idClub).stream().map(mapper::toDomain).toList();
+        return repository.findByClub(idClub).stream().map(mapper::JugadortoDomain).toList();
     }
 
     @Override
     public List<Jugador> findByEstado(EstadoJugador estado) {
-        return repository.findByEstado(estado).stream().map(mapper::toDomain).toList();
+        return repository.findByEstado(estado).stream().map(mapper::JugadortoDomain).toList();
     }
 
     @Override
     public List<Jugador> findByPosicion(PosicionJugador posicion) {
-        return repository.findByPosicion(posicion).stream().map(mapper::toDomain).toList();
+        return repository.findByPosicion(posicion).stream().map(mapper::JugadortoDomain).toList();
     }
 
     @Override
     public List<Jugador> findDisponibles() {
-        return repository.findDisponibles().stream().map(mapper::toDomain).toList();
+        return repository.findDisponibles().stream().map(mapper::JugadortoDomain).toList();
     }
 
     @Override
     public List<Jugador> findLesionados() {
-        return repository.findLesionados().stream().map(mapper::toDomain).toList();
+        return repository.findLesionados().stream().map(mapper::JugadortoDomain).toList();
     }
 
     @Override

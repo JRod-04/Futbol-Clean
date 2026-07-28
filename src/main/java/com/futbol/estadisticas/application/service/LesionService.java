@@ -1,7 +1,9 @@
 package com.futbol.estadisticas.application.service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,16 +32,43 @@ public class LesionService implements LesionUseCase {
     private final LesionMapper          lesionMapper;
  
     @Override
-    public LesionResponse registrarLesion(UUID idJugador, RegistrarLesionRequest request) {
-        Jugador jugador = findJugadorOrThrow(idJugador);
- 
-        Lesion lesion = lesionMapper.toEntity(request);
+    public LesionResponse registrarLesion(RegistrarLesionRequest request) {
+        Jugador jugador = findJugadorOrThrow(request.idJugador());
+
+        Lesion lesion = lesionMapper.toEntity(request, jugador);
+
         jugador.registrarLesion(lesion);
+
+        lesionRepository.save(lesion);
         jugadorRepository.save(jugador);
- 
-        return lesionMapper.toResponse(lesionRepository.save(lesion), jugador);
+
+        return lesionMapper.toResponse(lesion, jugador);
     }
- 
+
+    @Override
+    public List<LesionResponse> registrarVariasLesiones(List<RegistrarLesionRequest> requests) {
+        List<Lesion> lesiones = new ArrayList<>();
+
+        for (RegistrarLesionRequest request : requests) {
+            Jugador jugador = findJugadorOrThrow(request.idJugador());
+            Lesion lesion = lesionMapper.toEntity(request, jugador);
+            jugador.registrarLesion(lesion);
+            lesiones.add(lesion);
+        }
+
+        List<Lesion> saved = lesionRepository.saveAll(lesiones);
+
+        for (Lesion lesion : saved) {
+            if (lesion.getJugadorLesionado() != null) {
+                jugadorRepository.save(lesion.getJugadorLesionado());
+            }
+        }
+
+        return saved.stream()
+                .map(l -> lesionMapper.toResponse(l, l.getJugadorLesionado()))
+                .collect(Collectors.toList());
+    }
+
     @Override
     @Transactional(readOnly = true)
     public LesionResponse obtenerLesionPorId(UUID idLesion) {
@@ -88,7 +117,6 @@ public class LesionService implements LesionUseCase {
  
         Lesion curada = lesionRepository.save(lesion);
  
-        // Si el jugador ya no tiene ninguna lesión activa, pasa a SUPLENTE
         if (curada.getIdLesion() != null) {
             lesionRepository.findActivasByJugador(curada.getIdLesion()).stream()
                     .findAny()

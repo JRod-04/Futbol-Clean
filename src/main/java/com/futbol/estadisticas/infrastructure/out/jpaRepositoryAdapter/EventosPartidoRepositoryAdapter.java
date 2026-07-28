@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import com.futbol.estadisticas.infrastructure.out.jpaEntity.EventosPartidoJPAEntity;
 import org.springframework.stereotype.Component;
 
 import com.futbol.estadisticas.application.port.out.EventosPartidoRepositoryPort;
@@ -32,50 +33,112 @@ public class EventosPartidoRepositoryAdapter implements EventosPartidoRepository
  
     @Override
     public EventosPartido save(EventosPartido evento) {
-        PartidoJPAEntity partidoJPA = evento.getPartido() != null
-                ? partidoRepo.findById(evento.getPartido().getIdPartido()).orElse(null) : null;
-        PersonalDeportivoJPAEntity personalJPA = evento.getPersonal() != null
-                ? personalRepo.findById(evento.getPersonal().getIdPersonal()).orElse(null) : null;
-        ClubJPAEntity equipoJPA = evento.getEquipoFavorecido() != null
-                ? clubRepo.findById(evento.getEquipoFavorecido().getIdEquipo()).orElse(null) : null;
- 
-        return mapper.toDomain(
-                repository.save(mapper.toJpa(evento, partidoJPA, personalJPA, equipoJPA)));
+        if (evento.getPartido() == null) {
+            throw new IllegalStateException("No se puede guardar un evento sin partido");
+        }
+
+        PartidoJPAEntity partidoJPA = partidoRepo.findById(evento.getPartido().getIdPartido())
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Partido no encontrado con id: " + evento.getPartido().getIdPartido()));
+
+        PersonalDeportivoJPAEntity personalJPA = null;
+        if (evento.getPersonal() != null) {
+            personalJPA = personalRepo.findById(evento.getPersonal().getIdPersonal())
+                    .orElse(null);
+        }
+
+        ClubJPAEntity equipoJPA = null;
+        if (evento.getEquipoFavorecido() != null) {
+            equipoJPA = clubRepo.findById(evento.getEquipoFavorecido().getIdEquipo())
+                    .orElse(null);
+        }
+
+        EventosPartidoJPAEntity entity = mapper.toJpa(evento, partidoJPA, personalJPA, equipoJPA);
+        EventosPartidoJPAEntity saved = repository.save(entity);
+
+        return mapper.EventotoDomain(saved);
     }
- 
+
+    @Override
+    public List<EventosPartido> saveAll(List<EventosPartido> eventos) {
+        if (eventos == null || eventos.isEmpty()) {
+            return List.of();
+        }
+
+        UUID idPartido = eventos.get(0).getPartido().getIdPartido();
+        PartidoJPAEntity partidoJPA = partidoRepo.findById(idPartido)
+                .orElseThrow(() -> new IllegalArgumentException("Partido no encontrado"));
+
+        List<EventosPartidoJPAEntity> entities = eventos.stream()
+                .map(e -> {
+                    PersonalDeportivoJPAEntity personalJPA = null;
+                    if (e.getPersonal() != null) {
+                        personalJPA = personalRepo.findById(e.getPersonal().getIdPersonal()).orElse(null);
+                    }
+                    ClubJPAEntity equipoJPA = null;
+                    if (e.getEquipoFavorecido() != null) {
+                        equipoJPA = clubRepo.findById(e.getEquipoFavorecido().getIdEquipo()).orElse(null);
+                    }
+                    return mapper.toJpa(e, partidoJPA, personalJPA, equipoJPA);
+                })
+                .toList();
+
+        List<EventosPartidoJPAEntity> saved = repository.saveAll(entities);
+        return saved.stream().map(mapper::EventotoDomain).toList();
+    }
+
     @Override
     public Optional<EventosPartido> findById(UUID idEvento) {
-        return repository.findById(idEvento).map(mapper::toDomain);
+        return repository.findById(idEvento).map(mapper::EventotoDomain);
     }
  
     @Override
     public List<EventosPartido> findByPartido(UUID idPartido) {
         return repository.findByPartidoIdPartido(idPartido).stream()
-                .map(mapper::toDomain).toList();
+                .map(mapper::EventotoDomain).toList();
     }
- 
+
+    @Override
+    public List<EventosPartido> findByPersonalConCompeticion(UUID idPersonal) {
+        return repository.findByPersonalIdPersonalConCompeticion(idPersonal).stream()
+                .map(mapper::EventotoDomain).toList();
+    }
+
     @Override
     public List<EventosPartido> findByPartidoAndTipo(UUID idPartido, TipoEvento tipoEvento) {
         return repository.findByPartidoIdPartidoAndTipoEvento(idPartido, tipoEvento).stream()
-                .map(mapper::toDomain).toList();
+                .map(mapper::EventotoDomain).toList();
     }
  
     @Override
     public List<EventosPartido> findByPersonal(UUID idPersonal) {
         return repository.findByPersonalIdPersonal(idPersonal).stream()
-                .map(mapper::toDomain).toList();
+                .map(mapper::EventotoDomain).toList();
     }
  
     @Override
     public List<EventosPartido> findGolesByPartido(UUID idPartido) {
-        return repository.findGolesByPartido(idPartido).stream().map(mapper::toDomain).toList();
+        return repository.findGolesByPartido(idPartido).stream().map(mapper::EventotoDomain).toList();
     }
  
     @Override
     public List<EventosPartido> findTarjetasByPartido(UUID idPartido) {
-        return repository.findTarjetasByPartido(idPartido).stream().map(mapper::toDomain).toList();
+        return repository.findTarjetasByPartido(idPartido).stream().map(mapper::EventotoDomain).toList();
     }
- 
+
+    @Override
+    public void delete(EventosPartido evento) {
+        if (evento == null || evento.getIdEvento() == null) {
+            throw new IllegalArgumentException("Evento inválido para eliminar");
+        }
+
+        EventosPartidoJPAEntity entity = repository.findById(evento.getIdEvento())
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Evento no encontrado con id: " + evento.getIdEvento()));
+
+        repository.delete(entity);
+    }
+
     @Override
     public boolean existsById(UUID idEvento) {
         return repository.existsById(idEvento);
@@ -83,6 +146,6 @@ public class EventosPartidoRepositoryAdapter implements EventosPartidoRepository
  
     @Override
     public void deleteById(UUID idEvento) {
-        repository.deleteById(idEvento);
+        repository.deleteEventoById(idEvento);
     }
 }

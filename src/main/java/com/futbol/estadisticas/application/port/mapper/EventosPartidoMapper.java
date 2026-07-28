@@ -9,26 +9,28 @@ import com.futbol.estadisticas.domain.model.PersonalDeportivo;
 
 @Component
 public class EventosPartidoMapper {
- 
-     
+
+
     public EventoPartidoResponse toResponse(EventosPartido evento) {
-        PersonalDeportivo personal = evento.getPersonal();
-        Club equipo = evento.getEquipoFavorecido();
- 
-        return new EventoPartidoResponse(
-                evento.getIdEvento(),
-                evento.getMinuto(),
-                evento.getMinutoFormateado(),
-                evento.getTipoEvento(),
-                evento.getDescripcionCompleta(),
-                personal != null ? personal.getIdPersonal() : null,
-                evento.getNombreJugador(),
-                evento.getNombreEquipoFavorecido(),
-                evento.esGol(),
-                evento.esTarjeta(),
-                evento.esSustitucion(),
-                evento.esPenalti(),
-                evento.getColorTarjeta()
-        );
+        if (evento == null) return null;
+
+        String minutoFormateado = evento.getMinutoFormateado();
+
+        return EventoPartidoResponse.builder()
+                .idEvento(evento.getIdEvento())
+                .minuto(evento.getMinuto())
+                .minutoFormateado(minutoFormateado)
+                .tipoEvento(evento.getTipoEvento())
+                .descripcionCompleta(evento.getDescripcionCompleta())
+                .idPersonal(evento.getPersonal() != null ? evento.getPersonal().getIdPersonal() : null)
+                .nombreJugador(evento.getNombreJugador())
+                .nombreEquipoFavorecido(evento.getNombreEquipoFavorecido())
+                .estadoEvento(evento.getEstadoEvento())
+                .esGol(evento.esGol())
+                .esTarjeta(evento.esTarjeta())
+                .esSustitucion(evento.esSustitucion())
+                .esPenalti(evento.esPenalti())
+                .colorTarjeta(evento.getColorTarjeta())
+                .build();
     }
 }

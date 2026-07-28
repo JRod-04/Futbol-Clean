@@ -5,15 +5,7 @@ import java.util.UUID;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.futbol.estadisticas.application.port.dto.request.ActualizarTecnicoRequest;
 import com.futbol.estadisticas.application.port.dto.request.CrearTecnicoRequest;
@@ -26,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequestMapping("/apifutbol/tecnicos")
 @RequiredArgsConstructor
+@CrossOrigin(origins = "*")
 public class TecnicoController {
 
     private final TecnicoUseCase tecnicoUseCase;
@@ -57,19 +50,8 @@ public class TecnicoController {
             @Valid @RequestBody ActualizarTecnicoRequest request) {
         return ResponseEntity.ok(tecnicoUseCase.actualizarTecnico(id, request));
     }
- 
-    @PutMapping("/{id}/asignar-club/{idClub}")
-    public ResponseEntity<TecnicoResponse> asignarAClub(
-            @PathVariable UUID id,
-            @PathVariable UUID idClub) {
-        return ResponseEntity.ok(tecnicoUseCase.asignarTecnicoAClub(id, idClub));
-    }
- 
-    @DeleteMapping("/club/{idClub}/desvincular")
-    public ResponseEntity<Void> desvincularDeClub(@PathVariable UUID idClub) {
-        tecnicoUseCase.desvincularTecnicoDeClub(idClub);
-        return ResponseEntity.noContent().build();
-    }
+
+
  
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminar(@PathVariable UUID id) {

@@ -8,11 +8,7 @@ import org.springframework.stereotype.Component;
 
 import com.futbol.estadisticas.application.port.out.PersonalDeportivoRepositoryPort;
 import com.futbol.estadisticas.domain.model.PersonalDeportivo;
-import com.futbol.estadisticas.domain.model.enums.TipoPersonal;
 import com.futbol.estadisticas.infrastructure.out.InfrastructureMapper;
-import com.futbol.estadisticas.infrastructure.out.jpaEntity.JugadorJPAEntity;
-import com.futbol.estadisticas.infrastructure.out.jpaEntity.PersonalDeportivoJPAEntity;
-import com.futbol.estadisticas.infrastructure.out.jpaEntity.TecnicoJPAEntity;
 import com.futbol.estadisticas.infrastructure.out.jpaRepository.PersonalDeportivoJPARepository;
 
 import lombok.RequiredArgsConstructor;
@@ -32,18 +28,18 @@ public class PersonalDeportivoRepositoryAdapter implements PersonalDeportivoRepo
  
     @Override
     public Optional<PersonalDeportivo> findById(UUID idPersonal) {
-        return repository.findById(idPersonal).map(mapper::toDomain);
+        return repository.findById(idPersonal).map(mapper::PersonaltoDomain);
     }
  
     @Override
     public List<PersonalDeportivo> findAll() {
-        return repository.findAll().stream().map(mapper::toDomain).toList();
+        return repository.findAll().stream().map(mapper::PersonaltoDomain).toList();
     }
  
     @Override
     public List<PersonalDeportivo> findByNombreOrApellido(String termino) {
         return repository.findByNombreOrApellido(termino).stream()
-                .map(mapper::toDomain).toList();
+                .map(mapper::PersonaltoDomain).toList();
     }
  
     @Override

@@ -4,6 +4,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.futbol.estadisticas.infrastructure.out.jpaRepository.ClubJPARepository;
+import com.futbol.estadisticas.infrastructure.out.jpaRepository.CompeticionJPARepository;
+import com.futbol.estadisticas.infrastructure.out.jpaRepository.PersonalDeportivoJPARepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import com.futbol.estadisticas.domain.model.Arbitro;
@@ -18,7 +22,6 @@ import com.futbol.estadisticas.domain.model.Lesion;
 import com.futbol.estadisticas.domain.model.Partido;
 import com.futbol.estadisticas.domain.model.PersonalDeportivo;
 import com.futbol.estadisticas.domain.model.Tecnico;
-import com.futbol.estadisticas.domain.model.enums.TipoPersonal;
 import com.futbol.estadisticas.infrastructure.out.jpaEntity.ArbitroJPAEntity;
 import com.futbol.estadisticas.infrastructure.out.jpaEntity.ClubJPAEntity;
 import com.futbol.estadisticas.infrastructure.out.jpaEntity.CompeticionJPAEntity;
@@ -33,11 +36,16 @@ import com.futbol.estadisticas.infrastructure.out.jpaEntity.PersonalDeportivoJPA
 import com.futbol.estadisticas.infrastructure.out.jpaEntity.TecnicoJPAEntity;
 
 @Component
+@RequiredArgsConstructor
 public class InfrastructureMapper {
+
+    private final PersonalDeportivoJPARepository personalRepo;
+    private final ClubJPARepository clubRepo;
+
 
     // ──────────────────────────── ESTADIO ────────────────────────────
 
-    public Estadio toDomain(EstadioJPAEntity e) {
+    public Estadio EstadiotoDomain(EstadioJPAEntity e) {
         if (e == null) return null;
         return Estadio.builder()
                 .idEstadio(e.getIdEstadio())
@@ -61,7 +69,7 @@ public class InfrastructureMapper {
 
     // ──────────────────────────── ÁRBITRO ────────────────────────────
 
-    public Arbitro toDomain(ArbitroJPAEntity e) {
+    public Arbitro ArbitrotoDomain(ArbitroJPAEntity e) {
         if (e == null) return null;
         return Arbitro.builder()
                 .idArbitro(e.getIdArbitro())
@@ -84,7 +92,7 @@ public class InfrastructureMapper {
 
     // ──────────────────────────── DATOS DEPORTIVOS ────────────────────────────
 
-    public DatosDeportivos toDomain(DatosDeportivosJPAEntity entity) {
+    public DatosDeportivos DatostoDomain(DatosDeportivosJPAEntity entity) {
         if (entity == null) return null;
 
         return DatosDeportivos.builder()
@@ -113,7 +121,7 @@ public class InfrastructureMapper {
                 .build();
 
         if (jugadorJPA == null && domain.getJugador() != null) {
-            System.out.println("⚠️ WARNING: JugadorJPA es null pero domain tiene jugador: " + domain.getJugador().getIdPersonal());
+            System.out.println("WARNING: JugadorJPA es null pero domain tiene jugador: " + domain.getJugador().getIdPersonal());
         }
 
         return entity;
@@ -121,7 +129,7 @@ public class InfrastructureMapper {
 
     // ──────────────────────────── LESIÓN ────────────────────────────
 
-    public Lesion toDomain(LesionJPAEntity e) {
+    public Lesion LesiontoDomain(LesionJPAEntity e) {
         if (e == null) return null;
         return Lesion.builder()
                 .idLesion(e.getIdLesion())
@@ -130,10 +138,11 @@ public class InfrastructureMapper {
                 .fechaInicio(e.getFechaInicio())
                 .fechaFin(e.getFechaFin())
                 .curada(e.isCurada())
+                .jugadorLesionado(toJugadorBasico(e.getJugador()))
                 .build();
     }
 
-    public LesionJPAEntity toJpa(Lesion d, JugadorJPAEntity jugadorJPA) {
+    public LesionJPAEntity LesiontoJpa(Lesion d, JugadorJPAEntity jugadorJPA) {
         if (d == null) return null;
         return LesionJPAEntity.builder()
                 .idLesion(d.getIdLesion())
@@ -148,7 +157,23 @@ public class InfrastructureMapper {
 
     // ──────────────────────────── JUGADOR: JPA → DOMAIN ────────────────────────────
 
-    public Jugador toDomain(JugadorJPAEntity entity) {
+    public Jugador toJugadorBasico(JugadorJPAEntity entity) {
+        if (entity == null) return null;
+        return Jugador.builder()
+                .idPersonal(entity.getIdPersonal())
+                .nombre(entity.getNombre())
+                .apellido(entity.getApellido())
+                .fechaNacimiento(entity.getFechaNacimiento())
+                .nacionalidad(entity.getNacionalidad())
+                .tipoPersonal(entity.getTipoPersonal())
+                .pieHabil(entity.getPieHabil())
+                .altura(entity.getAltura())
+                .peso(entity.getPeso())
+                .fechaActualizacion(entity.getFechaActualizacion())
+                .contratos(new ArrayList<>())
+                .build();
+    }
+    public Jugador JugadortoDomain(JugadorJPAEntity entity) {
         if (entity == null) return null;
 
         Jugador jugador = Jugador.builder()
@@ -166,19 +191,19 @@ public class InfrastructureMapper {
                 .build();
 
         if (entity.getDatosDeportivos() != null) {
-            jugador.setDatosDeportivos(toDomain(entity.getDatosDeportivos()));
+            jugador.setDatosDeportivos(DatostoDomain(entity.getDatosDeportivos()));
         }
 
         if (entity.getLesiones() != null && !entity.getLesiones().isEmpty()) {
             jugador.setLesiones(entity.getLesiones().stream()
-                    .map(this::toDomain)
+                    .map(this::LesiontoDomain)
                     .collect(Collectors.toList()));
         }
 
         if (entity.getContratos() != null && !entity.getContratos().isEmpty()) {
             List<Contrato> contratos = entity.getContratos().stream()
                     .map(c -> {
-                        Contrato contrato = toDomain(c);
+                        Contrato contrato = ContratotoDomain(c);
                         contrato.setPersonal(jugador);
                         return contrato;
                     })
@@ -206,19 +231,16 @@ public class InfrastructureMapper {
                 .peso(d.getPeso())
                 .fechaActualizacion(d.getFechaActualizacion());
 
-        // Crear la entidad temporal para establecer relaciones
         JugadorJPAEntity entity = builder.build();
 
-        // Mapear DATOS DEPORTIVOS
         if (d.getDatosDeportivos() != null) {
             DatosDeportivosJPAEntity datosJPA = toJpa(d.getDatosDeportivos(), entity);
             entity.setDatosDeportivos(datosJPA);
         }
 
-        // Mapear LESIONES
         if (d.getLesiones() != null && !d.getLesiones().isEmpty()) {
             java.util.List<LesionJPAEntity> lesionesJPA = d.getLesiones().stream()
-                    .map(lesion -> toJpa(lesion, entity))
+                    .map(lesion -> LesiontoJpa(lesion, entity))
                     .collect(Collectors.toList());
             entity.setLesiones(lesionesJPA);
         }
@@ -228,7 +250,7 @@ public class InfrastructureMapper {
 
     // ──────────────────────────── TÉCNICO ────────────────────────────
 
-    public Tecnico toDomain(TecnicoJPAEntity e) {
+    public Tecnico TecnicotoDomain(TecnicoJPAEntity e) {
         if (e == null) return null;
         return Tecnico.builder()
                 .idPersonal(e.getIdPersonal())
@@ -260,7 +282,7 @@ public class InfrastructureMapper {
 
     // ──────────────────────────── CLUB ────────────────────────────
 
-    public Club toDomain(ClubJPAEntity e) {
+    public Club DatostoDomain(ClubJPAEntity e) {
         if (e == null) return null;
         Club club = Club.builder()
                 .idEquipo(e.getIdEquipo())
@@ -274,16 +296,16 @@ public class InfrastructureMapper {
                 .build();
 
         if (e.getEstadio() != null && org.hibernate.Hibernate.isInitialized(e.getEstadio())) {
-            club.setEstadio(toDomain(e.getEstadio()));
+            club.setEstadio(EstadiotoDomain(e.getEstadio()));
         }
 
         if (e.getTecnicoActual() != null && org.hibernate.Hibernate.isInitialized(e.getTecnicoActual())) {
-            club.setTecnicoActual(toDomain(e.getTecnicoActual()));
+            club.setTecnicoActual(TecnicotoDomain(e.getTecnicoActual()));
         }
 
         if (e.getContratos() != null && org.hibernate.Hibernate.isInitialized(e.getContratos())) {
             e.getContratos().forEach(c -> {
-                Contrato contrato = toDomainConPersonal(c);  // ← CAMBIO
+                Contrato contrato = toDomainConPersonal(c);
                 contrato.setClub(club);
                 club.getContratos().add(contrato);
             });
@@ -301,6 +323,43 @@ public class InfrastructureMapper {
                 .build();
     }
 
+
+    public Club toDomainConClubYBásicos(ClubJPAEntity e) {
+        if (e == null) return null;
+
+        Club club = Club.builder()
+                .idEquipo(e.getIdEquipo())
+                .nombre(e.getNombre())
+                .nombreCorto(e.getNombreCorto())
+                .fechaFundacion(e.getFechaFundacion())
+                .contratos(new ArrayList<>())
+                .partidosLocal(new ArrayList<>())
+                .partidosVisitante(new ArrayList<>())
+                .tecnicos(new ArrayList<>())
+                .build();
+
+        if (e.getEstadio() != null && org.hibernate.Hibernate.isInitialized(e.getEstadio())) {
+            club.setEstadio(EstadiotoDomain(e.getEstadio()));
+        }
+
+        if (e.getTecnicoActual() != null && org.hibernate.Hibernate.isInitialized(e.getTecnicoActual())) {
+            club.setTecnicoActual(TecnicotoDomain(e.getTecnicoActual()));
+        }
+
+        if (e.getContratos() != null && org.hibernate.Hibernate.isInitialized(e.getContratos())) {
+            e.getContratos().forEach(c -> {
+                Contrato contrato = toDomainConPersonalSinClub(c);
+                contrato.setClub(club);
+                club.getContratos().add(contrato);
+            });
+        }
+
+        if (e.getTecnicoActual() != null && org.hibernate.Hibernate.isInitialized(e.getTecnicoActual())) {
+            club.setTecnicoActual(TecnicotoDomain(e.getTecnicoActual()));
+        }
+
+        return club;
+    }
     // ──────────────────────────── CONTRATO ────────────────────────────
 
     public Contrato toDomainConPersonal(ContratoJPAEntity e) {
@@ -317,11 +376,10 @@ public class InfrastructureMapper {
         if (e.getPersonal() != null) {
             PersonalDeportivoJPAEntity personalJPA = unwrapProxy(e.getPersonal());
             if (personalJPA instanceof JugadorJPAEntity) {
-                // ✅ Usa toDomain SIN contratos
                 Jugador jugador = toDomainSinContratos((JugadorJPAEntity) personalJPA);
                 c.setPersonal(jugador);
             } else if (personalJPA instanceof TecnicoJPAEntity) {
-                c.setPersonal(toDomain((TecnicoJPAEntity) personalJPA));
+                c.setPersonal(TecnicotoDomain((TecnicoJPAEntity) personalJPA));
             }
         }
 
@@ -346,19 +404,17 @@ public class InfrastructureMapper {
                 .build();
 
         if (entity.getDatosDeportivos() != null) {
-            jugador.setDatosDeportivos(toDomain(entity.getDatosDeportivos()));
+            jugador.setDatosDeportivos(DatostoDomain(entity.getDatosDeportivos()));
         }
-
         if (entity.getLesiones() != null && !entity.getLesiones().isEmpty()) {
             jugador.setLesiones(entity.getLesiones().stream()
-                    .map(this::toDomain)
+                    .map(this::LesiontoDomain)
                     .collect(Collectors.toList()));
         }
-
         return jugador;
     }
 
-    public Contrato toDomain(ContratoJPAEntity e) {
+    public Contrato ContratotoDomain(ContratoJPAEntity e) {
         if (e == null) return null;
 
         Contrato c = Contrato.builder()
@@ -372,15 +428,14 @@ public class InfrastructureMapper {
         if (e.getPersonal() != null) {
             PersonalDeportivoJPAEntity personalJPA = unwrapProxy(e.getPersonal());
             if (personalJPA instanceof JugadorJPAEntity) {
-                // ✅ AHORA SÍ USA toDomainSinContratos (para romper el ciclo)
                 c.setPersonal(toDomainSinContratos((JugadorJPAEntity) personalJPA));
             } else if (personalJPA instanceof TecnicoJPAEntity) {
-                c.setPersonal(toDomain((TecnicoJPAEntity) personalJPA));
+                c.setPersonal(TecnicotoDomain((TecnicoJPAEntity) personalJPA));
             }
         }
 
         if (e.getClub() != null) {
-            c.setClub(toDomain(e.getClub()));
+            c.setClub(DatostoDomain(e.getClub()));
         }
 
         return c;
@@ -401,17 +456,76 @@ public class InfrastructureMapper {
                 .build();
     }
 
+
+    public Contrato toDomainConPersonalSinClub(ContratoJPAEntity e) {
+        if (e == null) return null;
+
+        Contrato c = Contrato.builder()
+                .idContrato(e.getIdContrato())
+                .fechaInicio(e.getFechaInicio())
+                .fechaFin(e.getFechaFin())
+                .sueldo(e.getSueldo())
+                .estado(e.getEstado())
+                .build();
+
+        if (e.getPersonal() != null) {
+            PersonalDeportivoJPAEntity personalJPA = unwrapProxy(e.getPersonal());
+            if (personalJPA instanceof JugadorJPAEntity) {
+                Jugador jugador = toDomainSinContratos((JugadorJPAEntity) personalJPA);
+                c.setPersonal(jugador);
+            } else if (personalJPA instanceof TecnicoJPAEntity) {
+                c.setPersonal(TecnicotoDomain((TecnicoJPAEntity) personalJPA));
+            }
+        }
+
+        return c;
+    }
     // ──────────────────────────── COMPETICIÓN ────────────────────────────
 
-    public Competicion toDomain(CompeticionJPAEntity e) {
+    public Competicion CompeticiontoDomain(CompeticionJPAEntity e) {
         if (e == null) return null;
-        return Competicion.builder()
+
+        Competicion competicion = Competicion.builder()
                 .idCompeticion(e.getIdCompeticion())
                 .nombre(e.getNombre())
                 .fechaInicio(e.getFechaInicio())
                 .fechaFin(e.getFechaFin())
                 .partidos(new ArrayList<>())
                 .build();
+
+        if (e.getPartidos() != null && org.hibernate.Hibernate.isInitialized(e.getPartidos())) {
+            List<Partido> partidos = e.getPartidos().stream()
+                    .map(this::toDomainSinEventos)
+                    .collect(Collectors.toList());
+            competicion.setPartidos(partidos);
+
+            partidos.forEach(p -> p.setCompeticion(competicion));
+        }
+
+        return competicion;
+    }
+
+    public Competicion toDomainWithPartidos(CompeticionJPAEntity e) {
+        if (e == null) return null;
+
+        Competicion competicion = Competicion.builder()
+                .idCompeticion(e.getIdCompeticion())
+                .nombre(e.getNombre())
+                .fechaInicio(e.getFechaInicio())
+                .fechaFin(e.getFechaFin())
+                .equipoGanador(e.getEquipoGanador() != null ? DatostoDomain(e.getEquipoGanador()) : null)
+                .partidos(new ArrayList<>())
+                .build();
+
+        if (e.getPartidos() != null && !e.getPartidos().isEmpty()) {
+            List<Partido> partidos = e.getPartidos().stream()
+                    .map(this::toDomainSinEventos)
+                    .collect(Collectors.toList());
+            competicion.setPartidos(partidos);
+            partidos.forEach(p -> p.setCompeticion(competicion));
+        }
+
+        return competicion;
     }
 
     public CompeticionJPAEntity toJpa(Competicion d) {
@@ -426,22 +540,31 @@ public class InfrastructureMapper {
 
     // ──────────────────────────── PARTIDO ────────────────────────────
 
-    public Partido toDomain(PartidoJPAEntity e) {
+    public Partido PartidotoDomain(PartidoJPAEntity e) {
         if (e == null) return null;
-        return Partido.builder()
+        Partido partido = Partido.builder()
                 .idPartido(e.getIdPartido())
                 .fechaYHora(e.getFechaYHora())
-                .jornada(e.getJornada())
+                .fase(e.getFase())
+                .jornada(e.getJornadaTorneo())
                 .estado(e.getEstado())
                 .golesLocal(e.getGolesLocal())
                 .golesVisitante(e.getGolesVisitante())
-                .equipoLocal(toDomain(e.getEquipoLocal()))
-                .equipoVisitante(toDomain(e.getEquipoVisitante()))
-                .estadio(toDomain(e.getEstadio()))
-                .arbitro(toDomain(e.getArbitro()))
-                .competicion(toDomain(e.getCompeticion()))
+                .equipoLocal(DatostoDomain(e.getEquipoLocal()))
+                .equipoVisitante(DatostoDomain(e.getEquipoVisitante()))
+                .estadio(EstadiotoDomain(e.getEstadio()))
+                .arbitro(ArbitrotoDomain(e.getArbitro()))
+                .competicion(CompeticiontoDomain(e.getCompeticion()))
                 .eventos(new ArrayList<>())
                 .build();
+
+        if (e.getEventos() != null && !e.getEventos().isEmpty()) {
+            List<EventosPartido> eventos = e.getEventos().stream()
+                    .map(this::EventotoDomain)
+                    .collect(Collectors.toList());
+            partido.setEventos(eventos);
+        }
+        return partido;
     }
 
     public PartidoJPAEntity toJpa(Partido d,
@@ -451,10 +574,11 @@ public class InfrastructureMapper {
                                   ArbitroJPAEntity arbitro,
                                   CompeticionJPAEntity competicion) {
         if (d == null) return null;
-        return PartidoJPAEntity.builder()
+        PartidoJPAEntity entity = PartidoJPAEntity.builder()
                 .idPartido(d.getIdPartido())
                 .fechaYHora(d.getFechaYHora())
-                .jornada(d.getJornada())
+                .jornadaTorneo(d.getJornada())
+                .fase(d.getFase())
                 .estado(d.getEstado())
                 .golesLocal(d.getGolesLocal())
                 .golesVisitante(d.getGolesVisitante())
@@ -464,30 +588,73 @@ public class InfrastructureMapper {
                 .arbitro(arbitro)
                 .competicion(competicion)
                 .build();
+
+        if (d.getEventos() != null && !d.getEventos().isEmpty()) {
+            List<EventosPartidoJPAEntity> eventosJPA = d.getEventos().stream()
+                    .map(evento -> {
+                        PersonalDeportivoJPAEntity personalJPA = null;
+                        if (evento.getPersonal() != null) {
+                            personalJPA = personalRepo.findById(evento.getPersonal().getIdPersonal()).orElse(null);
+                        }
+
+                        ClubJPAEntity equipoFavorecidoJPA = null;
+                        if (evento.getEquipoFavorecido() != null) {
+                            equipoFavorecidoJPA = clubRepo.findById(evento.getEquipoFavorecido().getIdEquipo()).orElse(null);
+                        }
+
+                        return toJpa(evento, entity, personalJPA, equipoFavorecidoJPA);
+                    })
+                    .collect(Collectors.toList());
+            entity.setEventos(eventosJPA);
+        }
+
+        return entity;
     }
 
     // ──────────────────────────── EVENTO ────────────────────────────
 
-    public EventosPartido toDomain(EventosPartidoJPAEntity e) {
+    public EventosPartido EventotoDomain(EventosPartidoJPAEntity e) {
         if (e == null) return null;
+
         EventosPartido ev = EventosPartido.builder()
                 .idEvento(e.getIdEvento())
                 .minuto(e.getMinuto())
                 .descripcion(e.getDescripcion())
                 .tipoEvento(e.getTipoEvento())
+                .estadoEvento(e.getEstadoEvento())
                 .build();
 
+        if (e.getPartido() != null) {
+            Partido partido = toDomainSinEventos(e.getPartido());
+            ev.setPartido(partido);
+        }
+
         if (e.getPersonal() instanceof JugadorJPAEntity jugadorJPA) {
-            ev.setPersonal(toDomain(jugadorJPA));
+            ev.setPersonal(JugadortoDomain(jugadorJPA));
         } else if (e.getPersonal() instanceof TecnicoJPAEntity tecnicoJPA) {
-            ev.setPersonal(toDomain(tecnicoJPA));
+            ev.setPersonal(TecnicotoDomain(tecnicoJPA));
+        } else if (e.getPersonal() != null) {
+            ev.setPersonal(toDomainPersonalGenerico(e.getPersonal()));
         }
+
         if (e.getEquipoFavorecido() != null) {
-            ev.setEquipoFavorecido(toDomain(e.getEquipoFavorecido()));
+            ev.setEquipoFavorecido(DatostoDomain(e.getEquipoFavorecido()));
         }
+
         return ev;
     }
 
+    private PersonalDeportivo toDomainPersonalGenerico(PersonalDeportivoJPAEntity entity) {
+        if (entity == null) return null;
+        return PersonalDeportivo.builder()
+                .idPersonal(entity.getIdPersonal())
+                .nombre(entity.getNombre())
+                .apellido(entity.getApellido())
+                .fechaNacimiento(entity.getFechaNacimiento())
+                .nacionalidad(entity.getNacionalidad())
+                .tipoPersonal(entity.getTipoPersonal())
+                .build();
+    }
     public EventosPartidoJPAEntity toJpa(EventosPartido d,
                                          PartidoJPAEntity partidoJPA,
                                          PersonalDeportivoJPAEntity personalJPA,
@@ -498,21 +665,44 @@ public class InfrastructureMapper {
                 .minuto(d.getMinuto())
                 .descripcion(d.getDescripcion())
                 .tipoEvento(d.getTipoEvento())
+                .estadoEvento(d.getEstadoEvento())
                 .partido(partidoJPA)
                 .personal(personalJPA)
                 .equipoFavorecido(equipoFavorecidoJPA)
                 .build();
     }
 
+
+    public Partido toDomainSinEventos(PartidoJPAEntity e) {
+        if (e == null) return null;
+
+        return Partido.builder()
+                .idPartido(e.getIdPartido())
+                .fechaYHora(e.getFechaYHora())
+                .jornada(e.getJornadaTorneo())
+                .fase(e.getFase())
+                .estado(e.getEstado())
+                .golesLocal(e.getGolesLocal())
+                .golesVisitante(e.getGolesVisitante())
+                .equipoLocal(DatostoDomain(e.getEquipoLocal()))
+                .equipoVisitante(DatostoDomain(e.getEquipoVisitante()))
+                .estadio(EstadiotoDomain(e.getEstadio()))
+                .arbitro(ArbitrotoDomain(e.getArbitro()))
+                .competicion(null)
+                .eventos(new ArrayList<>())
+                .build();
+    }
+
+
     // ──────────────────────────── PERSONAL GENÉRICO ────────────────────────────
 
-    public PersonalDeportivo toDomain(PersonalDeportivoJPAEntity entity) {
+    public PersonalDeportivo PersonaltoDomain(PersonalDeportivoJPAEntity entity) {
     if (entity == null) return null;
 
     if (entity instanceof JugadorJPAEntity) {
-        return toDomain((JugadorJPAEntity) entity);
+        return JugadortoDomain((JugadorJPAEntity) entity);
     } else if (entity instanceof TecnicoJPAEntity) {
-        return toDomain((TecnicoJPAEntity) entity);
+        return TecnicotoDomain((TecnicoJPAEntity) entity);
     }
 
     return PersonalDeportivo.builder()

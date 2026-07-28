@@ -1,8 +1,17 @@
 package com.futbol.estadisticas.application.service;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
+import com.futbol.estadisticas.domain.model.enums.TipoEvento;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,7 +44,7 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 @Transactional
-public class PartidoService implements PartidoUseCase{
+public class PartidoService implements PartidoUseCase {
 
     private final PartidoRepositoryPort           partidoRepository;
     private final ClubRepositoryPort              clubRepository;
@@ -70,7 +79,8 @@ public class PartidoService implements PartidoUseCase{
                 .competicion(competicion)
                 .arbitro(arbitro)
                 .fechaYHora(request.fechaYHora())
-                .jornada(request.jornada())
+                .jornada(request.jornadaTorneo())
+                .fase(request.fase())
                 .estado(EstadoPartido.PROGRAMADO)
                 .golesLocal(0)
                 .golesVisitante(0)
@@ -88,7 +98,75 @@ public class PartidoService implements PartidoUseCase{
  
         return partidoMapper.toResponse(partidoRepository.save(partido));
     }
- 
+
+    @Override
+    @Transactional
+    public List<PartidoResponse> programarPartidosBatch(List<CrearPartidoRequest> requests) {
+        List<Partido> partidos = new ArrayList<>();
+
+        for (CrearPartidoRequest request : requests) {
+            // Validar y obtener dependencias
+            Club local = findClubOrThrow(request.idEquipoLocal());
+            Club visitante = findClubOrThrow(request.idEquipoVisitante());
+            Competicion competicion = findCompeticionOrThrow(request.idCompeticion());
+            Arbitro arbitro = findArbitroOrThrow(request.idArbitro());
+
+            if (local.getIdEquipo().equals(visitante.getIdEquipo())) {
+                throw new IllegalArgumentException("Un club no puede jugar contra sí mismo");
+            }
+            if (competicion.haFinalizado()) {
+                throw new IllegalStateException("No se puede programar un partido en una competición finalizada");
+            }
+
+            Partido partido = Partido.builder()
+                    .idPartido(UUID.randomUUID())
+                    .equipoLocal(local)
+                    .equipoVisitante(visitante)
+                    .competicion(competicion)
+                    .arbitro(arbitro)
+                    .fechaYHora(request.fechaYHora())
+                    .jornada(request.jornadaTorneo())
+                    .fase(request.fase())
+                    .estado(EstadoPartido.PROGRAMADO)
+                    .golesLocal(0)
+                    .golesVisitante(0)
+                    .build();
+
+            if (request.idEstadio() != null) {
+                Estadio estadio = estadioRepository.findById(request.idEstadio())
+                        .orElseThrow(() -> new IllegalArgumentException("Estadio no encontrado"));
+                partido.setEstadio(estadio);
+            }
+
+            // Agregar a las colecciones de las entidades relacionadas (opcional)
+            competicion.agregarPartido(partido);
+            arbitro.agregarPartido(partido);
+
+            partidos.add(partido);
+        }
+
+        List<Partido> saved = partidoRepository.saveAll(partidos);
+
+        return saved.stream()
+                .map(partidoMapper::toResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public Page<PartidoResponse> obtenerPartidosPorFecha(LocalDate fecha, int page, int size) {
+        if (fecha == null) {
+            throw new IllegalArgumentException("La fecha es obligatoria");
+        }
+
+        Pageable pageable = PageRequest.of(page, size);
+
+        return partidoRepository.findByFecha(fecha, pageable)
+                .map(partido -> {
+                    PartidoResponse response = partidoMapper.toResponse(partido);
+                    return response;
+                });
+    }
+
     @Override
     @Transactional(readOnly = true)
     public PartidoResponse obtenerPartidoPorId(UUID idPartido) {
@@ -124,30 +202,65 @@ public class PartidoService implements PartidoUseCase{
         partido.cambiarEstado(nuevoEstado);
         return partidoMapper.toResponse(partidoRepository.save(partido));
     }
- 
+
+    @Override
+    public PartidoResponse avanzarPartido(UUID idPartido) {
+        Partido partido = getPartidoOrThrow(idPartido);
+        partido.reanudarPartido();
+        return partidoMapper.toResponse(partidoRepository.save(partido));
+    }
+
+    @Override
+    public EventoPartidoResponse agregarTiempoAgregado(UUID idPartido, int minutos, String descripcion) {
+        Partido partido = getPartidoOrThrow(idPartido);
+        partido.agregarTiempoAgregado(minutos);
+        Partido saved = partidoRepository.save(partido);
+
+        EventosPartido agregado = saved.getEventos().stream()
+                .filter(e -> e.getTipoEvento() == TipoEvento.AGREGADO)
+                .reduce((first, second) -> second)
+                .orElseThrow(() -> new IllegalStateException("No se encontró el evento agregado"));
+
+        return eventosMapper.toResponse(agregado);    }
+
+    @Override
+    public PartidoResponse finalizarTiempo(UUID idPartido, LocalTime minutoFin) {
+        Partido partido = getPartidoOrThrow(idPartido);
+        partido.finalizarTiempo(minutoFin);
+        return partidoMapper.toResponse(partidoRepository.save(partido));
+    }
+
     @Override
     public PartidoResponse finalizarPartido(UUID idPartido) {
         Partido partido = getPartidoOrThrow(idPartido);
         partido.finalizarPartido();
         return partidoMapper.toResponse(partidoRepository.save(partido));
     }
- 
+
+
+
+
     @Override
     public EventoPartidoResponse registrarEvento(UUID idPartido, RegistrarEventoRequest request) {
         Partido partido = getPartidoOrThrow(idPartido);
- 
+
+        EventosPartido eventoValidacion = EventosPartido.builder()
+                .minuto(request.minuto())
+                .build();
+        eventoValidacion.validarMinutoCreate(partido);
+
         PersonalDeportivo personal = null;
         if (request.idPersonal() != null) {
             personal = personalRepository.findById(request.idPersonal())
                     .orElseThrow(() -> new PersonalNotFoundException(
                             "Personal no encontrado con id: " + request.idPersonal()));
         }
- 
+
         Club equipoFavorecido = null;
         if (request.idEquipoFavorecido() != null) {
             equipoFavorecido = findClubOrThrow(request.idEquipoFavorecido());
         }
- 
+
         EventosPartido evento = EventosPartido.builder()
                 .idEvento(UUID.randomUUID())
                 .tipoEvento(request.tipoEvento())
@@ -155,14 +268,62 @@ public class PartidoService implements PartidoUseCase{
                 .descripcion(request.descripcion())
                 .personal(personal)
                 .equipoFavorecido(equipoFavorecido)
+                .partido(partido)
                 .build();
- 
+
         partido.agregarEvento(evento);
+
+        eventosRepository.save(evento);
+
         partidoRepository.save(partido);
- 
-        return eventosMapper.toResponse(eventosRepository.save(evento));
+
+        return eventosMapper.toResponse(evento);
     }
- 
+
+    @Override
+    public List<EventoPartidoResponse> registrarEventosBatch(UUID idPartido, List<RegistrarEventoRequest> requests) {
+        Partido partido = getPartidoOrThrow(idPartido);
+        List<EventosPartido> eventos = new ArrayList<>();
+
+        for (RegistrarEventoRequest request : requests) {
+            EventosPartido eventoValidacion = EventosPartido.builder()
+                    .minuto(request.minuto())
+                    .build();
+            eventoValidacion.validarMinutoCreate(partido);
+
+            PersonalDeportivo personal = null;
+            if (request.idPersonal() != null) {
+                personal = personalRepository.findById(request.idPersonal())
+                        .orElseThrow(() -> new PersonalNotFoundException("Personal no encontrado"));
+            }
+
+            Club equipoFavorecido = null;
+            if (request.idEquipoFavorecido() != null) {
+                equipoFavorecido = findClubOrThrow(request.idEquipoFavorecido());
+            }
+
+            EventosPartido evento = EventosPartido.builder()
+                    .idEvento(UUID.randomUUID())
+                    .tipoEvento(request.tipoEvento())
+                    .minuto(request.minuto())
+                    .descripcion(request.descripcion())
+                    .personal(personal)
+                    .equipoFavorecido(equipoFavorecido)
+                    .partido(partido)
+                    .build();
+
+            partido.agregarEvento(evento);
+            eventos.add(evento);
+        }
+
+        eventosRepository.saveAll(eventos);
+        partidoRepository.save(partido);
+
+        return eventos.stream()
+                .map(eventosMapper::toResponse)
+                .collect(Collectors.toList());
+    }
+
     @Override
     @Transactional(readOnly = true)
     public List<EventoPartidoResponse> obtenerEventosDePartido(UUID idPartido) {
@@ -180,8 +341,95 @@ public class PartidoService implements PartidoUseCase{
         partido.cambiarEstado(EstadoPartido.CANCELADO);
         partidoRepository.save(partido);
     }
- 
- 
+
+    @Override
+    @Transactional
+    public void eliminarPartido(UUID idPartido) {
+            Partido partido = getPartidoOrThrow(idPartido);
+
+            if (partido.estaEnCurso()) {
+                throw new IllegalStateException("No se puede eliminar un partido en curso");
+            }
+
+            partidoRepository.deleteById(idPartido);
+        }
+
+    @Override
+    public void eliminarEvento(UUID idPartido, UUID idEvento) {
+        Partido partido = getPartidoOrThrow(idPartido);
+
+        if (!eventosRepository.existsById(idEvento)) {
+            throw new IllegalArgumentException("Evento no encontrado con id: " + idEvento);
+        }
+
+        if (partido.haFinalizado()) {
+            throw new IllegalStateException("No se puede eliminar eventos de un partido finalizado");
+        }
+
+        Optional<EventosPartido> eventoOpt = partido.getEventos().stream()
+                .filter(e -> e.getIdEvento().equals(idEvento))
+                .findFirst();
+
+        if (eventoOpt.isPresent()) {
+            EventosPartido evento = eventoOpt.get();
+
+            if (evento.getTipoEvento().afectaMarcador()) {
+                if (evento.getTipoEvento().esGolValido()) {
+                    restarGolAlEliminar(partido, evento);
+                } else if (evento.getTipoEvento() == TipoEvento.GOL_ANULADO) {
+                    restaurarGolAnulado(partido, evento);
+                }
+            }
+
+            partido.getEventos().remove(evento);
+        }
+
+        eventosRepository.deleteById(idEvento);
+
+        partidoRepository.save(partido);
+    }
+
+    private void restarGolAlEliminar(Partido partido, EventosPartido evento) {
+        if (evento.getEquipoFavorecido() == null) return;
+
+        boolean esLocal = evento.getEquipoFavorecido().getIdEquipo()
+                .equals(partido.getEquipoLocal().getIdEquipo());
+
+        if (esLocal) {
+            partido.setGolesLocal(partido.getGolesLocal() - 1);
+        } else {
+            partido.setGolesVisitante(partido.getGolesVisitante() - 1);
+        }
+    }
+
+
+    private void restaurarGolAnulado(Partido partido, EventosPartido evento) {
+        if (evento.getEquipoFavorecido() == null) return;
+
+        EventosPartido golAnulado = partido.getEventos().stream()
+                .filter(e -> e.getEquipoFavorecido() != null)
+                .filter(e -> e.getEquipoFavorecido().getIdEquipo()
+                        .equals(evento.getEquipoFavorecido().getIdEquipo()))
+                .filter(e -> e.getTipoEvento().esGolValido())
+                .filter(e -> e.getIdEvento().compareTo(evento.getIdEvento()) < 0) // Antes del GOL_ANULADO
+                .reduce((first, second) -> second) // El más reciente
+                .orElse(null);
+
+        if (golAnulado != null) {
+            boolean esLocal = evento.getEquipoFavorecido().getIdEquipo()
+                    .equals(partido.getEquipoLocal().getIdEquipo());
+
+            if (esLocal) {
+                partido.setGolesLocal(partido.getGolesLocal() + 1);
+            } else {
+                partido.setGolesVisitante(partido.getGolesVisitante() + 1);
+            }
+        }
+    }
+
+
+
+
     private Partido getPartidoOrThrow(UUID idPartido) {
         return partidoRepository.findById(idPartido)
                 .orElseThrow(() -> new IllegalArgumentException(

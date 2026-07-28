@@ -1,6 +1,7 @@
 package com.futbol.estadisticas.application.port.dto.request;
 
 import java.time.LocalDate;
+import java.util.UUID;
 
 import com.futbol.estadisticas.domain.model.enums.Gravedad;
 
@@ -11,7 +12,10 @@ import lombok.Builder;
 
 @Builder
 public record RegistrarLesionRequest(
-    
+
+        @NotNull(message = "El jugador es obligatorio")
+        UUID idJugador,
+
         @NotBlank(message = "El nombre de la lesión es obligatorio")
         String nombreLesion,
  
@@ -21,7 +25,7 @@ public record RegistrarLesionRequest(
         @NotNull(message = "La fecha de inicio es obligatoria")
         @PastOrPresent(message = "La fecha de inicio no puede ser futura")
         LocalDate fechaInicio,
- 
+
         LocalDate fechaFinEstimada
 ) {
 

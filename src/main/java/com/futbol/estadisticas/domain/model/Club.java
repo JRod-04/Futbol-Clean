@@ -134,11 +134,7 @@ public class Club {
 
     // ============ GESTIÓN DEL TÉCNICO ============
 
-    /**
-     * Asigna un técnico como técnico actual del club.
-     * Si el club ya tenía técnico, lo desvincula primero.
-     * Establece la relación bidireccional con Tecnico.
-     */
+
     public void asignarTecnico(Tecnico tecnico) {
         if (tecnico == null) {
             throw new IllegalArgumentException("El técnico no puede ser nulo");

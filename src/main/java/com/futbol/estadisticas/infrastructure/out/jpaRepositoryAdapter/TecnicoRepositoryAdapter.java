@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
 import com.futbol.estadisticas.application.port.out.TecnicoRepositoryPort;
@@ -19,30 +21,39 @@ public class TecnicoRepositoryAdapter implements TecnicoRepositoryPort {
 
     private final TecnicoJPARepository repository;
     private final InfrastructureMapper  mapper;
- 
+
+    @Override
+    public Page<Tecnico> buscarTecnicoPorNombre(String texto, Pageable pageable) {
+        if (texto == null || texto.trim().isEmpty()) {
+            return Page.empty(pageable);
+        }
+        return repository.buscarTecnicoPorTexto(texto.trim(), pageable)
+                .map(mapper::TecnicotoDomain);
+    }
+
     @Override
     public Tecnico save(Tecnico tecnico) {
-        return mapper.toDomain(repository.save(mapper.toJpa(tecnico)));
+        return mapper.TecnicotoDomain(repository.save(mapper.toJpa(tecnico)));
     }
  
     @Override
     public Optional<Tecnico> findById(UUID idPersonal) {
-        return repository.findById(idPersonal).map(mapper::toDomain);
+        return repository.findById(idPersonal).map(mapper::TecnicotoDomain);
     }
  
     @Override
     public List<Tecnico> findAll() {
-        return repository.findAll().stream().map(mapper::toDomain).toList();
+        return repository.findAll().stream().map(mapper::TecnicotoDomain).toList();
     }
  
     @Override
     public List<Tecnico> findByClub(UUID idClub) {
-        return repository.findByClub(idClub).stream().map(mapper::toDomain).toList();
+        return repository.findByClub(idClub).stream().map(mapper::TecnicotoDomain).toList();
     }
  
     @Override
     public Optional<Tecnico> findTecnicoActualByClub(UUID idClub) {
-        return repository.findTecnicoActualByClub(idClub).map(mapper::toDomain);
+        return repository.findTecnicoActualByClub(idClub).map(mapper::TecnicotoDomain);
     }
  
     @Override

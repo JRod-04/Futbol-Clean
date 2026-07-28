@@ -12,7 +12,8 @@ public enum TipoEvento {
     PENALTI_ANOTADO("Penalti anotado", "PA"),
     PENALTI_FALLADO("Penalti fallado", "PF"),
     PENALTI_CONCEDIDO("Penalti concedido", "PC"),
-    
+    GOL_ANULADO("Gol anulado", "NG"),
+
     // Asistencias y tiros
     ASISTENCIA("Asistencia", "A"),
     TIRO_A_PUERTA("Tiro a puerta", "TP"),
@@ -28,12 +29,20 @@ public enum TipoEvento {
     // Sustituciones
     SUB_IN("Entra al campo", "IN"),
     SUB_OUT("Sale del campo", "OUT"),
-    
+
+
     // Inicio y fin
-    INICIO_PARTIDO("Inicio del partido", "IP"),
+    INICIO_PARTIDO("Inicio del partido", "I1P"),
+    FIN_PRIMERO("Fin primer Tiempo", "E1T"),
+    INICIO_SEGUNDO("Inicio Segundo Tiempo", "S2T"),
+    FIN_SEGUNDO("Fin segundo Segundo Tiempo", "S2T"),
+    INICIO_PRIMERO_EXTRA("Inicio Primer Tiempo Prorroga", "1ExT"),
+    FIN_PRIMERO_EXTRA("Finalizado Primer Tiempo Prorroga", "1ExT"),
+    INICIO_SEGUNDO_EXTRA("Inicio Primer Tiempo Prorroga", "2ExT"),
+    FIN_SEGUNDO_EXTRA("Finalizado Primer Tiempo Prorroga", "2ExT"),
     FIN_PARTIDO("Fin del partido", "FP"),
-    AGREGADO("Tiempo agregado", "TA"),
-    
+    AGREGADO("Ocurre Tiempo Agregado", "ET"),
+
     // Jugadas de estrategia
     CORNER("Córner", "C"),
     LATERAL("Lateral", "L"),
@@ -45,11 +54,22 @@ public enum TipoEvento {
     private final String abreviatura;
     
     //Verifica si es un gol (incluye autogoles y penaltis anotados)
-    
+
     public boolean esGol() {
         return this == GOL || this == AUTOGOL || this == PENALTI_ANOTADO;
     }
-    
+
+    public boolean esGolAnulado() {
+        return this == GOL_ANULADO;
+    }
+
+    public boolean esGolValido() {
+        return this == GOL || this == AUTOGOL || this == PENALTI_ANOTADO;
+    }
+
+    public boolean afectaMarcador() {
+        return this == GOL || this == AUTOGOL || this == PENALTI_ANOTADO || this == GOL_ANULADO;
+    }
     //Verifica si es una tarjeta disciplinaria
     public boolean esTarjeta() {
         return this == AMARILLA || this == ROJA;
@@ -72,12 +92,10 @@ public enum TipoEvento {
                this == GOL || this == PENALTI_ANOTADO || this == PENALTI_FALLADO;
     }
     
-    //Verifica si es un evento de falta
     public boolean esFalta() {
         return this == FALTA_COMETIDA || this == FALTA_RECIBIDA;
     }
     
-    //Verifica si es un evento de juego de estrategia
     public boolean esJugadaEstrategia() {
         return this == CORNER || this == LATERAL || this == SAQUE_META || 
                this == TIRO_LIBRE || this == FUERA_DE_JUEGO;

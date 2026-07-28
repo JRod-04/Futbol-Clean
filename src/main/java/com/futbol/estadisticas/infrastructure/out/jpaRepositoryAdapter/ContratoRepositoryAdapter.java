@@ -36,40 +36,53 @@ public class ContratoRepositoryAdapter implements ContratoRepositoryPort {
                 ? clubRepo.findById(contrato.getClub().getIdEquipo()).orElse(null) : null;
  
         ContratoJPAEntity entity = mapper.toJpa(contrato, personalJPA, clubJPA);
-        return mapper.toDomain(repository.save(entity));
+        return mapper.ContratotoDomain(repository.save(entity));
     }
- 
+
+    @Override
+    public List<Contrato> saveAll(List<Contrato> contratos) {
+        List<ContratoJPAEntity> entities = contratos.stream()
+                .map(c -> {
+                    PersonalDeportivoJPAEntity personalJPA = personalRepo.findById(c.getPersonal().getIdPersonal()).orElseThrow();
+                    ClubJPAEntity clubJPA = clubRepo.findById(c.getClub().getIdEquipo()).orElseThrow();
+                    return mapper.toJpa(c, personalJPA, clubJPA);
+                })
+                .toList();
+        List<ContratoJPAEntity> saved = repository.saveAll(entities);
+        return saved.stream().map(mapper::ContratotoDomain).toList();
+    }
+
     @Override
     public Optional<Contrato> findById(UUID idContrato) {
-        return repository.findByIdWithRelations(idContrato).map(mapper::toDomain);
+        return repository.findByIdWithRelations(idContrato).map(mapper::ContratotoDomain);
     }
  
     @Override
     public List<Contrato> findAll() {
-        return repository.findAll().stream().map(mapper::toDomain).toList();
+        return repository.findAll().stream().map(mapper::ContratotoDomain).toList();
     }
  
     @Override
     public List<Contrato> findByPersonal(UUID idPersonal) {
         return repository.findByPersonalIdPersonal(idPersonal).stream()
-                .map(mapper::toDomain).toList();
+                .map(mapper::ContratotoDomain).toList();
     }
  
     @Override
     public List<Contrato> findByClub(UUID idClub) {
         return repository.findByClubIdEquipo(idClub).stream()
-                .map(mapper::toDomain).toList();
+                .map(mapper::ContratotoDomain).toList();
     }
  
     @Override
     public Optional<Contrato> findVigenteByPersonal(UUID idPersonal) {
-        return repository.findVigenteByPersonal(idPersonal).map(mapper::toDomain);
+        return repository.findVigenteByPersonal(idPersonal).map(mapper::ContratotoDomain);
     }
  
     @Override
     public List<Contrato> findVigentesByClub(UUID idClub) {
         return repository.findVigentesByClub(idClub).stream()
-                .map(mapper::toDomain).toList();
+                .map(mapper::ContratotoDomain).toList();
     }
  
     @Override

@@ -32,6 +32,7 @@ public class Lesion {
     private LocalDate fechaInicio;
     private LocalDate fechaFin;
 
+    private Jugador jugadorLesionado;
 
      @Builder.Default
     private boolean curada = false;

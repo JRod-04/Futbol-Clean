@@ -7,8 +7,13 @@ import java.util.UUID;
 import com.futbol.estadisticas.domain.model.Jugador;
 import com.futbol.estadisticas.domain.model.enums.EstadoJugador;
 import com.futbol.estadisticas.domain.model.enums.PosicionJugador;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 public interface JugadorRepositoryPort {
+
+    Page<Jugador> buscarJugadorPorTexto(String texto, Pageable pageable);
+
     Jugador save(Jugador jugador);
 
     List<Jugador> saveAll(List<Jugador> jugadores);

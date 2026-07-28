@@ -5,8 +5,13 @@ import java.util.Optional;
 import java.util.UUID;
 
 import com.futbol.estadisticas.domain.model.Tecnico;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 public interface TecnicoRepositoryPort {
+
+    Page<Tecnico> buscarTecnicoPorNombre(String nombre, Pageable pageable);
+
     Tecnico save(Tecnico tecnico);
  
     Optional<Tecnico> findById(UUID idPersonal);

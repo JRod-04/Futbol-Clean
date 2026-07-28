@@ -21,7 +21,7 @@ public class ClasificacionController {
 
     private final ClasificacionUseCase clasificacionUseCase;
 
-    @GetMapping("/competicion/{idCompeticion}")
+    @GetMapping("/{idCompeticion}")
     public ResponseEntity<ClasificacionResponse> obtenerTabla(
             @PathVariable UUID idCompeticion) {
         return ResponseEntity.ok(clasificacionUseCase.obtenerTabla(idCompeticion));

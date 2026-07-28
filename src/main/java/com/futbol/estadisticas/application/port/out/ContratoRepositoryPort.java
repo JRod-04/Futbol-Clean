@@ -9,7 +9,9 @@ import com.futbol.estadisticas.domain.model.Contrato;
 public interface ContratoRepositoryPort {
     
     Contrato save(Contrato contrato);
- 
+
+    List<Contrato> saveAll(List<Contrato> contratos);
+
     Optional<Contrato> findById(UUID idContrato);
  
     List<Contrato> findAll();

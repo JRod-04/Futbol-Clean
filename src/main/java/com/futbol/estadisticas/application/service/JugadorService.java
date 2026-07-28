@@ -7,6 +7,12 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import com.futbol.estadisticas.application.port.dto.response.EstadisticasJugadorResponse;
+import com.futbol.estadisticas.application.port.mapper.EstadisticasJugadorMapper;
+import com.futbol.estadisticas.application.port.out.EventosPartidoRepositoryPort;
+import com.futbol.estadisticas.domain.model.EventosPartido;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,10 +35,22 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @Transactional
 public class JugadorService implements JugadoresUseCase {
-    
+
+    private final EventosPartidoRepositoryPort eventosRepository;
+    private final EstadisticasJugadorMapper estadisticasMapper;
     private final JugadorRepositoryPort jugadorRepository;
     private final JugadorMapper         jugadorMapper;
- 
+
+    @Override
+    public Page<JugadorResponse> buscarJugadores(String texto, Pageable pageable) {
+        if (texto == null || texto.trim().isEmpty()) {
+            return Page.empty(pageable);
+        }
+        Page<Jugador> page = jugadorRepository.buscarJugadorPorTexto(texto.trim(), pageable);
+        return page.map(jugadorMapper::toResponse);
+
+    }
+
     @Override
     public JugadorResponse crearJugador(CrearJugadorRequest request) {
         Jugador jugador = jugadorMapper.toEntity(request);
@@ -53,6 +71,18 @@ public class JugadorService implements JugadoresUseCase {
         return saved.stream()
                 .map(jugadorMapper::toResponse)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public EstadisticasJugadorResponse obtenerEstadisticasJugador(UUID idJugador) {
+        Jugador jugador = jugadorRepository.findById(idJugador)
+                .orElseThrow(() -> new PersonalNotFoundException(
+                        "Jugador no encontrado con id: " + idJugador));
+
+        List<EventosPartido> eventos = eventosRepository.findByPersonalConCompeticion(idJugador);
+
+        return estadisticasMapper.toResponse(jugador, eventos);
+
     }
 
     @Override

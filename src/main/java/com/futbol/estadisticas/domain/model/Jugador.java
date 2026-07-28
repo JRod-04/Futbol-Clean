@@ -64,6 +64,8 @@ public class Jugador extends PersonalDeportivo {
         if (this.datosDeportivos != null) {
             this.datosDeportivos.setEstadoJugador(EstadoJugador.LESIONADO);
         }
+        lesion.setJugadorLesionado(this);
+
     }
 
     //Indica si el jugador tiene al menos una lesión activa actualmente.
@@ -79,6 +81,6 @@ public class Jugador extends PersonalDeportivo {
             datosDeportivos.getEstadoJugador() != EstadoJugador.SUSPENDIDO &&
             datosDeportivos.getEstadoJugador() != EstadoJugador.RETIRADO &&
             datosDeportivos.getEstadoJugador() != EstadoJugador.APARTADO;
-        return noLesionado && estadoValido && getClubActual() != null;
+        return noLesionado && estadoValido;
     }
 }

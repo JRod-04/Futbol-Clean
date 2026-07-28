@@ -3,6 +3,7 @@ package com.futbol.estadisticas.application.port.dto.response;
 import java.time.LocalTime;
 import java.util.UUID;
 
+import com.futbol.estadisticas.domain.model.enums.EstadoPartido;
 import com.futbol.estadisticas.domain.model.enums.TipoEvento;
 
 import lombok.Builder;
@@ -24,7 +25,8 @@ public record EventoPartidoResponse(
         boolean esTarjeta,
         boolean esSustitucion,
         boolean esPenalti,
-        String colorTarjeta
+        String colorTarjeta,
+        EstadoPartido estadoEvento
 ) {
 
 }

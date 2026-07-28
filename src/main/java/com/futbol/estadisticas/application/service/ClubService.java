@@ -3,6 +3,8 @@ package com.futbol.estadisticas.application.service;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,7 +27,16 @@ public class ClubService implements ClubUseCase {
     private final ClubRepositoryPort clubRepository;
     private final ClubMapper         clubMapper;
     private final JugadorMapper      jugadorMapper;
- 
+
+    @Override
+    public Page<ClubResponse> buscarClubes(String texto, Pageable pageable) {
+        if (texto == null || texto.trim().isEmpty()) {
+            return Page.empty(pageable);
+        }
+        Page<Club> page = clubRepository.buscarClubPorNombre(texto.trim(), pageable);
+        return page.map(clubMapper::toResponse);
+    }
+
     @Override
     public ClubResponse crearClub(CrearClubRequest request) {
         Club club = clubMapper.toEntity(request);

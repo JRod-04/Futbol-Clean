@@ -21,22 +21,22 @@ public class EstadioRepositoryAdapter implements EstadioRepositoryPort {
  
     @Override
     public Estadio save(Estadio estadio) {
-        return mapper.toDomain(repository.save(mapper.toJpa(estadio)));
+        return mapper.EstadiotoDomain(repository.save(mapper.toJpa(estadio)));
     }
  
     @Override
     public Optional<Estadio> findById(UUID idEstadio) {
-        return repository.findById(idEstadio).map(mapper::toDomain);
+        return repository.findById(idEstadio).map(mapper::EstadiotoDomain);
     }
  
     @Override
     public List<Estadio> findAll() {
-        return repository.findAll().stream().map(mapper::toDomain).toList();
+        return repository.findAll().stream().map(mapper::EstadiotoDomain).toList();
     }
  
     @Override
     public Optional<Estadio> findByClubPrincipal(UUID idClub) {
-        return repository.findByClubPrincipal(idClub).map(mapper::toDomain);
+        return repository.findByClubPrincipal(idClub).map(mapper::EstadiotoDomain);
     }
  
     @Override

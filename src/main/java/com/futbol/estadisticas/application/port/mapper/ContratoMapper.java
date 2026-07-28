@@ -14,7 +14,7 @@ import com.futbol.estadisticas.domain.model.enums.EstadoContrato;
 public class ContratoMapper {
  public Contrato toEntity(UUID idContrato, PersonalDeportivo personal, Club club,
                              java.time.LocalDateTime fechaInicio, java.time.LocalDateTime fechaFin,
-                             Double sueldo) {
+                             EstadoContrato estado,Double sueldo) {
         return Contrato.builder()
                 .idContrato(idContrato)
                 .personal(personal)
@@ -22,7 +22,7 @@ public class ContratoMapper {
                 .fechaInicio(fechaInicio)
                 .fechaFin(fechaFin)
                 .sueldo(sueldo)
-                .estado(EstadoContrato.ACTIVO)
+                .estado(estado)
                 .build();
     }
  
