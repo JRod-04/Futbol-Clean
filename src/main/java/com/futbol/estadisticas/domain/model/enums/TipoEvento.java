@@ -26,10 +26,10 @@ public enum TipoEvento {
     AMARILLA("Tarjeta Amarilla", "TA"),
     ROJA("Tarjeta Roja", "TR"),
     
-    // Sustituciones
+    // Sustituciones o Eventos de salida
     SUB_IN("Entra al campo", "IN"),
     SUB_OUT("Sale del campo", "OUT"),
-
+    TITULAR("Jugador inicia el partido", "STP"),
 
     // Inicio y fin
     INICIO_PARTIDO("Inicio del partido", "I1P"),

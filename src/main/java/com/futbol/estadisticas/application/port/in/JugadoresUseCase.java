@@ -6,6 +6,7 @@ import java.util.UUID;
 import com.futbol.estadisticas.application.port.dto.request.ActualizarJugadorRequest;
 import com.futbol.estadisticas.application.port.dto.request.CrearJugadorRequest;
 import com.futbol.estadisticas.application.port.dto.response.EstadisticasJugadorResponse;
+import com.futbol.estadisticas.application.port.dto.response.EstadisticasPartidoJugadorResponse;
 import com.futbol.estadisticas.application.port.dto.response.JugadorResponse;
 import com.futbol.estadisticas.domain.model.enums.EstadoJugador;
 import com.futbol.estadisticas.domain.model.enums.PosicionJugador;
@@ -21,6 +22,8 @@ public interface JugadoresUseCase {
     List<JugadorResponse> crearVariosJugadores(List<CrearJugadorRequest> requests);
 
     EstadisticasJugadorResponse obtenerEstadisticasJugador(UUID idJugador);
+
+    List<EstadisticasPartidoJugadorResponse> obtenerPartidosConEstadisticas(UUID idJugador);
 
     JugadorResponse obtenerJugadorPorId(UUID idJugador);
  

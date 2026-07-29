@@ -6,9 +6,11 @@ import java.util.List;
 import java.util.UUID;
 
 import com.futbol.estadisticas.application.port.dto.request.CrearPartidoRequest;
+import com.futbol.estadisticas.application.port.dto.request.RealizarSustitucionRequest;
 import com.futbol.estadisticas.application.port.dto.request.RegistrarEventoRequest;
 import com.futbol.estadisticas.application.port.dto.response.EventoPartidoResponse;
 import com.futbol.estadisticas.application.port.dto.response.PartidoResponse;
+import com.futbol.estadisticas.application.port.dto.response.SustitucionResponse;
 import com.futbol.estadisticas.domain.model.Partido;
 import com.futbol.estadisticas.domain.model.enums.EstadoPartido;
 import org.springframework.data.domain.Page;
@@ -27,7 +29,9 @@ public interface PartidoUseCase {
     List<PartidoResponse> obtenerPartidosPorCompeticion(UUID idCompeticion);
  
     List<PartidoResponse> obtenerPartidosPorClub(UUID idClub);
- 
+
+    SustitucionResponse realizarSustitucion(UUID idPartido, RealizarSustitucionRequest request);
+
     PartidoResponse iniciarPartido(UUID idPartido);
  
     PartidoResponse cambiarEstadoPartido(UUID idPartido, EstadoPartido nuevoEstado);

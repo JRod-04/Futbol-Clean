@@ -45,14 +45,16 @@ public class Partido {
     
     private int golesLocal;
     private int golesVisitante;
-    
+
 
     public void iniciarPartido() {
         if (this.estado != EstadoPartido.PROGRAMADO) {
             throw new IllegalStateException("El partido ya ha sido iniciado");
         }
-        this.estado = EstadoPartido.PRIMER_TIEMPO;
 
+        validarAlineacionesCompletas();
+
+        this.estado = EstadoPartido.PRIMER_TIEMPO;
 
         EventosPartido eventoInicio = EventosPartido.builder()
                 .idEvento(UUID.randomUUID())
@@ -62,6 +64,49 @@ public class Partido {
                 .partido(this)
                 .build();
         agregarEvento(eventoInicio);
+
+        registrarEventosTitulares();
+    }
+
+    private void validarAlineacionesCompletas() {
+        if (this.equipoLocal == null || this.equipoVisitante == null) {
+            throw new IllegalStateException("El partido debe tener equipo local y visitante asignados");
+        }
+
+        int titularesLocal = this.equipoLocal.getJugadoresTitulares().size();
+        int titularesVisitante = this.equipoVisitante.getJugadoresTitulares().size();
+
+        if (titularesLocal != 11) {
+            throw new IllegalStateException(
+                    "El equipo local (" + this.equipoLocal.getNombre() +
+                            ") debe tener exactamente 11 titulares antes de iniciar el partido, tiene " + titularesLocal);
+        }
+        if (titularesVisitante != 11) {
+            throw new IllegalStateException(
+                    "El equipo visitante (" + this.equipoVisitante.getNombre() +
+                            ") debe tener exactamente 11 titulares antes de iniciar el partido, tiene " + titularesVisitante);
+        }
+    }
+
+    private void registrarEventosTitulares() {
+        List<Jugador> titularesLocal = equipoLocal.getJugadoresTitulares();
+        List<Jugador> titularesVisitante = equipoVisitante.getJugadoresTitulares();
+
+        titularesLocal.forEach(jugador -> agregarEventoTitular(jugador, equipoLocal));
+        titularesVisitante.forEach(jugador -> agregarEventoTitular(jugador, equipoVisitante));
+    }
+
+    private void agregarEventoTitular(Jugador jugador, Club club) {
+        EventosPartido eventoTitular = EventosPartido.builder()
+                .idEvento(UUID.randomUUID())
+                .minuto(LocalTime.of(0, 0))
+                .descripcion(jugador.getNombreCompleto() + " - Titular")
+                .tipoEvento(TipoEvento.TITULAR)
+                .personal(jugador)
+                .equipoFavorecido(club)
+                .partido(this)
+                .build();
+        agregarEvento(eventoTitular);
     }
 
     public void reanudarPartido() {
@@ -212,6 +257,15 @@ public class Partido {
                     this.estado == EstadoPartido.PROGRAMADO) {
                 throw new IllegalStateException("No se pueden registrar eventos durante " + this.estado.getDisplayName());
             }
+        }
+
+        boolean requierePersonalEnCampo = evento.getPersonal() != null &&
+                evento.getTipoEvento() != TipoEvento.TITULAR &&
+                evento.getTipoEvento() != TipoEvento.SUB_IN;
+
+        if (requierePersonalEnCampo && !estaEnCampo(evento.getPersonal())) {
+            throw new IllegalStateException(
+                    evento.getPersonal().getNombreCompleto() + " no está actualmente en el campo de juego");
         }
 
         evento.setEstadoEvento(this.estado);
@@ -412,18 +466,28 @@ public class Partido {
         }
         return String.format("%d - %d", golesLocal, golesVisitante);
     }
-    
-    public Club getGanador() {
-        if (!haFinalizado()) {
-            return null;
+
+    public boolean estaEnCampo(PersonalDeportivo jugador) {
+        if (jugador == null) {
+            return false;
         }
-        if (golesLocal > golesVisitante) {
-            return equipoLocal;
-        } else if (golesVisitante > golesLocal) {
-            return equipoVisitante;
+
+        EventosPartido ultimoEventoAlineacion = this.eventos.stream()
+                .filter(e -> e.getPersonal() != null && e.getPersonal().equals(jugador))
+                .filter(e -> e.getTipoEvento() == TipoEvento.TITULAR ||
+                        e.getTipoEvento() == TipoEvento.SUB_IN ||
+                        e.getTipoEvento() == TipoEvento.SUB_OUT)
+                .reduce((primero, ultimo) -> ultimo) // se queda con el más reciente por orden de inserción
+                .orElse(null);
+
+        if (ultimoEventoAlineacion == null) {
+            return false;
         }
-        return null;
+
+        return ultimoEventoAlineacion.getTipoEvento() == TipoEvento.TITULAR ||
+                ultimoEventoAlineacion.getTipoEvento() == TipoEvento.SUB_IN;
     }
+
     
 
     public boolean hayEmpate() {
@@ -523,8 +587,8 @@ public class Partido {
         EventosPartido ultimoGol = this.eventos.stream()
                 .filter(e -> e.getEquipoFavorecido() != null)
                 .filter(e -> e.getEquipoFavorecido().getIdEquipo().equals(equipo.getIdEquipo()))
-                .filter(e -> e.getTipoEvento().esGolValido()) // Solo goles válidos
-                .reduce((first, second) -> second) // Obtener el último
+                .filter(e -> e.getTipoEvento().esGolValido())
+                .reduce((first, second) -> second)
                 .orElse(null);
 
         if (ultimoGol == null) {
@@ -546,4 +610,52 @@ public class Partido {
         }
 
     }
+
+
+
+    public  List<EventosPartido> realizarSustitucion(Jugador jugadorEntrante, Jugador jugadorSaliente, Club club, LocalTime minuto) {
+        if (jugadorEntrante == null || jugadorSaliente == null) {
+            throw new IllegalArgumentException("Los jugadores de la sustitución no pueden ser nulos");
+        }
+        if (jugadorEntrante.equals(jugadorSaliente)) {
+            throw new IllegalArgumentException("El jugador entrante no puede ser el mismo que el saliente");
+        }
+        if (club == null) {
+            throw new IllegalArgumentException("El club no puede ser nulo");
+        }
+
+        EventosPartido eventoSale = EventosPartido.builder()
+                .idEvento(UUID.randomUUID())
+                .minuto(minuto)
+                .descripcion(jugadorSaliente.getNombreCompleto() + " sale del campo")
+                .tipoEvento(TipoEvento.SUB_OUT)
+                .personal(jugadorSaliente)
+                .equipoFavorecido(club)
+                .partido(this)
+                .build();
+        agregarEvento(eventoSale);
+
+
+        EventosPartido eventoEntra = EventosPartido.builder()
+                .idEvento(UUID.randomUUID())
+                .minuto(minuto)
+                .descripcion(jugadorEntrante.getNombreCompleto() + " entra al campo")
+                .tipoEvento(TipoEvento.SUB_IN)
+                .personal(jugadorEntrante)
+                .equipoFavorecido(club)
+                .partido(this)
+                .build();
+        agregarEvento(eventoEntra);
+
+        if (jugadorSaliente.getDatosDeportivos() != null) {
+            jugadorSaliente.getDatosDeportivos().cambiarASuplente();
+        }
+        if (jugadorEntrante.getDatosDeportivos() != null) {
+            jugadorEntrante.getDatosDeportivos().promoverATitular();
+        }
+
+        return List.of(eventoSale, eventoEntra);
+    }
+
+
 }
