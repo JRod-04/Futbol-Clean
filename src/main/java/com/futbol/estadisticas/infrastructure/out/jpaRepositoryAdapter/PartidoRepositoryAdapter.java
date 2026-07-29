@@ -99,23 +99,7 @@ public class PartidoRepositoryAdapter implements PartidoRepositoryPort {
                 .map(mapper::PartidotoDomain)
                 .toList();
     }
-    @Override
-    public List<Partido> findByEstado(EstadoPartido estado) {
-        return repository.findByEstado(estado).stream().map(mapper::PartidotoDomain).toList();
-    }
 
-    @Override
-    public List<Partido> findByFechaBetween(LocalDateTime desde, LocalDateTime hasta) {
-        return repository.findByFechaYHoraBetween(desde, hasta).stream()
-                .map(mapper::PartidotoDomain).toList();
-    }
- 
-    @Override
-    public List<Partido> findByArbitro(UUID idArbitro) {
-        return repository.findByArbitroIdArbitro(idArbitro).stream()
-                .map(mapper::PartidotoDomain).toList();
-    }
- 
     @Override
     public boolean existsById(UUID idPartido) {
         return repository.existsById(idPartido);

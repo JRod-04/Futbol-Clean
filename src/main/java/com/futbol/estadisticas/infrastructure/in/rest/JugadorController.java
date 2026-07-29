@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.UUID;
 
 import com.futbol.estadisticas.application.port.dto.response.EstadisticasJugadorResponse;
+import com.futbol.estadisticas.application.port.dto.response.EstadisticasPartidoJugadorResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -46,6 +47,10 @@ public class JugadorController {
         return ResponseEntity.ok(jugadoresUseCase.obtenerEstadisticasJugador(idJugador));
     }
 
+    @GetMapping("/{id}/partidos")
+    public ResponseEntity<List<EstadisticasPartidoJugadorResponse>> partidosConEstadisticas(@PathVariable UUID id) {
+        return ResponseEntity.ok(jugadoresUseCase.obtenerPartidosConEstadisticas(id));
+    }
 
     @GetMapping
     public ResponseEntity<List<JugadorResponse>> listarTodos() {

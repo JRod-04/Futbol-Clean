@@ -5,6 +5,8 @@ import java.time.LocalTime;
 import java.util.List;
 import java.util.UUID;
 
+import com.futbol.estadisticas.application.port.dto.request.RealizarSustitucionRequest;
+import com.futbol.estadisticas.application.port.dto.response.SustitucionResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
@@ -64,6 +66,14 @@ public class PartidoController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
         return ResponseEntity.ok(partidoUseCase.obtenerPartidosPorFecha(fecha, page, size));
+    }
+
+    @PostMapping("/{id}/sustituciones")
+    public ResponseEntity<SustitucionResponse> realizarSustitucion(
+            @PathVariable UUID id,
+            @Valid @RequestBody RealizarSustitucionRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(partidoUseCase.realizarSustitucion(id, request));
     }
 
     @GetMapping("/competicion/{idCompeticion}")

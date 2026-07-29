@@ -303,7 +303,7 @@ public class InfrastructureMapper {
             club.setTecnicoActual(TecnicotoDomain(e.getTecnicoActual()));
         }
 
-        if (e.getContratos() != null && org.hibernate.Hibernate.isInitialized(e.getContratos())) {
+        if (e.getContratos() != null) {
             e.getContratos().forEach(c -> {
                 Contrato contrato = toDomainConPersonal(c);
                 contrato.setClub(club);

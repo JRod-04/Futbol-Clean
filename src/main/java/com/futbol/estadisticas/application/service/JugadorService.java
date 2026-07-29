@@ -1,14 +1,14 @@
 package com.futbol.estadisticas.application.service;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import com.futbol.estadisticas.application.port.dto.response.EstadisticasJugadorResponse;
+import com.futbol.estadisticas.application.port.dto.response.EstadisticasPartidoJugadorResponse;
 import com.futbol.estadisticas.application.port.mapper.EstadisticasJugadorMapper;
+import com.futbol.estadisticas.application.port.mapper.EstadisticasPartidoMapper;
+import com.futbol.estadisticas.application.port.mapper.EventosPartidoMapper;
 import com.futbol.estadisticas.application.port.out.EventosPartidoRepositoryPort;
 import com.futbol.estadisticas.domain.model.EventosPartido;
 import org.springframework.data.domain.Page;
@@ -40,6 +40,7 @@ public class JugadorService implements JugadoresUseCase {
     private final EstadisticasJugadorMapper estadisticasMapper;
     private final JugadorRepositoryPort jugadorRepository;
     private final JugadorMapper         jugadorMapper;
+    private final EstadisticasPartidoMapper partidoConEstadisticasJugadorMapper;
 
     @Override
     public Page<JugadorResponse> buscarJugadores(String texto, Pageable pageable) {
@@ -83,6 +84,27 @@ public class JugadorService implements JugadoresUseCase {
 
         return estadisticasMapper.toResponse(jugador, eventos);
 
+    }
+
+    @Override
+    public List<EstadisticasPartidoJugadorResponse> obtenerPartidosConEstadisticas(UUID idJugador) {
+        if (!jugadorRepository.existsById(idJugador)) {
+            throw new PersonalNotFoundException("Jugador no encontrado con id: " + idJugador);
+        }
+
+        List<EventosPartido> eventos = eventosRepository.findByPersonal(idJugador);
+
+        Map<UUID, List<EventosPartido>> eventosPorPartido = eventos.stream()
+                .filter(e -> e.getPartido() != null)
+                .collect(Collectors.groupingBy(e -> e.getPartido().getIdPartido()));
+
+        return eventosPorPartido.values().stream()
+                .map(eventosDelPartido -> partidoConEstadisticasJugadorMapper.toResponse(
+                        eventosDelPartido.get(0).getPartido(), eventosDelPartido))
+                .sorted(Comparator.comparing(
+                        r -> r.partido().fechaYHora(),
+                        Comparator.nullsLast(Comparator.reverseOrder())))
+                .toList();
     }
 
     @Override

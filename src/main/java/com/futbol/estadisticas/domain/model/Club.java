@@ -149,10 +149,6 @@ public class Club {
         }
     }
 
-    /**
-     * Desvincula al técnico actual del club.
-     * Establece la relación bidireccional con Tecnico.
-     */
     public void desvincularTecnico() {
         if (this.tecnicoActual == null) {
             throw new IllegalStateException("El club no tiene técnico asignado actualmente");

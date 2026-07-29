@@ -8,6 +8,10 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import com.futbol.estadisticas.application.port.dto.request.RealizarSustitucionRequest;
+import com.futbol.estadisticas.application.port.dto.response.SustitucionResponse;
+import com.futbol.estadisticas.application.port.out.*;
+import com.futbol.estadisticas.domain.model.*;
 import com.futbol.estadisticas.domain.model.enums.TipoEvento;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -22,20 +26,6 @@ import com.futbol.estadisticas.application.port.dto.response.PartidoResponse;
 import com.futbol.estadisticas.application.port.in.PartidoUseCase;
 import com.futbol.estadisticas.application.port.mapper.EventosPartidoMapper;
 import com.futbol.estadisticas.application.port.mapper.PartidoMapper;
-import com.futbol.estadisticas.application.port.out.ArbitroRepositoryPort;
-import com.futbol.estadisticas.application.port.out.ClubRepositoryPort;
-import com.futbol.estadisticas.application.port.out.CompeticionRepositoryPort;
-import com.futbol.estadisticas.application.port.out.EstadioRepositoryPort;
-import com.futbol.estadisticas.application.port.out.EventosPartidoRepositoryPort;
-import com.futbol.estadisticas.application.port.out.PartidoRepositoryPort;
-import com.futbol.estadisticas.application.port.out.PersonalDeportivoRepositoryPort;
-import com.futbol.estadisticas.domain.model.Arbitro;
-import com.futbol.estadisticas.domain.model.Club;
-import com.futbol.estadisticas.domain.model.Competicion;
-import com.futbol.estadisticas.domain.model.Estadio;
-import com.futbol.estadisticas.domain.model.EventosPartido;
-import com.futbol.estadisticas.domain.model.Partido;
-import com.futbol.estadisticas.domain.model.PersonalDeportivo;
 import com.futbol.estadisticas.domain.model.enums.EstadoPartido;
 import com.futbol.estadisticas.domain.model.exception.PersonalNotFoundException;
 
@@ -51,6 +41,7 @@ public class PartidoService implements PartidoUseCase {
     private final CompeticionRepositoryPort       competicionRepository;
     private final ArbitroRepositoryPort           arbitroRepository;
     private final EstadioRepositoryPort           estadioRepository;
+    private final JugadorRepositoryPort           jugadorRepository;
     private final EventosPartidoRepositoryPort    eventosRepository;
     private final PersonalDeportivoRepositoryPort personalRepository;
     private final PartidoMapper                   partidoMapper;
@@ -188,7 +179,36 @@ public class PartidoService implements PartidoUseCase {
                 .map(partidoMapper::toResponse)
                 .toList();
     }
- 
+
+    @Override
+    public SustitucionResponse realizarSustitucion(UUID idPartido, RealizarSustitucionRequest request) {
+        Partido partido = getPartidoOrThrow(idPartido);
+
+        Jugador jugadorEntrante = findJugadorOrThrow(request.idJugadorEntrante());
+        Jugador jugadorSaliente = findJugadorOrThrow(request.idJugadorSaliente());
+        Club club = findClubOrThrow(request.idClub());
+
+        List<EventosPartido> eventosSustitucion =
+                partido.realizarSustitucion(jugadorEntrante, jugadorSaliente, club, request.minuto());
+
+        eventosRepository.saveAll(eventosSustitucion);
+        partidoRepository.save(partido);
+
+        EventosPartido eventoSalida = eventosSustitucion.get(0);
+        EventosPartido eventoEntrada = eventosSustitucion.get(1);
+
+        return SustitucionResponse.builder()
+                .eventoSalida(eventosMapper.toResponse(eventoSalida))
+                .eventoEntrada(eventosMapper.toResponse(eventoEntrada))
+                .build();
+    }
+
+    private Jugador findJugadorOrThrow(UUID idJugador) {
+        return jugadorRepository.findById(idJugador)
+                .orElseThrow(() -> new PersonalNotFoundException(
+                        "Jugador no encontrado con id: " + idJugador));
+    }
+
     @Override
     public PartidoResponse iniciarPartido(UUID idPartido) {
         Partido partido = getPartidoOrThrow(idPartido);

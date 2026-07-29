@@ -65,6 +65,7 @@ public enum Nacion {
     ERITREA("Eritrea", "ERI"),
     ESLOVAQUIA("Eslovaquia", "SVK"),
     ESLOVENIA("Eslovenia", "SVN"),
+    ESCOCIA("Escocia", "SCO"),
     ESPAÑA("España", "ESP"),
     ESTADOS_UNIDOS("Estados Unidos", "USA"),
     ESTONIA("Estonia", "EST"),
