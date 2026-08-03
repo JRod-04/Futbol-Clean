@@ -10,6 +10,8 @@ import java.util.stream.Collectors;
 
 import com.futbol.estadisticas.application.port.dto.request.RealizarSustitucionRequest;
 import com.futbol.estadisticas.application.port.dto.response.SustitucionResponse;
+import com.futbol.estadisticas.application.port.dto.response.TandaPenalesResponse;
+import com.futbol.estadisticas.application.port.mapper.TandaPenalesMapper;
 import com.futbol.estadisticas.application.port.out.*;
 import com.futbol.estadisticas.domain.model.*;
 import com.futbol.estadisticas.domain.model.enums.TipoEvento;
@@ -46,6 +48,7 @@ public class PartidoService implements PartidoUseCase {
     private final PersonalDeportivoRepositoryPort personalRepository;
     private final PartidoMapper                   partidoMapper;
     private final EventosPartidoMapper            eventosMapper;
+    private final TandaPenalesMapper              tandapenalesMapper;
  
     @Override
     public PartidoResponse programarPartido(CrearPartidoRequest request) {
@@ -163,7 +166,35 @@ public class PartidoService implements PartidoUseCase {
     public PartidoResponse obtenerPartidoPorId(UUID idPartido) {
         return findPartidoOrThrow(idPartido, partidoMapper);
     }
- 
+
+    @Override
+    public TandaPenalesResponse obtenerTandaPenales(UUID idPartido) {
+        Partido partido = getPartidoOrThrow(idPartido);
+
+        if (!partido.haFinalizado()) {
+            throw new IllegalStateException("El partido aún no ha finalizado");
+        }
+
+        EstadoPartido finalizadoEn = obtenerEstadoFinalizacion(partido);
+        if (finalizadoEn != EstadoPartido.PENALTIS) {
+            throw new IllegalStateException("El partido no terminó en tanda de penaltis");
+        }
+
+        return tandapenalesMapper.toResponse(partido);
+    }
+
+
+    private EstadoPartido obtenerEstadoFinalizacion(Partido partido) {
+        if (partido == null || partido.getEventos() == null) {
+            return null;
+        }
+        return partido.getEventos().stream()
+                .filter(e -> e.getTipoEvento() == TipoEvento.FIN_PARTIDO)
+                .findFirst()
+                .map(EventosPartido::getEstadoEvento)
+                .orElse(null);
+    }
+
     @Override
     @Transactional(readOnly = true)
     public List<PartidoResponse> obtenerPartidosPorCompeticion(UUID idCompeticion) {

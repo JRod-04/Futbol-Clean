@@ -15,6 +15,7 @@ public class ClubMapper {
                 .idEquipo(UUID.randomUUID())
                 .nombre(request.nombre())
                 .nombreCorto(request.nombreCorto())
+                .pais(request.paisClub())
                 .fechaFundacion(request.fechaFundacion())
                 .build();
     }
@@ -28,6 +29,7 @@ public class ClubMapper {
                 club.getNombre(),
                 club.getNombreCorto(),
                 club.getFechaFundacion(),
+                club.getPais(),
                 club.getJugadoresActivos().size(),
                 club.getJugadoresDisponibles().size(),
                 club.getJugadoresLesionados().size(),
@@ -35,7 +37,8 @@ public class ClubMapper {
                 club.getValorPlantillaTotal() / 1_000_000.0,
                 tecnico != null ? tecnico.getNombreCompleto() : null,
                 tecnico != null ? tecnico.getIdPersonal() : null,
-                estadio != null ? estadio.getNombre() : null
+                estadio != null ? estadio.getNombre() : null,
+                estadio != null ? estadio.getIdEstadio() : null
         );
     }
 }

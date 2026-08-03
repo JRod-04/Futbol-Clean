@@ -167,17 +167,16 @@ public class Partido {
             eventoInicioSegundoExtra.setPartido(this);
 
         } else if (siguiente == EstadoPartido.PENALTIS) {
-            EventosPartido eventoPenaltis = EventosPartido.builder()
-                    .idEvento(UUID.randomUUID())
-                    .minuto(java.time.LocalTime.of(2, 0))
-                    .descripcion("Inicio de penaltis")
-                    .tipoEvento(TipoEvento.PENALTI_CONCEDIDO)
-                    .partido(this)
-                    .build();
-
-            eventoPenaltis.setEstadoEvento(siguiente);
-            this.eventos.add(eventoPenaltis);
-            eventoPenaltis.setPartido(this);
+           EventosPartido eventoInicioPenaltis = EventosPartido.builder()
+                   .idEvento(UUID.randomUUID())
+                   .minuto(java.time.LocalTime.of(2, 0))
+                   .descripcion("Inicio Definicion por Penaltis")
+                   .tipoEvento(TipoEvento.INICIO_PENALTIS)
+                   .partido(this)
+                   .build();
+           eventoInicioPenaltis.setEstadoEvento(siguiente);
+           this.eventos.add(eventoInicioPenaltis);
+           eventoInicioPenaltis.setPartido(this);
         }
     }
 
@@ -194,7 +193,7 @@ public class Partido {
             this.estado = EstadoPartido.FINALIZADO;
             EventosPartido eventoFin = EventosPartido.builder()
                     .idEvento(UUID.randomUUID())
-                    .minuto(java.time.LocalTime.now())
+                    .minuto(java.time.LocalTime.of(2, 00))
                     .descripcion("Finalización del partido")
                     .tipoEvento(TipoEvento.FIN_PARTIDO)
                     .partido(this)
@@ -205,11 +204,12 @@ public class Partido {
             return;
         }
 
-        if (estadoActual.esTiempoValido()) {
+        if (estadoActual.Finalizable()) {
+
             this.estado = EstadoPartido.FINALIZADO;
             EventosPartido eventoFin = EventosPartido.builder()
                     .idEvento(UUID.randomUUID())
-                    .minuto(java.time.LocalTime.now())
+                    .minuto(java.time.LocalTime.of(2, 0))
                     .descripcion("Finalización del partido")
                     .tipoEvento(TipoEvento.FIN_PARTIDO)
                     .partido(this)
@@ -291,7 +291,7 @@ public class Partido {
             }
         }
 
-        if (evento.getTipoEvento().afectaMarcador()) {
+        if (evento.getTipoEvento().afectaMarcador() && this.estado != EstadoPartido.PENALTIS) {
             actualizarGoles(evento);
         }
     }
@@ -554,6 +554,10 @@ public class Partido {
 
 
     private void actualizarGoles(EventosPartido evento) {
+        if (this.estado == EstadoPartido.PENALTIS) {
+            return;
+        }
+
         if (evento.getEquipoFavorecido() == null) {
             return;
         }

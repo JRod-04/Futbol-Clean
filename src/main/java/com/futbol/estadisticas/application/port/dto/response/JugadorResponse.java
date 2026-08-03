@@ -1,6 +1,7 @@
 package com.futbol.estadisticas.application.port.dto.response;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.UUID;
 
 import com.futbol.estadisticas.domain.model.enums.EstadoJugador;
@@ -23,7 +24,7 @@ public record JugadorResponse(
         JuegoPies pieHabil,
         Integer altura,
         Integer peso,
-        PosicionJugador posicion,
+        List<PosicionJugador> posiciones,
         Integer dorsal,
         EstadoJugador estadoJugador,
         Double valorMercado,

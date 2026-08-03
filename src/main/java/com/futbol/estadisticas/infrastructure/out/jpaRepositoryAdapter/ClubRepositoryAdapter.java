@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import com.futbol.estadisticas.domain.model.Competicion;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
@@ -82,10 +83,12 @@ public class ClubRepositoryAdapter implements ClubRepositoryPort{
             }
 
     @Override
-    public List<Club> findByNombre(String nombre) {
-        return repository.findByNombre(nombre).stream().map(mapper::DatostoDomain).toList();
+    public List<Competicion> findCompeticionesByClub(UUID idClub) {
+        return repository.findCompeticionesByClub(idClub).stream()
+                .map(mapper::CompeticiontoDomain)
+                .toList();
     }
- 
+
     @Override
     public boolean existsById(UUID idEquipo) {
         return repository.existsById(idEquipo);

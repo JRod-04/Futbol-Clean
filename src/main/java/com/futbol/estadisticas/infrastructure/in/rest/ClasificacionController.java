@@ -4,10 +4,7 @@ package com.futbol.estadisticas.infrastructure.in.rest;
 import java.util.UUID;
 
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.futbol.estadisticas.application.port.dto.response.ClasificacionDTO.*;
 import com.futbol.estadisticas.application.port.in.ClasificacionUseCase;
@@ -17,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequestMapping("/apifutbol/clasificacion")
 @RequiredArgsConstructor
+@CrossOrigin(origins = "*")
 public class ClasificacionController {
 
     private final ClasificacionUseCase clasificacionUseCase;

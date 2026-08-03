@@ -1,13 +1,13 @@
 package com.futbol.estadisticas.application.port.mapper;
 
+import com.futbol.estadisticas.domain.model.*;
+import com.futbol.estadisticas.domain.model.enums.EstadoPartido;
+import com.futbol.estadisticas.domain.model.enums.TipoEvento;
 import org.springframework.stereotype.Component;
 
 import com.futbol.estadisticas.application.port.dto.response.PartidoResponse;
-import com.futbol.estadisticas.domain.model.Arbitro;
-import com.futbol.estadisticas.domain.model.Club;
-import com.futbol.estadisticas.domain.model.Competicion;
-import com.futbol.estadisticas.domain.model.Estadio;
-import com.futbol.estadisticas.domain.model.Partido;
+
+import java.util.List;
 
 @Component
 public class PartidoMapper {
@@ -18,12 +18,15 @@ public class PartidoMapper {
         Arbitro arbitro = partido.getArbitro();
         Estadio estadio = partido.getEstadio();
         Competicion competicion = partido.getCompeticion();
- 
+
+        EstadoPartido finalizadoEn = obtenerEstadoFinalizacion(partido);
+
         return new PartidoResponse(
                 partido.getIdPartido(),
                 partido.getFechaYHora(),
                 partido.getEstado(),
                 partido.getEstado() != null ? partido.getEstado().getDisplayName() : null,
+                finalizadoEn,
                 local != null ? local.getIdEquipo() : null,
                 local != null ? local.getNombre() : null,
                 visitante != null ? visitante.getIdEquipo() : null,
@@ -41,6 +44,19 @@ public class PartidoMapper {
                 partido.haFinalizado(),
                 partido.esFuturo(),
                 partido.esHoy()
+
         );
+    }
+
+    private EstadoPartido obtenerEstadoFinalizacion(Partido partido) {
+        if (partido == null || partido.getEventos() == null) {
+            return null;
+        }
+
+        return partido.getEventos().stream()
+                .filter(e -> e.getTipoEvento() == TipoEvento.FIN_PARTIDO)
+                .findFirst()
+                .map(EventosPartido::getEstadoEvento)
+                .orElse(null);
     }
 }

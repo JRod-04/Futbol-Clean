@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import com.futbol.estadisticas.domain.model.enums.Nacion;
 import com.futbol.estadisticas.domain.model.enums.PosicionJugador;
 
 import lombok.AllArgsConstructor;
@@ -31,6 +32,7 @@ public class Club {
     private String nombre;
     private String nombreCorto;
     private LocalDate fechaFundacion;
+    private Nacion pais;
 
     @Builder.Default
     private List<Contrato> contratos = new ArrayList<>();

@@ -5,6 +5,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import com.futbol.estadisticas.domain.model.Club;
+import com.futbol.estadisticas.domain.model.Competicion;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -20,8 +21,8 @@ public interface ClubRepositoryPort {
 
     Optional<Club> findByIdWithContratos(UUID id);
 
-    List<Club> findByNombre(String nombre);
- 
+    List<Competicion> findCompeticionesByClub(UUID idClub);
+
     boolean existsById(UUID idEquipo);
 
     void actualizarTecnicoActual(UUID idClub, UUID idTecnico);

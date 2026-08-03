@@ -19,49 +19,16 @@ public enum PosicionJugador {
     INTERIOR_IZQUIERDO("Interior Izquierdo", "LM", "Mediocampo"),
     EXTREMO_DERECHO("Extremo Derecho", "RW", "Delantera"),
     EXTREMO_IZQUIERDO("Extremo Izquierdo", "LW", "Delantera"),
-    MEDIAPUNTA("Mediapunta", "SS", "Delantera"),
+    MEDIAPUNTA("Mediapunta", "AM", "Delantera"),
     DELANTERO("Delantero", "ST", "Delantera");
     
     private final String displayName;
     private final String abreviatura;
     private final String zona;
-  
-    
 
-    public boolean esDefensa() {
-        return "Defensa".equals(zona);
+    @Override
+    public String toString() {
+        return getAbreviatura();
     }
-    
-    //Verifica si es una posición de mediocampo
-    public boolean esMediocampo() {
-        return "Mediocampo".equals(zona);
-    }
-    
-    //Verifica si es una posición de delantera
-    public boolean esDelantera() {
-        return "Delantera".equals(zona);
-    }
-    
-    //Verifica si es una posición de banda (lateral o extremo)
-    public boolean esPosicionDeBanda() {
-        return this == LATERAL_DERECHO || this == LATERAL_IZQUIERDO ||
-               this == CARRILERO_DERECHO || this == CARRILERO_IZQUIERDO ||
-               this == EXTREMO_DERECHO || this == EXTREMO_IZQUIERDO;
-    }
-    
-    //Verifica si es una posición central
-    public boolean esPosicionCentral() {
-        return this == CENTRAL || this == MEDIOCENTRO_DEFENSIVO || 
-               this == MEDIOCENTRO || this == MEDIOCENTRO_OFENSIVO ||
-               this == DELANTERO;
-    }
-    
-    //Verifica si es una posición ofensiva
-    public boolean esOfensiva() {
-        return esDelantera() || this == MEDIOCENTRO_OFENSIVO || 
-               this == MEDIAPUNTA || this == EXTREMO_DERECHO || 
-               this == EXTREMO_IZQUIERDO;
-    }
-
    
 }

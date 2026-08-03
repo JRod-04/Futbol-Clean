@@ -20,7 +20,7 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 @Transactional
-public class ArbitroService implements ArbitroUseCase{
+public class ArbitroService implements ArbitroUseCase {
 private final ArbitroRepositoryPort arbitroRepository;
     private final ArbitroMapper         arbitroMapper;
  

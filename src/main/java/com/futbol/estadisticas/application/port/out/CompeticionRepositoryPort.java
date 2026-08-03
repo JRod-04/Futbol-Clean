@@ -16,7 +16,6 @@ public interface CompeticionRepositoryPort {
 
     Optional<Competicion> findByIdWithPartidosAndEquipos(UUID idCompeticion);
 
-
     Optional<Competicion> findById(UUID idCompeticion);
  
     List<Competicion> findAll();

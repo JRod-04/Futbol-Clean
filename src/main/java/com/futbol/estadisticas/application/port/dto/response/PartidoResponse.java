@@ -1,6 +1,7 @@
 package com.futbol.estadisticas.application.port.dto.response;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 import java.util.jar.JarOutputStream;
 
@@ -16,7 +17,9 @@ public record PartidoResponse(
         LocalDateTime fechaYHora,
         EstadoPartido estado,
         String estadoDisplayName,
- 
+
+        EstadoPartido finalizadoEn,
+
         UUID idEquipoLocal,
         String nombreEquipoLocal,
  

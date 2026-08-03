@@ -289,6 +289,7 @@ public class InfrastructureMapper {
                 .nombre(e.getNombre())
                 .nombreCorto(e.getNombreCorto())
                 .fechaFundacion(e.getFechaFundacion())
+                .pais(e.getPaisClub())
                 .contratos(new ArrayList<>())
                 .partidosLocal(new ArrayList<>())
                 .partidosVisitante(new ArrayList<>())
@@ -319,6 +320,7 @@ public class InfrastructureMapper {
                 .idEquipo(d.getIdEquipo())
                 .nombre(d.getNombre())
                 .nombreCorto(d.getNombreCorto())
+                .paisClub(d.getPais())
                 .fechaFundacion(d.getFechaFundacion())
                 .build();
     }
@@ -332,6 +334,7 @@ public class InfrastructureMapper {
                 .nombre(e.getNombre())
                 .nombreCorto(e.getNombreCorto())
                 .fechaFundacion(e.getFechaFundacion())
+                .pais(e.getPaisClub())
                 .contratos(new ArrayList<>())
                 .partidosLocal(new ArrayList<>())
                 .partidosVisitante(new ArrayList<>())

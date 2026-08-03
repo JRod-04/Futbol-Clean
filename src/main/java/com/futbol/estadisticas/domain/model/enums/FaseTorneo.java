@@ -42,4 +42,9 @@ public enum FaseTorneo {
 
     private final String displayName;
     private final String descripcion;
+
+    @Override
+    public String toString() {
+        return getDisplayName();
+    }
 }

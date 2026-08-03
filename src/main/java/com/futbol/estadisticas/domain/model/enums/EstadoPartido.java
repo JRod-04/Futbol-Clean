@@ -27,8 +27,8 @@ public enum EstadoPartido {
     AGREGADO_PRORROGA_SEGUNDO("Tiempo Agregado 2do Prórroga", "Tiempo agregado sobre la segunda prórroga", true, false),
 
     ESPERANDO_PENALTIS("Esperando Definicion por penales", "Se espera definir por menales", true, false),
-
     PENALTIS("Penaltis", "Definiendo por penaltis", true, false),
+
     FINALIZADO("Finalizado", "Partido terminado", false, true),
     SUSPENDIDO("Suspendido", "Partido suspendido", false, true),
     CANCELADO("Cancelado", "Partido cancelado", false, true);
@@ -115,6 +115,7 @@ public enum EstadoPartido {
             case SEGUNDO_TIEMPO, AGREGADO_SEGUNDO_TIEMPO -> 90;
             case PRIMER_TIEMPO_PRORROGA, AGREGADO_PRORROGA_PRIMER -> 105;
             case SEGUNDO_TIEMPO_PRORROGA, AGREGADO_PRORROGA_SEGUNDO -> 120;
+            case PENALTIS -> 500;
             default -> 0;
         };
     }
@@ -132,6 +133,13 @@ public enum EstadoPartido {
                 this == AGREGADO_PRORROGA_SEGUNDO;
     }
 
+    public boolean Finalizable(){
+        return
+                this == SEGUNDO_TIEMPO ||
+                this == AGREGADO_SEGUNDO_TIEMPO ||
+                this == SEGUNDO_TIEMPO_PRORROGA ||
+                this == AGREGADO_PRORROGA_SEGUNDO;
+    }
     /**
      * Obtiene el estado base (sin agregado)
      */
