@@ -66,7 +66,5 @@ public class EstadisticasJugadorMapper {
         return (int) eventos.stream().filter(e -> e.getTipoEvento() == tipo).count();
     }
 
-    private List<EventoPartidoResponse> mapearEventos(List<EventosPartido> eventos) {
-        return eventos.stream().map(eventosPartidoMapper::toResponse).toList();
-    }
+
 }

@@ -202,9 +202,7 @@ public class CompeticionService implements CompeticionUseCase {
         Competicion competicion = competicionRepository.findById(idCompeticion)
                 .orElseThrow(() -> new IllegalArgumentException(
                         "Competición no encontrada con id: " + idCompeticion));
-        if (competicion.estaActiva()) {
-            throw new IllegalStateException("No se puede eliminar una competición activa");
-        }
+
         competicionRepository.deleteById(idCompeticion);
     }
 }

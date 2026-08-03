@@ -20,14 +20,12 @@ public class JugadorMapper {
       public Jugador toEntity(CrearJugadorRequest request) {
         UUID idPersonal = UUID.randomUUID();
  
-        ArrayList<PosicionJugador> posicionesIniciales = new ArrayList<>();
-        if (request.posicion() != null) {
-            posicionesIniciales.add(request.posicion()); 
-        }
 
         DatosDeportivos datosDeportivos = DatosDeportivos.builder()
                 .idHistorialDeportivo(UUID.randomUUID())
-                .posiciones(posicionesIniciales)
+                .posiciones(request.posiciones() != null
+                        ? request.posiciones()
+                        : new ArrayList<>())
                 .estadoJugador(EstadoJugador.SUPLENTE)
                 .valorMercado(request.valorMercado())
                 .dorsal(request.dorsal())
@@ -70,7 +68,7 @@ public class JugadorMapper {
                 jugador.getPieHabil(),
                 jugador.getAltura(),
                 jugador.getPeso(),
-                datos != null ? datos.getPosicionActual() : null,
+                datos != null ? datos.getPosiciones() : new ArrayList<>(),
                 datos != null ? datos.getDorsal() : null,
                 datos != null ? datos.getEstadoJugador() : null,
                 datos != null ? datos.getValorMercado() : null,

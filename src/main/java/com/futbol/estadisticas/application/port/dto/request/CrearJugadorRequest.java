@@ -1,6 +1,7 @@
 package com.futbol.estadisticas.application.port.dto.request;
 
 import java.time.LocalDate;
+import java.util.List;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -38,7 +39,7 @@ public record CrearJugadorRequest(
         Integer dorsal,
 
         @NotNull(message = "La posición es obligatoria")
-        PosicionJugador posicion,
+        List<PosicionJugador> posiciones,
  
         @Positive(message = "El valor de mercado debe ser positivo")
         Double valorMercado

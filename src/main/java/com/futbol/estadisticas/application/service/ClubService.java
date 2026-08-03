@@ -3,6 +3,10 @@ package com.futbol.estadisticas.application.service;
 import java.util.List;
 import java.util.UUID;
 
+import com.futbol.estadisticas.application.port.dto.response.CompeticionResponse;
+import com.futbol.estadisticas.application.port.mapper.CompeticionMapper;
+import com.futbol.estadisticas.application.port.out.CompeticionRepositoryPort;
+import com.futbol.estadisticas.domain.model.Competicion;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -27,6 +31,8 @@ public class ClubService implements ClubUseCase {
     private final ClubRepositoryPort clubRepository;
     private final ClubMapper         clubMapper;
     private final JugadorMapper      jugadorMapper;
+    private final CompeticionMapper competicionMapper;
+
 
     @Override
     public Page<ClubResponse> buscarClubes(String texto, Pageable pageable) {
@@ -42,7 +48,20 @@ public class ClubService implements ClubUseCase {
         Club club = clubMapper.toEntity(request);
         return clubMapper.toResponse(clubRepository.save(club));
     }
- 
+
+    @Override
+    public List<CompeticionResponse> obtenerCompeticionesPorClub(UUID idClub) {
+        if (!clubRepository.existsById(idClub)) {
+            throw new IllegalArgumentException("Club no encontrado con id: " + idClub);
+        }
+
+        List<Competicion> competiciones = clubRepository.findCompeticionesByClub(idClub);
+
+        return competiciones.stream()
+                .map(competicionMapper::toResponse)
+                .toList();
+    }
+
     @Override
     @Transactional(readOnly = true)
     public ClubResponse obtenerClubPorId(UUID idClub) {

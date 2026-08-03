@@ -5,17 +5,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.ForeignKey;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.OneToOne;
-import jakarta.persistence.Table;
+import com.futbol.estadisticas.domain.model.enums.Nacion;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -40,7 +31,12 @@ public class ClubJPAEntity {
  
     @Column(name = "fecha_fundacion")
     private LocalDate fechaFundacion;
- 
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "pais_club")
+    private Nacion paisClub;
+
+
     // Un club tiene un estadio (opcional). La FK queda en esta tabla.
     @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
     @JoinColumn(name = "id_estadio", foreignKey = @ForeignKey(name = "fk_club_estadio"))

@@ -3,6 +3,7 @@ package com.futbol.estadisticas.infrastructure.in.rest;
 import java.util.List;
 import java.util.UUID;
 
+import com.futbol.estadisticas.application.port.dto.response.CompeticionResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -53,7 +54,13 @@ private final ClubUseCase clubUseCase;
     public ResponseEntity<List<JugadorResponse>> jugadoresTitulares(@PathVariable UUID id) {
         return ResponseEntity.ok(clubUseCase.obtenerTitulares(id));
     }
- 
+
+    @GetMapping("{idClub}/competiciones")
+    public ResponseEntity<List<CompeticionResponse>> obtenerCompeticionesDelClub(
+            @PathVariable UUID idClub) {
+        return ResponseEntity.ok(clubUseCase.obtenerCompeticionesPorClub(idClub));
+    }
+
     @GetMapping("/{id}/valor-plantilla")
     public ResponseEntity<Double> valorPlantilla(@PathVariable UUID id) {
         return ResponseEntity.ok(clubUseCase.obtenerValorPlantilla(id));

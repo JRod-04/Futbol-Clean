@@ -7,6 +7,7 @@ import java.util.UUID;
 
 import com.futbol.estadisticas.application.port.dto.request.RealizarSustitucionRequest;
 import com.futbol.estadisticas.application.port.dto.response.SustitucionResponse;
+import com.futbol.estadisticas.application.port.dto.response.TandaPenalesResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
@@ -58,6 +59,11 @@ public class PartidoController {
     @GetMapping("/{id}")
     public ResponseEntity<PartidoResponse> obtenerPorId(@PathVariable UUID id) {
         return ResponseEntity.ok(partidoUseCase.obtenerPartidoPorId(id));
+    }
+
+    @GetMapping("/{id}/penales")
+    public ResponseEntity<TandaPenalesResponse> obtenerTandaPenales(@PathVariable UUID id) {
+        return ResponseEntity.ok(partidoUseCase.obtenerTandaPenales(id));
     }
 
     @GetMapping("/fecha")

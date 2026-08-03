@@ -40,8 +40,10 @@ public enum TipoEvento {
     FIN_PRIMERO_EXTRA("Finalizado Primer Tiempo Prorroga", "1ExT"),
     INICIO_SEGUNDO_EXTRA("Inicio Primer Tiempo Prorroga", "2ExT"),
     FIN_SEGUNDO_EXTRA("Finalizado Primer Tiempo Prorroga", "2ExT"),
+    INICIO_PENALTIS("Inicio de los penaltis", "PDR"),
     FIN_PARTIDO("Fin del partido", "FP"),
     AGREGADO("Ocurre Tiempo Agregado", "ET"),
+
 
     // Jugadas de estrategia
     CORNER("Córner", "C"),
@@ -59,9 +61,6 @@ public enum TipoEvento {
         return this == GOL || this == AUTOGOL || this == PENALTI_ANOTADO;
     }
 
-    public boolean esGolAnulado() {
-        return this == GOL_ANULADO;
-    }
 
     public boolean esGolValido() {
         return this == GOL || this == AUTOGOL || this == PENALTI_ANOTADO;

@@ -3,6 +3,7 @@ package com.futbol.estadisticas.application.port.dto.response;
 import java.time.LocalDate;
 import java.util.UUID;
 
+import com.futbol.estadisticas.domain.model.enums.Nacion;
 import lombok.Builder;
 
 @Builder
@@ -11,6 +12,7 @@ public record ClubResponse(
         String nombre,
         String nombreCorto,
         LocalDate fechaFundacion,
+        Nacion paisClub,
         int totalJugadoresActivos,
         int jugadoresDisponibles,
         int jugadoresLesionados,
@@ -18,7 +20,8 @@ public record ClubResponse(
         double valorPlantillaEnMillones,
         String tecnicoActual,
         UUID idTecnicoActual,
-        String estadio
+        String nombreEstadio,
+        UUID idEstadio
 ) {
 
 }

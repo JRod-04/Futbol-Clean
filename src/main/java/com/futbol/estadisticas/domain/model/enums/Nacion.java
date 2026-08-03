@@ -251,13 +251,7 @@ public enum Nacion {
         return null;
     }
     
-    //Obtiene el nombre completo del país con su código FIFA
-    public String getNombreConCodigo() {
-        return String.format("%s (%s)", displayName, codigoFIFA);
-    }
+
     
-    @Override
-    public String toString() {
-        return getNombreConCodigo();
-    }
+
 }
