@@ -1,6 +1,5 @@
 package com.futbol.estadisticas.application.service;
 
-import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -12,7 +11,7 @@ import com.futbol.estadisticas.application.port.in.DatosDeportivosUseCase;
 import com.futbol.estadisticas.application.port.mapper.DatosDeportivosMapper;
 import com.futbol.estadisticas.application.port.out.DatosDeportivosRepositoryPort;
 import com.futbol.estadisticas.application.port.out.JugadorRepositoryPort;
-import com.futbol.estadisticas.domain.model.Club;
+import com.futbol.estadisticas.domain.model.Equipo;
 import com.futbol.estadisticas.domain.model.DatosDeportivos;
 import com.futbol.estadisticas.domain.model.Jugador;
 import com.futbol.estadisticas.domain.model.enums.EstadoJugador;
@@ -84,7 +83,7 @@ public class DatosDeportivosService implements DatosDeportivosUseCase {
         Jugador jugador = findJugadorOrThrow(idJugador);
         DatosDeportivos datos = findDatosOrThrow(idJugador);
 
-        Club club = jugador.getClubActual();
+        Equipo club = jugador.getEquipoActual();
         validarLimiteTitularesEnClub(club, idJugador);
 
         datos.promoverATitular();
@@ -93,10 +92,10 @@ public class DatosDeportivosService implements DatosDeportivosUseCase {
         return datosDeportivosMapper.toResponse(datosDeportivosRepository.save(datos), jugador);
     }
 
-    private void validarLimiteTitularesEnClub(Club club, UUID idJugadorExcluido) {
+    private void validarLimiteTitularesEnClub(Equipo club, UUID idJugadorExcluido) {
         if (club == null) return;
 
-        long titularesEnClub = jugadorRepository.findByClub(club.getIdEquipo()).stream()
+        long titularesEnClub = jugadorRepository.findByEquipo(club.getIdEquipo()).stream()
                 .filter(j -> j.getDatosDeportivos() != null
                         && j.getDatosDeportivos().getEstadoJugador() == EstadoJugador.TITULAR
                         && !j.getIdPersonal().equals(idJugadorExcluido))
@@ -148,10 +147,10 @@ public class DatosDeportivosService implements DatosDeportivosUseCase {
     private void validarDorsalUnicoEnClub(Jugador jugador, Integer dorsal) {
         if (dorsal == null) return;
         
-        Club club = jugador.getClubActual();
+        Equipo club = jugador.getEquipoActual();
         if (club == null) return; 
         
-        List<Jugador> jugadoresClub = jugadorRepository.findByClub(club.getIdEquipo());
+        List<Jugador> jugadoresClub = jugadorRepository.findByEquipo(club.getIdEquipo());
         
         boolean dorsalOcupado = jugadoresClub.stream()
                 .filter(j -> !j.getIdPersonal().equals(jugador.getIdPersonal()))

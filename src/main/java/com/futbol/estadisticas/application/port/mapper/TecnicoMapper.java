@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
 
 import com.futbol.estadisticas.application.port.dto.request.CrearTecnicoRequest;
 import com.futbol.estadisticas.application.port.dto.response.TecnicoResponse;
-import com.futbol.estadisticas.domain.model.Club;
+import com.futbol.estadisticas.domain.model.Equipo;
 import com.futbol.estadisticas.domain.model.Tecnico;
 import com.futbol.estadisticas.domain.model.enums.TipoPersonal;
 
@@ -26,7 +26,7 @@ public class TecnicoMapper {
     }
  
     public TecnicoResponse toResponse(Tecnico tecnico) {
-        Club club = tecnico.getClubActual();
+        Equipo club = tecnico.getClubActual();
  
         return new TecnicoResponse(
                 tecnico.getIdPersonal(),

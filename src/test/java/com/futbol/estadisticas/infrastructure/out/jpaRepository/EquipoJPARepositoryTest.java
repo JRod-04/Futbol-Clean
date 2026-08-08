@@ -1,12 +1,12 @@
 package com.futbol.estadisticas.infrastructure.out.jpaRepository;
 
 import com.futbol.estadisticas.PostgresTestContainerConfig;
-import com.futbol.estadisticas.domain.model.Club;
-import com.futbol.estadisticas.infrastructure.out.jpaRepositoryAdapter.ClubRepositoryAdapter;
+import com.futbol.estadisticas.domain.model.Equipo;
+import com.futbol.estadisticas.infrastructure.out.jpaEntity.EquipoJPAEntity;
+import com.futbol.estadisticas.infrastructure.out.jpaRepositoryAdapter.EquipoRepositoryAdapter;
 
 import jakarta.transaction.Transactional;
 
-import com.futbol.estadisticas.infrastructure.out.jpaEntity.ClubJPAEntity;
 import com.futbol.estadisticas.infrastructure.out.jpaEntity.EstadioJPAEntity;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -25,7 +25,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
 @Transactional
-class ClubJPARepositoryTest extends PostgresTestContainerConfig {
+class EquipoJPARepositoryTest extends PostgresTestContainerConfig {
 
     @DynamicPropertySource
     static void properties(DynamicPropertyRegistry registry) {
@@ -36,10 +36,10 @@ class ClubJPARepositoryTest extends PostgresTestContainerConfig {
     }
 
     @Autowired
-    private ClubRepositoryAdapter adapter;
+    private EquipoRepositoryAdapter adapter;
 
     @Autowired
-    private ClubJPARepository repository;
+    private EquipoJPARepository repository;
 
     @Autowired
     private EstadioJPARepository estadioRepository;
@@ -84,7 +84,7 @@ class ClubJPARepositoryTest extends PostgresTestContainerConfig {
         estadioRepository.saveAll(List.of(estadio1, estadio2, estadio3));
 
         // Cada club tiene su propio estadio (sin duplicados)
-        ClubJPAEntity club1 = ClubJPAEntity.builder()
+        EquipoJPAEntity club1 = EquipoJPAEntity.builder()
                 .idEquipo(ID_CLUB_1)
                 .nombre("Arsenal FC")
                 .nombreCorto("ARS")
@@ -92,7 +92,7 @@ class ClubJPARepositoryTest extends PostgresTestContainerConfig {
                 .estadio(estadio1)  // Estadio 1
                 .build();
 
-        ClubJPAEntity club2 = ClubJPAEntity.builder()
+        EquipoJPAEntity club2 = EquipoJPAEntity.builder()
                 .idEquipo(ID_CLUB_2)
                 .nombre("Manchester City")
                 .nombreCorto("MCI")
@@ -100,7 +100,7 @@ class ClubJPARepositoryTest extends PostgresTestContainerConfig {
                 .estadio(estadio2)  // Estadio 2
                 .build();
 
-        ClubJPAEntity club3 = ClubJPAEntity.builder()
+        EquipoJPAEntity club3 = EquipoJPAEntity.builder()
                 .idEquipo(ID_CLUB_3)
                 .nombre("Chelsea FC")
                 .nombreCorto("CHE")
@@ -114,7 +114,7 @@ class ClubJPARepositoryTest extends PostgresTestContainerConfig {
     @Test
     @DisplayName("findById: debe encontrar el club por ID")
     void testFindById() {
-        Optional<Club> club = adapter.findById(ID_CLUB_1);
+        Optional<Equipo> club = adapter.findById(ID_CLUB_1);
         assertThat(club).isPresent();
         assertThat(club.get().getNombre()).isEqualTo("Arsenal FC");
         assertThat(club.get().getNombreCorto()).isEqualTo("ARS");
@@ -123,17 +123,17 @@ class ClubJPARepositoryTest extends PostgresTestContainerConfig {
     @Test
     @DisplayName("findAll: debe retornar todos los clubes")
     void testFindAll() {
-        List<Club> todos = adapter.findAll();
+        List<Equipo> todos = adapter.findAll();
         assertThat(todos).hasSize(3);
         assertThat(todos)
-                .extracting(Club::getNombreCorto)
+                .extracting(Equipo::getNombreCorto)
                 .containsExactlyInAnyOrder("ARS", "MCI", "CHE");
     }
 
     @Test
     @DisplayName("findByNombre: debe buscar clubes por nombre")
     void testFindByNombre() {
-        List<Club> resultados = adapter.findByNombre("City");
+        List<Equipo> resultados = adapter.findByNombre("City");
         assertThat(resultados).hasSize(1);
         assertThat(resultados.get(0).getNombre()).isEqualTo("Manchester City");
     }
@@ -170,19 +170,19 @@ class ClubJPARepositoryTest extends PostgresTestContainerConfig {
 
         // Crear el nuevo club con su estadio
         UUID nuevoId = UUID.randomUUID();
-        Club nuevoClub = Club.builder()
+        Equipo nuevoClub = Equipo.builder()
                 .idEquipo(nuevoId)
                 .nombre("Nuevo Club")
                 .nombreCorto("NCL")
                 .fechaFundacion(LocalDate.of(2000, 1, 1))
                 .build();
 
-        Club guardado = adapter.save(nuevoClub);
+        Equipo guardado = adapter.save(nuevoClub);
         assertThat(guardado).isNotNull();
         assertThat(guardado.getIdEquipo()).isEqualTo(nuevoId);
         assertThat(guardado.getNombre()).isEqualTo("Nuevo Club");
 
-        Optional<Club> encontrado = adapter.findById(nuevoId);
+        Optional<Equipo> encontrado = adapter.findById(nuevoId);
         assertThat(encontrado).isPresent();
         assertThat(adapter.findAll()).hasSize(4);
     }

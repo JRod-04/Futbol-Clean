@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.UUID;
 
 import com.futbol.estadisticas.application.port.dto.request.CrearCompeticionRequest;
-import com.futbol.estadisticas.application.port.dto.response.ClubResponse;
+import com.futbol.estadisticas.application.port.dto.response.EquipoResponse;
 import com.futbol.estadisticas.application.port.dto.response.CompeticionResponse;
 import com.futbol.estadisticas.application.port.dto.response.PartidoResponse;
 import org.springframework.data.domain.Page;
@@ -18,7 +18,7 @@ public interface CompeticionUseCase {
  
     CompeticionResponse obtenerCompeticionPorId(UUID idCompeticion);
 
-    List<ClubResponse> obtenerClubesParticipantes(UUID idCompeticion);
+    List<EquipoResponse> obtenerEquiposParticipantes(UUID idCompeticion);
 
     List<CompeticionResponse> obtenerTodasLasCompeticiones();
  

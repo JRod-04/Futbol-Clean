@@ -59,7 +59,7 @@ public class EventosPartidoJPAEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_equipo_favorecido",
                 foreignKey = @ForeignKey(name = "fk_evento_equipo"))
-    private ClubJPAEntity equipoFavorecido;
+    private EquipoJPAEntity equipoFavorecido;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "estado_evento")

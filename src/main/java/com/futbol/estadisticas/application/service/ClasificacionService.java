@@ -15,7 +15,10 @@ import com.futbol.estadisticas.application.port.in.ClasificacionUseCase;
 import com.futbol.estadisticas.application.port.out.CompeticionRepositoryPort;
 import com.futbol.estadisticas.application.port.out.PartidoRepositoryPort;
 import com.futbol.estadisticas.domain.model.Competicion;
+import com.futbol.estadisticas.domain.model.EventosPartido;
 import com.futbol.estadisticas.domain.model.Partido;
+import com.futbol.estadisticas.domain.model.enums.EstadoPartido;
+import com.futbol.estadisticas.domain.model.enums.TipoEvento;
 
 import lombok.RequiredArgsConstructor;
 
@@ -79,13 +82,12 @@ public class ClasificacionService implements ClasificacionUseCase {
         );
     }
 
-
     private void procesarPartido(Partido partido, UUID idClub, String nombreClub,
                                  int golesFavor, int golesContra,
                                  Map<UUID, Object[]> mapa) {
 
         Object[] stats = mapa.computeIfAbsent(idClub, k -> new Object[]{
-                nombreClub,  // [0] nombreClub
+                nombreClub,  // [0] nombreEquipo
                 0,           // [1] partidosJugados
                 0,           // [2] ganados
                 0,           // [3] empatados
@@ -99,25 +101,81 @@ public class ClasificacionService implements ClasificacionUseCase {
         stats[5] = (int) stats[5] + golesFavor;
         stats[6] = (int) stats[6] + golesContra;
 
-        if (partido.haFinalizado()) {
-            if (golesFavor > golesContra) {
-                stats[2] = (int) stats[2] + 1;
-                stats[7] = (int) stats[7] + 3;
-            } else if (golesFavor == golesContra) {
-                stats[3] = (int) stats[3] + 1;
-                stats[7] = (int) stats[7] + 1;
-            } else {
-                stats[4] = (int) stats[4] + 1;
-            }
-        } else if (partido.estaEnCurso()) {
+        if (!partido.haFinalizado() && partido.estaEnCurso()) {
             if (golesFavor > golesContra) {
                 stats[7] = (int) stats[7] + 3;
             } else if (golesFavor == golesContra) {
                 stats[7] = (int) stats[7] + 1;
             }
+            return;
+        }
+
+        if (!partido.haFinalizado()) {
+            return;
+        }
+
+        EstadoPartido finalizadoEn = obtenerEstadoFinalizacion(partido);
+
+        if (finalizadoEn == EstadoPartido.PENALTIS) {
+            procesarResultadoPenales(partido, idClub, stats);
+            return;
+        }
+
+        if (golesFavor > golesContra) {
+            stats[2] = (int) stats[2] + 1;
+            stats[7] = (int) stats[7] + 3;
+        } else if (golesFavor == golesContra) {
+            stats[3] = (int) stats[3] + 1;
+            stats[7] = (int) stats[7] + 1;
+        } else {
+            stats[4] = (int) stats[4] + 1;
         }
     }
 
+
+    private void procesarResultadoPenales(Partido partido, UUID idClub, Object[] stats) {
+        List<EventosPartido> penales = partido.getEventos().stream()
+                .filter(e -> e.getEstadoEvento() == EstadoPartido.PENALTIS)
+                .filter(e -> e.getTipoEvento() == TipoEvento.PENALTI_ANOTADO ||
+                        e.getTipoEvento() == TipoEvento.PENALTI_FALLADO)
+                .collect(Collectors.toList());
+
+        long anotadosLocal = penales.stream()
+                .filter(e -> e.getEquipoFavorecido() != null)
+                .filter(e -> e.getEquipoFavorecido().getIdEquipo().equals(partido.getEquipoLocal().getIdEquipo()))
+                .filter(e -> e.getTipoEvento() == TipoEvento.PENALTI_ANOTADO)
+                .count();
+
+        long anotadosVisitante = penales.stream()
+                .filter(e -> e.getEquipoFavorecido() != null)
+                .filter(e -> e.getEquipoFavorecido().getIdEquipo().equals(partido.getEquipoVisitante().getIdEquipo()))
+                .filter(e -> e.getTipoEvento() == TipoEvento.PENALTI_ANOTADO)
+                .count();
+
+        boolean esLocal = partido.getEquipoLocal().getIdEquipo().equals(idClub);
+        int golesClub = esLocal ? (int) anotadosLocal : (int) anotadosVisitante;
+        int golesRival = esLocal ? (int) anotadosVisitante : (int) anotadosLocal;
+
+        if (golesClub > golesRival) {
+            stats[2] = (int) stats[2] + 1;
+            stats[7] = (int) stats[7] + 3;
+        } else {
+            stats[4] = (int) stats[4] + 1;
+            stats[7] = (int) stats[7] + 0;
+        }
+    }
+
+
+    private EstadoPartido obtenerEstadoFinalizacion(Partido partido) {
+        if (partido == null || partido.getEventos() == null) {
+            return null;
+        }
+        return partido.getEventos().stream()
+                .filter(e -> e.getTipoEvento() == TipoEvento.FIN_PARTIDO)
+                .findFirst()
+                .map(EventosPartido::getEstadoEvento)
+                .orElse(null);
+    }
 
     private Comparator<EquipoClasificacion> comparadorTabla() {
         return Comparator
@@ -125,6 +183,6 @@ public class ClasificacionService implements ClasificacionUseCase {
                 .thenComparing(EquipoClasificacion::diferenciaGoles, Comparator.reverseOrder())
                 .thenComparing(EquipoClasificacion::golesFavor, Comparator.reverseOrder())
                 .thenComparing(EquipoClasificacion::partidosJugados)
-                .thenComparing(EquipoClasificacion::nombreClub);
+                .thenComparing(EquipoClasificacion::nombreEquipo);
     }
 }

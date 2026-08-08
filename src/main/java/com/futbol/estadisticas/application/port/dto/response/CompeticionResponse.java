@@ -1,11 +1,9 @@
 package com.futbol.estadisticas.application.port.dto.response;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.UUID;
 
-import com.futbol.estadisticas.domain.model.Club;
-import com.futbol.estadisticas.domain.model.Partido;
+import com.futbol.estadisticas.domain.model.Equipo;
 import lombok.Builder;
 
 @Builder
@@ -15,7 +13,7 @@ public record CompeticionResponse(
         String nombre,
         LocalDateTime fechaInicio,
         LocalDateTime fechaFin,
-        Club equipoGanador,
+        Equipo equipoGanador,
         boolean activa,
         boolean finalizada,
         boolean noHaComenzado,

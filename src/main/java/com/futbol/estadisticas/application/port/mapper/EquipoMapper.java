@@ -4,32 +4,34 @@ import java.util.UUID;
 
 import org.springframework.stereotype.Component;
 
-import com.futbol.estadisticas.application.port.dto.request.CrearClubRequest;
-import com.futbol.estadisticas.application.port.dto.response.ClubResponse;
-import com.futbol.estadisticas.domain.model.Club;
+import com.futbol.estadisticas.application.port.dto.request.CrearEquipoRequest;
+import com.futbol.estadisticas.application.port.dto.response.EquipoResponse;
+import com.futbol.estadisticas.domain.model.Equipo;
 
 @Component
-public class ClubMapper {
- public Club toEntity(CrearClubRequest request) {
-        return Club.builder()
+public class EquipoMapper {
+ public Equipo toEntity(CrearEquipoRequest request) {
+        return Equipo.builder()
                 .idEquipo(UUID.randomUUID())
                 .nombre(request.nombre())
                 .nombreCorto(request.nombreCorto())
-                .pais(request.paisClub())
+                .tipo(request.tipo())
+                .pais(request.paisEquipo())
                 .fechaFundacion(request.fechaFundacion())
                 .build();
     }
  
-    public ClubResponse toResponse(Club club) {
+    public EquipoResponse toResponse(Equipo club) {
         var tecnico = club.getTecnicoActual();
         var estadio = club.getEstadio();
  
-        return new ClubResponse(
+        return new EquipoResponse(
                 club.getIdEquipo(),
                 club.getNombre(),
                 club.getNombreCorto(),
                 club.getFechaFundacion(),
                 club.getPais(),
+                club.getTipo(),
                 club.getJugadoresActivos().size(),
                 club.getJugadoresDisponibles().size(),
                 club.getJugadoresLesionados().size(),

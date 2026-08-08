@@ -9,10 +9,10 @@ import org.springframework.stereotype.Component;
 import com.futbol.estadisticas.application.port.out.ContratoRepositoryPort;
 import com.futbol.estadisticas.domain.model.Contrato;
 import com.futbol.estadisticas.infrastructure.out.InfrastructureMapper;
-import com.futbol.estadisticas.infrastructure.out.jpaEntity.ClubJPAEntity;
+import com.futbol.estadisticas.infrastructure.out.jpaEntity.EquipoJPAEntity;
 import com.futbol.estadisticas.infrastructure.out.jpaEntity.ContratoJPAEntity;
 import com.futbol.estadisticas.infrastructure.out.jpaEntity.PersonalDeportivoJPAEntity;
-import com.futbol.estadisticas.infrastructure.out.jpaRepository.ClubJPARepository;
+import com.futbol.estadisticas.infrastructure.out.jpaRepository.EquipoJPARepository;
 import com.futbol.estadisticas.infrastructure.out.jpaRepository.ContratoJPARepository;
 import com.futbol.estadisticas.infrastructure.out.jpaRepository.PersonalDeportivoJPARepository;
 
@@ -25,15 +25,15 @@ public class ContratoRepositoryAdapter implements ContratoRepositoryPort {
 
     private final ContratoJPARepository          repository;
     private final PersonalDeportivoJPARepository personalRepo;
-    private final ClubJPARepository              clubRepo;
+    private final EquipoJPARepository clubRepo;
     private final InfrastructureMapper           mapper;
  
     @Override
     public Contrato save(Contrato contrato) {
         PersonalDeportivoJPAEntity personalJPA = contrato.getPersonal() != null
                 ? personalRepo.findById(contrato.getPersonal().getIdPersonal()).orElse(null) : null;
-        ClubJPAEntity clubJPA = contrato.getClub() != null
-                ? clubRepo.findById(contrato.getClub().getIdEquipo()).orElse(null) : null;
+        EquipoJPAEntity clubJPA = contrato.getEquipo() != null
+                ? clubRepo.findById(contrato.getEquipo().getIdEquipo()).orElse(null) : null;
  
         ContratoJPAEntity entity = mapper.toJpa(contrato, personalJPA, clubJPA);
         return mapper.ContratotoDomain(repository.save(entity));
@@ -44,7 +44,7 @@ public class ContratoRepositoryAdapter implements ContratoRepositoryPort {
         List<ContratoJPAEntity> entities = contratos.stream()
                 .map(c -> {
                     PersonalDeportivoJPAEntity personalJPA = personalRepo.findById(c.getPersonal().getIdPersonal()).orElseThrow();
-                    ClubJPAEntity clubJPA = clubRepo.findById(c.getClub().getIdEquipo()).orElseThrow();
+                    EquipoJPAEntity clubJPA = clubRepo.findById(c.getEquipo().getIdEquipo()).orElseThrow();
                     return mapper.toJpa(c, personalJPA, clubJPA);
                 })
                 .toList();
@@ -69,8 +69,8 @@ public class ContratoRepositoryAdapter implements ContratoRepositoryPort {
     }
  
     @Override
-    public List<Contrato> findByClub(UUID idClub) {
-        return repository.findByClubIdEquipo(idClub).stream()
+    public List<Contrato> findByEquipo(UUID idEquipo) {
+        return repository.findByEquipoIdEquipo(idEquipo).stream()
                 .map(mapper::ContratotoDomain).toList();
     }
  
@@ -80,8 +80,8 @@ public class ContratoRepositoryAdapter implements ContratoRepositoryPort {
     }
  
     @Override
-    public List<Contrato> findVigentesByClub(UUID idClub) {
-        return repository.findVigentesByClub(idClub).stream()
+    public List<Contrato> findVigentesByEquipo(UUID idEquipo) {
+        return repository.findVigentesByEquipo(idEquipo).stream()
                 .map(mapper::ContratotoDomain).toList();
     }
  

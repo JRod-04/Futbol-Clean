@@ -8,7 +8,6 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import com.futbol.estadisticas.domain.model.enums.FaseTorneo;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -33,7 +32,7 @@ public class Competicion {
     private String nombre;
     private LocalDateTime fechaInicio;
     private LocalDateTime fechaFin;
-    private Club equipoGanador;
+    private Equipo equipoGanador;
 
      @Builder.Default
     private List<Partido> partidos = new ArrayList<>();
@@ -99,7 +98,7 @@ public class Competicion {
         return (double) jugados / partidos.size() * 100;
     }
 
-    public List<Club> getClubesParticipantes() {
+    public List<Equipo> getClubesParticipantes() {
         return this.partidos.stream()
                 .flatMap(p -> Stream.of(p.getEquipoLocal(), p.getEquipoVisitante()))
                 .filter(Objects::nonNull)

@@ -8,7 +8,6 @@ import com.futbol.estadisticas.application.port.dto.response.EstadisticasJugador
 import com.futbol.estadisticas.application.port.dto.response.EstadisticasPartidoJugadorResponse;
 import com.futbol.estadisticas.application.port.mapper.EstadisticasJugadorMapper;
 import com.futbol.estadisticas.application.port.mapper.EstadisticasPartidoMapper;
-import com.futbol.estadisticas.application.port.mapper.EventosPartidoMapper;
 import com.futbol.estadisticas.application.port.out.EventosPartidoRepositoryPort;
 import com.futbol.estadisticas.domain.model.EventosPartido;
 import org.springframework.data.domain.Page;
@@ -22,11 +21,9 @@ import com.futbol.estadisticas.application.port.dto.response.JugadorResponse;
 import com.futbol.estadisticas.application.port.in.JugadoresUseCase;
 import com.futbol.estadisticas.application.port.mapper.JugadorMapper;
 import com.futbol.estadisticas.application.port.out.JugadorRepositoryPort;
-import com.futbol.estadisticas.domain.model.DatosDeportivos;
 import com.futbol.estadisticas.domain.model.Jugador;
 import com.futbol.estadisticas.domain.model.enums.EstadoJugador;
 import com.futbol.estadisticas.domain.model.enums.PosicionJugador;
-import com.futbol.estadisticas.domain.model.enums.TipoPersonal;
 import com.futbol.estadisticas.domain.model.exception.PersonalNotFoundException;
 
 import lombok.RequiredArgsConstructor;
@@ -126,8 +123,8 @@ public class JugadorService implements JugadoresUseCase {
  
     @Override
     @Transactional(readOnly = true)
-    public List<JugadorResponse> obtenerJugadoresPorClub(UUID idClub) {
-        return jugadorRepository.findByClub(idClub).stream()
+    public List<JugadorResponse> obtenerJugadoresPorEquipo(UUID idEquipo) {
+        return jugadorRepository.findByEquipo(idEquipo).stream()
                 .map(jugadorMapper::toResponse)
                 .toList();
     }

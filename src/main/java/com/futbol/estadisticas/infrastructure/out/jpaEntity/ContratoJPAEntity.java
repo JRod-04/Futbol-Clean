@@ -5,6 +5,7 @@ import java.util.UUID;
 
 import com.futbol.estadisticas.domain.model.enums.EstadoContrato;
 
+import com.futbol.estadisticas.domain.model.enums.TipoContrato;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -40,7 +41,14 @@ public class ContratoJPAEntity {
  
     @Column(name = "sueldo", nullable = false)
     private Double sueldo;
- 
+
+    @Column(name = "costo_fichaje")
+    private Double costoFichaje;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "tipo", length = 20)
+    private TipoContrato tipoContrato;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "estado", nullable = false, length = 20)
     private EstadoContrato estado;
@@ -53,7 +61,7 @@ public class ContratoJPAEntity {
  
     // FK al club (dueño)
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_club", nullable = false,
-                foreignKey = @ForeignKey(name = "fk_contrato_club"))
-    private ClubJPAEntity club;
+    @JoinColumn(name = "id_equipo", nullable = false,
+                foreignKey = @ForeignKey(name = "fk_contrato_equipo"))
+    private EquipoJPAEntity equipo;
 }

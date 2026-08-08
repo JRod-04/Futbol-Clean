@@ -29,7 +29,7 @@ public class TecnicoJPAEntity extends PersonalDeportivoJPAEntity {
     @Column(name = "alineacion_favorita", length = 20)
     private String alineacionFavorita;
  
-    // Club actual — relación inversa (ClubJPAEntity es dueño de la FK)
+    // Club actual — relación inversa (EquipoJPAEntity es dueño de la FK)
     @OneToOne(mappedBy = "tecnicoActual", fetch = FetchType.LAZY)
-    private ClubJPAEntity clubActual;
+    private EquipoJPAEntity equipoActual;
 }

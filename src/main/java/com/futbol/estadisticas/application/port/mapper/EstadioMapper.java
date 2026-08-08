@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
 
 import com.futbol.estadisticas.application.port.dto.request.CrearEstadioRequest;
 import com.futbol.estadisticas.application.port.dto.response.EstadioResponse;
-import com.futbol.estadisticas.domain.model.Club;
+import com.futbol.estadisticas.domain.model.Equipo;
 import com.futbol.estadisticas.domain.model.Estadio;
 
 
@@ -24,7 +24,7 @@ public class EstadioMapper {
     }
  
     public EstadioResponse toResponse(Estadio estadio) {
-        Club club = estadio.getClubPrincipal();
+        Equipo club = estadio.getEquipoPrincipal();
  
         return new EstadioResponse(
                 estadio.getIdEstadio(),

@@ -15,8 +15,8 @@ public record RealizarSustitucionRequest(
         @NotNull(message = "El jugador saliente es obligatorio")
         UUID idJugadorSaliente,
 
-        @NotNull(message = "El club es obligatorio")
-        UUID idClub,
+        @NotNull(message = "El equipo es obligatorio")
+        UUID idEquipo,
 
         @NotNull(message = "El minuto de la sustitución es obligatorio")
         LocalTime minuto

@@ -18,15 +18,14 @@ import com.futbol.estadisticas.infrastructure.out.jpaEntity.PartidoJPAEntity;
 public interface PartidoJPARepository extends JpaRepository<PartidoJPAEntity, UUID>{
  @Query("""
            SELECT p FROM PartidoJPAEntity p
-           WHERE p.equipoLocal.idEquipo = :idClub
-              OR p.equipoVisitante.idEquipo = :idClub
+           WHERE p.equipoLocal.idEquipo = :idEquipo
+              OR p.equipoVisitante.idEquipo = :idEquipo
            """)
-    List<PartidoJPAEntity> findByClub(@Param("idClub") UUID idClub);
+    List<PartidoJPAEntity> findByEquipo(@Param("idEquipo") UUID idEquipo);
  
     List<PartidoJPAEntity> findByCompeticionIdCompeticion(UUID idCompeticion);
  
-    List<PartidoJPAEntity> findByEstado(EstadoPartido estado);
- 
+
     List<PartidoJPAEntity> findByFechaYHoraBetween(LocalDateTime desde, LocalDateTime hasta);
  
     List<PartidoJPAEntity> findByArbitroIdArbitro(UUID idArbitro);

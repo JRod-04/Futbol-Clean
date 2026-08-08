@@ -4,9 +4,9 @@ import com.futbol.estadisticas.application.port.dto.request.ActualizarEstadioReq
 import com.futbol.estadisticas.application.port.dto.request.CrearEstadioRequest;
 import com.futbol.estadisticas.application.port.dto.response.EstadioResponse;
 import com.futbol.estadisticas.application.port.mapper.EstadioMapper;
-import com.futbol.estadisticas.application.port.out.ClubRepositoryPort;
+import com.futbol.estadisticas.application.port.out.EquipoRepositoryPort;
 import com.futbol.estadisticas.application.port.out.EstadioRepositoryPort;
-import com.futbol.estadisticas.domain.model.Club;
+import com.futbol.estadisticas.domain.model.Equipo;
 import com.futbol.estadisticas.domain.model.Estadio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -33,7 +33,7 @@ class EstadioServiceTest {
     private EstadioRepositoryPort estadioRepository;
 
     @Mock
-    private ClubRepositoryPort clubRepository;
+    private EquipoRepositoryPort clubRepository;
 
     @Mock
     private EstadioMapper estadioMapper;
@@ -48,8 +48,8 @@ class EstadioServiceTest {
 
     private Estadio estadio;
     private Estadio estadio2;
-    private Club club;
-    private Club club2;
+    private Equipo club;
+    private Equipo club2;
     private EstadioResponse response;
     private EstadioResponse response2;
     private CrearEstadioRequest crearRequest;
@@ -58,14 +58,14 @@ class EstadioServiceTest {
     @BeforeEach
     void setUp() {
         // Crear clubes
-        club = Club.builder()
+        club = Equipo.builder()
                 .idEquipo(ID_CLUB)
                 .nombre("FC Barcelona")
                 .nombreCorto("Barça")
                 .fechaFundacion(LocalDate.of(1899, 11, 29))
                 .build();
 
-        club2 = Club.builder()
+        club2 = Equipo.builder()
                 .idEquipo(ID_CLUB_2)
                 .nombre("Real Madrid")
                 .nombreCorto("Madrid")
@@ -79,7 +79,7 @@ class EstadioServiceTest {
                 .direccion("C/ Arístides Maillol, 12, 08028 Barcelona")
                 .capacidad(99354)
                 .fechaFundacion(LocalDate.of(1957, 9, 24))
-                .clubPrincipal(club)
+                .equipoPrincipal(club)
                 .build();
 
         estadio2 = Estadio.builder()
@@ -98,8 +98,8 @@ class EstadioServiceTest {
                 .capacidad(99354)
                 .fechaFundacion(LocalDate.of(1957, 9, 24))
                 .descripcionCompleta("Camp Nou - Capacidad: 99354 - Fundado: 1957")
-                .clubPrincipal("FC Barcelona")
-                .idClubPrincipal(ID_CLUB)
+                .equipoPrincipal("FC Barcelona")
+                .idEquipoPrincipal(ID_CLUB)
                 .build();
 
         response2 = EstadioResponse.builder()
@@ -169,8 +169,8 @@ class EstadioServiceTest {
         assertThat(result.idEstadio()).isEqualTo(ID_ESTADIO);
         assertThat(result.nombre()).isEqualTo("Camp Nou");
         assertThat(result.capacidad()).isEqualTo(99354);
-        assertThat(result.clubPrincipal()).isEqualTo("FC Barcelona");
-        assertThat(result.idClubPrincipal()).isEqualTo(ID_CLUB);
+        assertThat(result.equipoPrincipal()).isEqualTo("FC Barcelona");
+        assertThat(result.idEquipoPrincipal()).isEqualTo(ID_CLUB);
 
         verify(estadioRepository).findById(ID_ESTADIO);
         verify(estadioMapper).toResponse(estadio);
@@ -303,7 +303,7 @@ class EstadioServiceTest {
 
     @Test
     @DisplayName("asignarEstadioAClub: debe asignar un estadio a un club correctamente")
-    void testAsignarEstadioAClub() {
+    void testAsignarEstadioAEquipo() {
         Estadio estadioSinClub = Estadio.builder()
                 .idEstadio(ID_ESTADIO_2)
                 .nombre("Estadio Olímpico")
@@ -319,8 +319,8 @@ class EstadioServiceTest {
                 .capacidad(75000)
                 .fechaFundacion(LocalDate.of(1992, 7, 25))
                 .descripcionCompleta("Estadio Olímpico - Capacidad: 75000 - Fundado: 1992")
-                .clubPrincipal("Real Madrid")
-                .idClubPrincipal(ID_CLUB_2)
+                .equipoPrincipal("Real Madrid")
+                .idEquipoPrincipal(ID_CLUB_2)
                 .build();
 
         when(estadioRepository.findById(ID_ESTADIO_2)).thenReturn(Optional.of(estadioSinClub));
@@ -329,15 +329,15 @@ class EstadioServiceTest {
         when(estadioRepository.save(estadioSinClub)).thenReturn(estadioSinClub);
         when(estadioMapper.toResponse(estadioSinClub)).thenReturn(responseConClub);
 
-        EstadioResponse result = estadioService.asignarEstadioAClub(ID_ESTADIO_2, ID_CLUB_2);
+        EstadioResponse result = estadioService.asignarEstadioAEquipo(ID_ESTADIO_2, ID_CLUB_2);
 
         assertThat(result).isNotNull();
         assertThat(result.idEstadio()).isEqualTo(ID_ESTADIO_2);
-        assertThat(result.clubPrincipal()).isEqualTo("Real Madrid");
-        assertThat(result.idClubPrincipal()).isEqualTo(ID_CLUB_2);
+        assertThat(result.equipoPrincipal()).isEqualTo("Real Madrid");
+        assertThat(result.idEquipoPrincipal()).isEqualTo(ID_CLUB_2);
 
-        assertThat(estadioSinClub.getClubPrincipal()).isNotNull();
-        assertThat(estadioSinClub.getClubPrincipal().getIdEquipo()).isEqualTo(ID_CLUB_2);
+        assertThat(estadioSinClub.getEquipoPrincipal()).isNotNull();
+        assertThat(estadioSinClub.getEquipoPrincipal().getIdEquipo()).isEqualTo(ID_CLUB_2);
         assertThat(club2.getEstadio()).isEqualTo(estadioSinClub);
 
         verify(estadioRepository).findById(ID_ESTADIO_2);
@@ -353,7 +353,7 @@ class EstadioServiceTest {
         UUID idInexistente = UUID.randomUUID();
         when(estadioRepository.findById(idInexistente)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> estadioService.asignarEstadioAClub(idInexistente, ID_CLUB))
+        assertThatThrownBy(() -> estadioService.asignarEstadioAEquipo(idInexistente, ID_CLUB))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Estadio no encontrado con id: " + idInexistente);
 
@@ -365,12 +365,12 @@ class EstadioServiceTest {
 
     @Test
     @DisplayName("asignarEstadioAClub: debe lanzar excepción cuando el club no existe")
-    void testAsignarEstadioAClub_ClubNoExiste() {
+    void testAsignarEstadioAClub_EquipoNoExiste() {
         UUID idClubInexistente = UUID.randomUUID();
         when(estadioRepository.findById(ID_ESTADIO)).thenReturn(Optional.of(estadio));
         when(clubRepository.findById(idClubInexistente)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> estadioService.asignarEstadioAClub(ID_ESTADIO, idClubInexistente))
+        assertThatThrownBy(() -> estadioService.asignarEstadioAEquipo(ID_ESTADIO, idClubInexistente))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Club no encontrado con id: " + idClubInexistente);
 
@@ -479,8 +479,8 @@ class EstadioServiceTest {
         EstadioResponse result = estadioService.crearEstadio(request);
 
         assertThat(result).isNotNull();
-        assertThat(result.idClubPrincipal()).isNull();
-        assertThat(result.clubPrincipal()).isNull();
+        assertThat(result.idEquipoPrincipal()).isNull();
+        assertThat(result.equipoPrincipal()).isNull();
         assertThat(result.descripcionCompleta()).contains("Estadio Sin Club");
         assertThat(result.descripcionCompleta()).contains("30000");
 
@@ -490,7 +490,7 @@ class EstadioServiceTest {
 
     @Test
     @DisplayName("asignarEstadioAClub: debe mantener la información actualizada en ambos lados")
-    void testAsignarEstadioAClub_Bidireccional() {
+    void testAsignarEstadioAEquipo_Bidireccional() {
         Estadio estadioSinClub = Estadio.builder()
                 .idEstadio(ID_ESTADIO_2)
                 .nombre("Estadio Olímpico")
@@ -506,8 +506,8 @@ class EstadioServiceTest {
                 .capacidad(75000)
                 .fechaFundacion(LocalDate.of(1992, 7, 25))
                 .descripcionCompleta("Estadio Olímpico - Capacidad: 75000 - Fundado: 1992")
-                .clubPrincipal("FC Barcelona")
-                .idClubPrincipal(ID_CLUB)
+                .equipoPrincipal("FC Barcelona")
+                .idEquipoPrincipal(ID_CLUB)
                 .build();
 
         when(estadioRepository.findById(ID_ESTADIO_2)).thenReturn(Optional.of(estadioSinClub));
@@ -516,15 +516,15 @@ class EstadioServiceTest {
         when(estadioRepository.save(estadioSinClub)).thenReturn(estadioSinClub);
         when(estadioMapper.toResponse(estadioSinClub)).thenReturn(responseConClub);
 
-        EstadioResponse result = estadioService.asignarEstadioAClub(ID_ESTADIO_2, ID_CLUB);
+        EstadioResponse result = estadioService.asignarEstadioAEquipo(ID_ESTADIO_2, ID_CLUB);
 
         assertThat(result).isNotNull();
         assertThat(result.idEstadio()).isEqualTo(ID_ESTADIO_2);
-        assertThat(result.clubPrincipal()).isEqualTo("FC Barcelona");
-        assertThat(result.idClubPrincipal()).isEqualTo(ID_CLUB);
+        assertThat(result.equipoPrincipal()).isEqualTo("FC Barcelona");
+        assertThat(result.idEquipoPrincipal()).isEqualTo(ID_CLUB);
 
-        assertThat(estadioSinClub.getClubPrincipal()).isNotNull();
-        assertThat(estadioSinClub.getClubPrincipal().getIdEquipo()).isEqualTo(ID_CLUB);
+        assertThat(estadioSinClub.getEquipoPrincipal()).isNotNull();
+        assertThat(estadioSinClub.getEquipoPrincipal().getIdEquipo()).isEqualTo(ID_CLUB);
         assertThat(club.getEstadio()).isNotNull();
         assertThat(club.getEstadio().getIdEstadio()).isEqualTo(ID_ESTADIO_2);
 

@@ -11,9 +11,9 @@ import com.futbol.estadisticas.application.port.dto.request.CrearEstadioRequest;
 import com.futbol.estadisticas.application.port.dto.response.EstadioResponse;
 import com.futbol.estadisticas.application.port.in.EstadioUseCase;
 import com.futbol.estadisticas.application.port.mapper.EstadioMapper;
-import com.futbol.estadisticas.application.port.out.ClubRepositoryPort;
+import com.futbol.estadisticas.application.port.out.EquipoRepositoryPort;
 import com.futbol.estadisticas.application.port.out.EstadioRepositoryPort;
-import com.futbol.estadisticas.domain.model.Club;
+import com.futbol.estadisticas.domain.model.Equipo;
 import com.futbol.estadisticas.domain.model.Estadio;
 
 import lombok.RequiredArgsConstructor;
@@ -24,8 +24,8 @@ import lombok.RequiredArgsConstructor;
 @Transactional
 public class EstadioService implements EstadioUseCase{
 
-private final EstadioRepositoryPort estadioRepository;
-    private final ClubRepositoryPort    clubRepository;
+    private final EstadioRepositoryPort estadioRepository;
+    private final EquipoRepositoryPort clubRepository;
     private final EstadioMapper         estadioMapper;
  
     @Override
@@ -65,15 +65,15 @@ private final EstadioRepositoryPort estadioRepository;
     }
  
     @Override
-    public EstadioResponse asignarEstadioAClub(UUID idEstadio, UUID idClub) {
+    public EstadioResponse asignarEstadioAEquipo(UUID idEstadio, UUID idEquipo) {
         Estadio estadio = estadioRepository.findById(idEstadio)
                 .orElseThrow(() -> new IllegalArgumentException(
                         "Estadio no encontrado con id: " + idEstadio));
-        Club club = clubRepository.findById(idClub)
+        Equipo club = clubRepository.findById(idEquipo)
                 .orElseThrow(() -> new IllegalArgumentException(
-                        "Club no encontrado con id: " + idClub));
+                        "Club no encontrado con id: " + idEquipo));
  
-        estadio.setClubPrincipal(club);
+        estadio.setEquipoPrincipal(club);
         club.setEstadio(estadio);
  
         clubRepository.save(club);

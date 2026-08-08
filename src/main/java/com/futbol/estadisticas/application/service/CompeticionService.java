@@ -1,13 +1,12 @@
 package com.futbol.estadisticas.application.service;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
-import com.futbol.estadisticas.application.port.dto.response.ClubResponse;
-import com.futbol.estadisticas.application.port.mapper.ClubMapper;
-import com.futbol.estadisticas.application.port.out.ClubRepositoryPort;
-import com.futbol.estadisticas.domain.model.Club;
+import com.futbol.estadisticas.application.port.dto.response.EquipoResponse;
+import com.futbol.estadisticas.application.port.mapper.EquipoMapper;
+import com.futbol.estadisticas.application.port.out.EquipoRepositoryPort;
+import com.futbol.estadisticas.domain.model.Equipo;
 import com.futbol.estadisticas.domain.model.Partido;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -32,12 +31,12 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class CompeticionService implements CompeticionUseCase {
 
-    private final ClubRepositoryPort clubRepository;
+    private final EquipoRepositoryPort clubRepository;
     private final CompeticionRepositoryPort competicionRepository;
     private final PartidoRepositoryPort     partidoRepository;
     private final CompeticionMapper         competicionMapper;
     private final PartidoMapper             partidoMapper;
-    private final ClubMapper                clubMapper;
+    private final EquipoMapper equipoMapper;
 
     @Override
     public Page<CompeticionResponse> buscarCompeticiones(String texto, Pageable pageable) {
@@ -75,12 +74,12 @@ public class CompeticionService implements CompeticionUseCase {
     }
 
     @Override
-    public List<ClubResponse> obtenerClubesParticipantes(UUID idCompeticion) {
+    public List<EquipoResponse> obtenerEquiposParticipantes(UUID idCompeticion) {
 
         Competicion competicion = competicionRepository.findByIdWithPartidosAndEquipos(idCompeticion)
                 .orElseThrow(() -> new IllegalArgumentException("Competición no encontrada"));
 
-        List<Club> clubes = competicion.getClubesParticipantes();
+        List<Equipo> clubes = competicion.getClubesParticipantes();
 
 
         if (clubes.isEmpty()) {
@@ -88,7 +87,7 @@ public class CompeticionService implements CompeticionUseCase {
         }
 
         return  clubes.stream()
-                .map(clubMapper::toResponse)
+                .map(equipoMapper::toResponse)
                 .toList();
     }
 
@@ -140,7 +139,7 @@ public class CompeticionService implements CompeticionUseCase {
             return competicionMapper.toResponse(competicionRepository.save(competicion));
         }
 
-        Club ganador = clubRepository.findById(idEquipoGanador)
+        Equipo ganador = clubRepository.findById(idEquipoGanador)
                 .orElseThrow(() -> new IllegalArgumentException("Club no encontrado con id: " + idEquipoGanador));
 
         boolean participa = partidos.stream()

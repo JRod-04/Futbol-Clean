@@ -22,7 +22,7 @@ public interface JugadorRepositoryPort {
  
     List<Jugador> findAll();
  
-    List<Jugador> findByClub(UUID idClub);
+    List<Jugador> findByEquipo(UUID idEquipo);
  
     List<Jugador> findByEstado(EstadoJugador estado);
  

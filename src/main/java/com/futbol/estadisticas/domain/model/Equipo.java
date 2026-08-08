@@ -1,16 +1,15 @@
 package com.futbol.estadisticas.domain.model;
 
 import java.time.LocalDate;
-import java.time.Period;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 import com.futbol.estadisticas.domain.model.enums.Nacion;
-import com.futbol.estadisticas.domain.model.enums.PosicionJugador;
 
+import com.futbol.estadisticas.domain.model.enums.TipoContrato;
+import com.futbol.estadisticas.domain.model.enums.TipoEquipo;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -24,7 +23,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @Builder
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-public class Club {
+public class Equipo {
 
     @EqualsAndHashCode.Include
     private UUID idEquipo;
@@ -33,6 +32,7 @@ public class Club {
     private String nombreCorto;
     private LocalDate fechaFundacion;
     private Nacion pais;
+    private TipoEquipo tipo;
 
     @Builder.Default
     private List<Contrato> contratos = new ArrayList<>();
@@ -51,16 +51,6 @@ public class Club {
     private Tecnico tecnicoActual;
 
 
-    //Agrega un contrato al club y establece la referencia bidireccional.
-    public void agregarContrato(Contrato contrato) {
-        if (contrato == null) {
-            throw new IllegalArgumentException("El contrato no puede ser nulo");
-        }
-        contrato.setClub(this);
-        this.contratos.add(contrato);
-    }
-
-    //Devuelve los jugadores con contrato vigente en el club.
     public List<Jugador> getJugadoresActivos() {
         return contratos.stream()
             .filter(Contrato::estaVigente)
@@ -70,7 +60,6 @@ public class Club {
             .collect(Collectors.toList());
     }
 
-    //Devuelve los jugadores titulares (estado TITULAR).
     public List<Jugador> getJugadoresTitulares() {
         return getJugadoresActivos().stream()
             .filter(j -> j.getDatosDeportivos() != null &&
@@ -78,21 +67,18 @@ public class Club {
             .collect(Collectors.toList());
     }
 
-    //Devuelve los jugadores con al menos una lesión activa.
     public List<Jugador> getJugadoresLesionados() {
         return getJugadoresActivos().stream()
             .filter(Jugador::estaLesionado)
             .collect(Collectors.toList());
     }
 
-    //Devuelve los jugadores disponibles para jugar (sin lesión, sin suspensión, con contrato).
     public List<Jugador> getJugadoresDisponibles() {
         return getJugadoresActivos().stream()
             .filter(Jugador::estaDisponible)
             .collect(Collectors.toList());
     }
 
-    //Devuelve el valor de mercado total de la plantilla activa.
     public double getValorPlantillaTotal() {
         return getJugadoresActivos().stream()
             .mapToDouble(j -> {
@@ -105,34 +91,66 @@ public class Club {
             .sum();
     }
 
-   
-    
-
-    //Agrega un partido como local y establece la referencia bidireccional.
-    public void agregarPartidoLocal(Partido partido) {
-        if (partido == null) {
-            throw new IllegalArgumentException("El partido no puede ser nulo");
+    public void agregarContrato(Contrato contrato) {
+        if (contrato == null) {
+            throw new IllegalArgumentException("El contrato no puede ser nulo");
         }
-        this.partidosLocal.add(partido);
-        partido.setEquipoLocal(this);
+
+        contrato.validarContratoConEquipo(this);
+
+        contrato.setEquipo(this);
+        this.contratos.add(contrato);
     }
 
-    //Agrega un partido como visitante y establece la referencia bidireccional.
-    public void agregarPartidoVisitante(Partido partido) {
-        if (partido == null) {
-            throw new IllegalArgumentException("El partido no puede ser nulo");
-        }
-        this.partidosVisitante.add(partido);
-        partido.setEquipoVisitante(this);
+    public boolean puedeTenerContratoDeTipo(TipoContrato tipoContrato) {
+        if (tipoContrato == null || this.tipo == null) return false;
+
+        return switch (this.tipo) {
+            case CLUB_PROFESIONAL ->
+                    tipoContrato == TipoContrato.PROFESIONAL ||
+                            tipoContrato == TipoContrato.CESION;
+
+            case CLUB_AMATEUR ->
+                    tipoContrato == TipoContrato.AMATEUR;
+
+            case FILIAL, RESERVA ->
+                    tipoContrato == TipoContrato.JUVENIL ||
+                            tipoContrato == TipoContrato.PROFESIONAL;
+
+            case SELECCION_ABSOLUTA, SELECCION_JUVENIL, EQUIPO_COMBINADO ->
+                    tipoContrato == TipoContrato.CONVOCATORIA;
+
+            default -> false;
+        };
     }
 
-    //Devuelve todos los partidos programados del club (local + visitante).
-    public List<Partido> getTodosLosPartidos() {
-        List<Partido> todos = new ArrayList<>();
-        todos.addAll(partidosLocal);
-        todos.addAll(partidosVisitante);
-        return todos;
+    public List<Contrato> getContratosPorTipo(TipoContrato tipo) {
+        return contratos.stream()
+                .filter(c -> c.getTipoContrato() == tipo)
+                .toList();
     }
+
+    public List<Jugador> getJugadoresProfesionales() {
+        return contratos.stream()
+                .filter(Contrato::estaVigente)
+                .filter(Contrato::esProfesional)
+                .map(Contrato::getPersonal)
+                .filter(p -> p instanceof Jugador)
+                .map(p -> (Jugador) p)
+                .toList();
+    }
+
+
+    public List<Jugador> getJugadoresJuveniles() {
+        return contratos.stream()
+                .filter(Contrato::estaVigente)
+                .filter(Contrato::esJuvenil)
+                .map(Contrato::getPersonal)
+                .filter(p -> p instanceof Jugador)
+                .map(p -> (Jugador) p)
+                .toList();
+    }
+
 
     // ============ GESTIÓN DEL TÉCNICO ============
 

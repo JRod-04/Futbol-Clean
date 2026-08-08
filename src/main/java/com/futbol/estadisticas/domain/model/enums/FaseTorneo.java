@@ -8,7 +8,15 @@ import lombok.Getter;
 public enum FaseTorneo {
     LIGA("Liga", "Fase regular de liga"),
 
-    // ============ FASE DE GRUPOS ============
+    // ============ FASES PREVIAS Y CLASIFICATORIAS ============
+    CLASIFICATORIA("Clasificatoria", "Eliminatorias / Phase de clasificación"),
+    RONDA_PREVIA("Ronda Previa", "Ronda previa o preliminar"),
+    FASE_1_PREVIA("Fase 1 Previa", "Primera fase previa (ej. Libertadores / Champions)"),
+    FASE_2_PREVIA("Fase 2 Previa", "Segunda fase previa"),
+    FASE_3_PREVIA("Fase 3 Previa", "Tercera fase previa"),
+    RONDA_ELITE("Ronda Élite", "Ronda Élite (Torneos juveniles)"),
+
+    // ============ FASES DE GRUPOS ============
 
     GRUPO_A("Grupo A", "Fase de Grupos - Grupo A"),
     GRUPO_B("Grupo B", "Fase de Grupos - Grupo B"),
@@ -26,6 +34,7 @@ public enum FaseTorneo {
 
     // ============ ELIMINACIÓN DIRECTA (Mundial/Champions) ============
 
+
     DIECISEIS_FINAL("1/16 Final", "Dieciseisavos de Final"),
     OCTAVOS_FINAL("1/8 Final", "Octavos de final"),
     CUARTOS_FINAL("1/4 Final", "Cuartos de final"),
@@ -34,11 +43,13 @@ public enum FaseTorneo {
     TERCER_PUESTO("Tercer Puesto", "Partido por el tercer puesto"),
 
     // ============ CHAMPIONS LEAGUE (Nuevo formato) ============
-    FASE_LIGA("Fase Liga", "Fase de liga de la Champions"),
+    FASE_LIGA("Fase Liga", "Fase de liga de una competicion, clasificacion de todos los equipos"),
     PLAYOFF_ELIMINACION("Playoff Eliminación", "Playoff de eliminación"),
-
+    PLAYOFF_RECLASIFICACION("PlayOff Reclasificacion",""),
+    PLAYOFF_ASCENSO("Playoff Ascenso","PlayOff jugado para definir un ascenso"),
     // ============ OTROS ============
-    REPECHAJE("Repechaje", "Partido de repechaje");
+    REPECHAJE("Repechaje", "Partido de repechaje"),
+    AMISTOSO("Amistoso","Partido Amistoso");
 
     private final String displayName;
     private final String descripcion;

@@ -13,9 +13,8 @@ import com.futbol.estadisticas.application.port.dto.request.CrearTecnicoRequest;
 import com.futbol.estadisticas.application.port.dto.response.TecnicoResponse;
 import com.futbol.estadisticas.application.port.in.TecnicoUseCase;
 import com.futbol.estadisticas.application.port.mapper.TecnicoMapper;
-import com.futbol.estadisticas.application.port.out.ClubRepositoryPort;
+import com.futbol.estadisticas.application.port.out.EquipoRepositoryPort;
 import com.futbol.estadisticas.application.port.out.TecnicoRepositoryPort;
-import com.futbol.estadisticas.domain.model.Club;
 import com.futbol.estadisticas.domain.model.Tecnico;
 import com.futbol.estadisticas.domain.model.exception.PersonalNotFoundException;
 
@@ -28,7 +27,7 @@ import lombok.RequiredArgsConstructor;
 public class TecnicoService implements TecnicoUseCase{
     
     private final TecnicoRepositoryPort tecnicoRepository;
-    private final ClubRepositoryPort    clubRepository;
+    private final EquipoRepositoryPort clubRepository;
     private final TecnicoMapper         tecnicoMapper;
 
     @Override
@@ -65,11 +64,11 @@ public class TecnicoService implements TecnicoUseCase{
  
     @Override
     @Transactional(readOnly = true)
-    public TecnicoResponse obtenerTecnicoActualDeClub(UUID idClub) {
-        return tecnicoRepository.findTecnicoActualByClub(idClub)
+    public TecnicoResponse obtenerTecnicoActualDeEquipo(UUID idEquipo) {
+        return tecnicoRepository.findTecnicoActualByEquipo(idEquipo)
                 .map(tecnicoMapper::toResponse)
                 .orElseThrow(() -> new PersonalNotFoundException(
-                        "No hay técnico asignado al club con id: " + idClub));
+                        "No hay técnico asignado al club con id: " + idEquipo));
     }
  
     @Override

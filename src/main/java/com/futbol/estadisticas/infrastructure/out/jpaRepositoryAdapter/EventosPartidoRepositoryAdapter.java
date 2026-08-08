@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import com.futbol.estadisticas.infrastructure.out.jpaEntity.EquipoJPAEntity;
 import com.futbol.estadisticas.infrastructure.out.jpaEntity.EventosPartidoJPAEntity;
 import org.springframework.stereotype.Component;
 
@@ -11,10 +12,9 @@ import com.futbol.estadisticas.application.port.out.EventosPartidoRepositoryPort
 import com.futbol.estadisticas.domain.model.EventosPartido;
 import com.futbol.estadisticas.domain.model.enums.TipoEvento;
 import com.futbol.estadisticas.infrastructure.out.InfrastructureMapper;
-import com.futbol.estadisticas.infrastructure.out.jpaEntity.ClubJPAEntity;
 import com.futbol.estadisticas.infrastructure.out.jpaEntity.PartidoJPAEntity;
 import com.futbol.estadisticas.infrastructure.out.jpaEntity.PersonalDeportivoJPAEntity;
-import com.futbol.estadisticas.infrastructure.out.jpaRepository.ClubJPARepository;
+import com.futbol.estadisticas.infrastructure.out.jpaRepository.EquipoJPARepository;
 import com.futbol.estadisticas.infrastructure.out.jpaRepository.EventosPartidoJPARepository;
 import com.futbol.estadisticas.infrastructure.out.jpaRepository.PartidoJPARepository;
 import com.futbol.estadisticas.infrastructure.out.jpaRepository.PersonalDeportivoJPARepository;
@@ -28,7 +28,7 @@ public class EventosPartidoRepositoryAdapter implements EventosPartidoRepository
     private final EventosPartidoJPARepository    repository;
     private final PartidoJPARepository           partidoRepo;
     private final PersonalDeportivoJPARepository personalRepo;
-    private final ClubJPARepository              clubRepo;
+    private final EquipoJPARepository clubRepo;
     private final InfrastructureMapper           mapper;
  
     @Override
@@ -47,7 +47,7 @@ public class EventosPartidoRepositoryAdapter implements EventosPartidoRepository
                     .orElse(null);
         }
 
-        ClubJPAEntity equipoJPA = null;
+        EquipoJPAEntity equipoJPA = null;
         if (evento.getEquipoFavorecido() != null) {
             equipoJPA = clubRepo.findById(evento.getEquipoFavorecido().getIdEquipo())
                     .orElse(null);
@@ -75,7 +75,7 @@ public class EventosPartidoRepositoryAdapter implements EventosPartidoRepository
                     if (e.getPersonal() != null) {
                         personalJPA = personalRepo.findById(e.getPersonal().getIdPersonal()).orElse(null);
                     }
-                    ClubJPAEntity equipoJPA = null;
+                    EquipoJPAEntity equipoJPA = null;
                     if (e.getEquipoFavorecido() != null) {
                         equipoJPA = clubRepo.findById(e.getEquipoFavorecido().getIdEquipo()).orElse(null);
                     }

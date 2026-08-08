@@ -10,6 +10,6 @@ import org.springframework.data.repository.query.Param;
 import com.futbol.estadisticas.infrastructure.out.jpaEntity.EstadioJPAEntity;
 
 public interface EstadioJPARepository extends JpaRepository<EstadioJPAEntity, UUID>{
-@Query("SELECT e FROM EstadioJPAEntity e JOIN e.clubPrincipal c WHERE c.idEquipo = :idClub")
-    Optional<EstadioJPAEntity> findByClubPrincipal(@Param("idClub") UUID idClub);
+@Query("SELECT e FROM EstadioJPAEntity e JOIN e.equipoPrincipal c WHERE c.idEquipo = :idEquipo")
+    Optional<EstadioJPAEntity> findByEquipoPrincipal(@Param("idEquipo") UUID idEquipo);
 }

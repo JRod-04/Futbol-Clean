@@ -3,9 +3,7 @@ package com.futbol.estadisticas.application.port.mapper;
 import org.springframework.stereotype.Component;
 
 import com.futbol.estadisticas.application.port.dto.response.EventoPartidoResponse;
-import com.futbol.estadisticas.domain.model.Club;
 import com.futbol.estadisticas.domain.model.EventosPartido;
-import com.futbol.estadisticas.domain.model.PersonalDeportivo;
 
 @Component
 public class EventosPartidoMapper {

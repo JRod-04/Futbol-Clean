@@ -29,7 +29,6 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/apifutbol/partidos")
 @RequiredArgsConstructor
 @CrossOrigin(origins = "*")
-
 public class PartidoController {
 
     private final PartidoUseCase partidoUseCase;
@@ -88,9 +87,9 @@ public class PartidoController {
         return ResponseEntity.ok(partidoUseCase.obtenerPartidosPorCompeticion(idCompeticion));
     }
  
-    @GetMapping("/club/{idClub}")
-    public ResponseEntity<List<PartidoResponse>> porClub(@PathVariable UUID idClub) {
-        return ResponseEntity.ok(partidoUseCase.obtenerPartidosPorClub(idClub));
+    @GetMapping("/equipo/{idEquipo}")
+    public ResponseEntity<List<PartidoResponse>> porEquipo(@PathVariable UUID idEquipo) {
+        return ResponseEntity.ok(partidoUseCase.obtenerPartidosPorEquipo(idEquipo));
     }
  
     @PatchMapping("/{id}/iniciar")

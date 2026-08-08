@@ -10,11 +10,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import com.futbol.estadisticas.application.port.dto.response.ClubResponse;
+import com.futbol.estadisticas.application.port.dto.response.EquipoResponse;
 import com.futbol.estadisticas.application.port.dto.response.CompeticionResponse;
 import com.futbol.estadisticas.application.port.dto.response.JugadorResponse;
 import com.futbol.estadisticas.application.port.dto.response.TecnicoResponse;
-import com.futbol.estadisticas.application.port.in.ClubUseCase;
+import com.futbol.estadisticas.application.port.in.EquipoUseCase;
 import com.futbol.estadisticas.application.port.in.CompeticionUseCase;
 import com.futbol.estadisticas.application.port.in.TecnicoUseCase;
 
@@ -28,7 +28,7 @@ public class BusquedaController {
 
     private final JugadoresUseCase jugadorUseCase;
     private final TecnicoUseCase tecnicoUseCase;
-    private final ClubUseCase clubUseCase;
+    private final EquipoUseCase equipoUseCase;
     private final CompeticionUseCase competicionUseCase;
 
     // ──────────────── JUGADORES ────────────────
@@ -64,7 +64,7 @@ public class BusquedaController {
     // ──────────────── CLUBES ────────────────
 
     @GetMapping("/clubes")
-    public ResponseEntity<Page<ClubResponse>> buscarClubes(
+    public ResponseEntity<Page<EquipoResponse>> buscarClubes(
             @RequestParam(required = false) String q,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
@@ -73,7 +73,7 @@ public class BusquedaController {
             return ResponseEntity.ok(Page.empty(PageRequest.of(page, size)));
         }
 
-        return ResponseEntity.ok(clubUseCase.buscarClubes(q.trim(), PageRequest.of(page, size)));
+        return ResponseEntity.ok(equipoUseCase.buscarEquipos(q.trim(), PageRequest.of(page, size)));
     }
 
     // ──────────────── COMPETICIONES ────────────────
@@ -115,7 +115,7 @@ public class BusquedaController {
         Map<String, Page<?>> resultados = new HashMap<>();
         resultados.put("jugadores", jugadorUseCase.buscarJugadores(texto, pageable));
         resultados.put("tecnicos", tecnicoUseCase.buscarTecnicos(texto, pageable));
-        resultados.put("clubes", clubUseCase.buscarClubes(texto, pageable));
+        resultados.put("clubes", equipoUseCase.buscarEquipos(texto, pageable));
         resultados.put("competiciones", competicionUseCase.buscarCompeticiones(texto, pageable));
 
         return ResponseEntity.ok(resultados);

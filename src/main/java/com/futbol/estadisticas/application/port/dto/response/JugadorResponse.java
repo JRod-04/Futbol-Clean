@@ -29,8 +29,8 @@ public record JugadorResponse(
         EstadoJugador estadoJugador,
         Double valorMercado,
         Double valorMercadoEnMillones,
-        String clubActual,
-        UUID idClubActual,
+        String equipoActual,
+        UUID idEquipoActual,
         boolean disponible,
         int lesionesActivas
 ) {

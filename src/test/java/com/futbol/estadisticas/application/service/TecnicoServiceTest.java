@@ -4,9 +4,9 @@ import com.futbol.estadisticas.application.port.dto.request.ActualizarTecnicoReq
 import com.futbol.estadisticas.application.port.dto.request.CrearTecnicoRequest;
 import com.futbol.estadisticas.application.port.dto.response.TecnicoResponse;
 import com.futbol.estadisticas.application.port.mapper.TecnicoMapper;
-import com.futbol.estadisticas.application.port.out.ClubRepositoryPort;
+import com.futbol.estadisticas.application.port.out.EquipoRepositoryPort;
 import com.futbol.estadisticas.application.port.out.TecnicoRepositoryPort;
-import com.futbol.estadisticas.domain.model.Club;
+import com.futbol.estadisticas.domain.model.Equipo;
 import com.futbol.estadisticas.domain.model.Contrato;
 import com.futbol.estadisticas.domain.model.Tecnico;
 import com.futbol.estadisticas.domain.model.enums.EstadoContrato;
@@ -40,7 +40,7 @@ class TecnicoServiceTest {
     private TecnicoRepositoryPort tecnicoRepository;
 
     @Mock
-    private ClubRepositoryPort clubRepository;
+    private EquipoRepositoryPort clubRepository;
 
     @Mock
     private TecnicoMapper tecnicoMapper;
@@ -55,8 +55,8 @@ class TecnicoServiceTest {
 
     private Tecnico tecnico;
     private Tecnico tecnico2;
-    private Club club;
-    private Club club2;
+    private Equipo club;
+    private Equipo club2;
     private TecnicoResponse response;
     private TecnicoResponse response2;
     private CrearTecnicoRequest crearRequest;
@@ -64,7 +64,7 @@ class TecnicoServiceTest {
 
     @BeforeEach
     void setUp() {
-        club = Club.builder()
+        club = Equipo.builder()
                 .idEquipo(ID_CLUB)
                 .nombre("FC Barcelona")
                 .nombreCorto("Barça")
@@ -72,7 +72,7 @@ class TecnicoServiceTest {
                 .contratos(new ArrayList<>())
                 .build();
 
-        club2 = Club.builder()
+        club2 = Equipo.builder()
                 .idEquipo(ID_CLUB_2)
                 .nombre("Real Madrid")
                 .nombreCorto("Madrid")
@@ -94,7 +94,7 @@ class TecnicoServiceTest {
 
         Contrato contrato = Contrato.builder()
                 .idContrato(UUID.randomUUID())
-                .club(club)
+                .equipo(club)
                 .fechaInicio(LocalDateTime.now().minusMonths(6))
                 .fechaFin(LocalDateTime.now().plusMonths(6))
                 .sueldo(10_000_000.0)
@@ -124,8 +124,8 @@ class TecnicoServiceTest {
                 .nacionalidad(Nacion.ESPAÑA)
                 .estiloJuego("Tiki-taka")
                 .alineacionFavorita("4-3-3")
-                .clubActual("FC Barcelona")
-                .idClubActual(ID_CLUB)
+                .equipoActual("FC Barcelona")
+                .idEquipoActual(ID_CLUB)
                 .build();
 
         response2 = TecnicoResponse.builder()
@@ -201,8 +201,8 @@ class TecnicoServiceTest {
         assertThat(result.nombreCompleto()).isEqualTo("Pep Guardiola");
         assertThat(result.estiloJuego()).isEqualTo("Tiki-taka");
         assertThat(result.alineacionFavorita()).isEqualTo("4-3-3");
-        assertThat(result.clubActual()).isEqualTo("FC Barcelona");
-        assertThat(result.idClubActual()).isEqualTo(ID_CLUB);
+        assertThat(result.equipoActual()).isEqualTo("FC Barcelona");
+        assertThat(result.idEquipoActual()).isEqualTo(ID_CLUB);
 
         verify(tecnicoRepository).findById(ID_TECNICO);
         verify(tecnicoMapper).toResponse(tecnico);
@@ -255,31 +255,31 @@ class TecnicoServiceTest {
 
     @Test
     @DisplayName("obtenerTecnicoActualDeClub: debe retornar el técnico actual del club")
-    void testObtenerTecnicoActualDeClub() {
-        when(tecnicoRepository.findTecnicoActualByClub(ID_CLUB)).thenReturn(Optional.of(tecnico));
+    void testObtenerTecnicoActualDeEquipo() {
+        when(tecnicoRepository.findTecnicoActualByEquipo(ID_CLUB)).thenReturn(Optional.of(tecnico));
         when(tecnicoMapper.toResponse(tecnico)).thenReturn(response);
 
-        TecnicoResponse result = tecnicoService.obtenerTecnicoActualDeClub(ID_CLUB);
+        TecnicoResponse result = tecnicoService.obtenerTecnicoActualDeEquipo(ID_CLUB);
 
         assertThat(result).isNotNull();
         assertThat(result.idPersonal()).isEqualTo(ID_TECNICO);
-        assertThat(result.clubActual()).isEqualTo("FC Barcelona");
-        assertThat(result.idClubActual()).isEqualTo(ID_CLUB);
+        assertThat(result.equipoActual()).isEqualTo("FC Barcelona");
+        assertThat(result.idEquipoActual()).isEqualTo(ID_CLUB);
 
-        verify(tecnicoRepository).findTecnicoActualByClub(ID_CLUB);
+        verify(tecnicoRepository).findTecnicoActualByEquipo(ID_CLUB);
         verify(tecnicoMapper).toResponse(tecnico);
     }
 
     @Test
     @DisplayName("obtenerTecnicoActualDeClub: debe lanzar excepción cuando el club no tiene técnico")
     void testObtenerTecnicoActualDeClub_SinTecnico() {
-        when(tecnicoRepository.findTecnicoActualByClub(ID_CLUB_2)).thenReturn(Optional.empty());
+        when(tecnicoRepository.findTecnicoActualByEquipo(ID_CLUB_2)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> tecnicoService.obtenerTecnicoActualDeClub(ID_CLUB_2))
+        assertThatThrownBy(() -> tecnicoService.obtenerTecnicoActualDeEquipo(ID_CLUB_2))
                 .isInstanceOf(PersonalNotFoundException.class)
                 .hasMessageContaining("No hay técnico asignado al club con id: " + ID_CLUB_2);
 
-        verify(tecnicoRepository).findTecnicoActualByClub(ID_CLUB_2);
+        verify(tecnicoRepository).findTecnicoActualByEquipo(ID_CLUB_2);
         verify(tecnicoMapper, never()).toResponse(any());
     }
 
@@ -355,8 +355,8 @@ class TecnicoServiceTest {
             .nacionalidad(Nacion.ITALIA)
             .estiloJuego("Contragolpe")
             .alineacionFavorita("4-4-2")
-            .clubActual("Real Madrid")
-            .idClubActual(ID_CLUB_2)
+            .equipoActual("Real Madrid")
+            .idEquipoActual(ID_CLUB_2)
             .build();
 
     when(tecnicoRepository.findById(ID_TECNICO_2)).thenReturn(Optional.of(tecnico2));
@@ -369,8 +369,8 @@ class TecnicoServiceTest {
 
     assertThat(result).isNotNull();
     assertThat(result.idPersonal()).isEqualTo(ID_TECNICO_2);
-    assertThat(result.clubActual()).isEqualTo("Real Madrid");
-    assertThat(result.idClubActual()).isEqualTo(ID_CLUB_2);
+    assertThat(result.equipoActual()).isEqualTo("Real Madrid");
+    assertThat(result.idEquipoActual()).isEqualTo(ID_CLUB_2);
 
     assertThat(club2.getTecnicoActual()).isNotNull();
     assertThat(club2.getTecnicoActual().getIdPersonal()).isEqualTo(ID_TECNICO_2);
@@ -445,7 +445,7 @@ class TecnicoServiceTest {
     @Test
     @DisplayName("desvincularTecnicoDeClub: debe lanzar excepción cuando el club no tiene técnico")
     void testDesvincularTecnicoDeClub_SinTecnico() {
-        Club clubSinTecnico = Club.builder()
+        Equipo clubSinTecnico = Equipo.builder()
                 .idEquipo(ID_CLUB_2)
                 .nombre("Real Madrid")
                 .tecnicoActual(null)
@@ -496,7 +496,7 @@ class TecnicoServiceTest {
                 .apellido("Tecnico")
                 .build();
 
-        Club clubConTecnico = Club.builder()
+        Equipo clubConTecnico = Equipo.builder()
                 .idEquipo(ID_CLUB_2)
                 .nombre("Real Madrid")
                 .tecnicoActual(tecnicoAnterior)

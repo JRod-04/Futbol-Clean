@@ -47,13 +47,13 @@ public class TecnicoRepositoryAdapter implements TecnicoRepositoryPort {
     }
  
     @Override
-    public List<Tecnico> findByClub(UUID idClub) {
-        return repository.findByClub(idClub).stream().map(mapper::TecnicotoDomain).toList();
+    public List<Tecnico> findByEquipo(UUID idEquipo) {
+        return repository.findByEquipo(idEquipo).stream().map(mapper::TecnicotoDomain).toList();
     }
  
     @Override
-    public Optional<Tecnico> findTecnicoActualByClub(UUID idClub) {
-        return repository.findTecnicoActualByClub(idClub).map(mapper::TecnicotoDomain);
+    public Optional<Tecnico> findTecnicoActualByEquipo(UUID idEquipo) {
+        return repository.findTecnicoActualByEquipo(idEquipo).map(mapper::TecnicotoDomain);
     }
  
     @Override

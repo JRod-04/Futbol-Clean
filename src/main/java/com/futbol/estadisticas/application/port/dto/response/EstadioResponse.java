@@ -13,8 +13,8 @@ public record EstadioResponse(
         Integer capacidad,
         LocalDate fechaFundacion,
         String descripcionCompleta,
-        String clubPrincipal,
-        UUID idClubPrincipal
+        String equipoPrincipal,
+        UUID idEquipoPrincipal
 ) {
 
 }

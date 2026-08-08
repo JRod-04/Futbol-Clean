@@ -6,7 +6,6 @@ import java.util.UUID;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Range;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -21,7 +20,7 @@ public interface JugadorJPARepository extends JpaRepository<JugadorJPAEntity, UU
 
     @Query("SELECT j FROM JugadorJPAEntity j " +
             "LEFT JOIN FETCH j.contratos c " +
-            "LEFT JOIN FETCH c.club " +
+            "LEFT JOIN FETCH c.equipo " +
             "LEFT JOIN FETCH j.datosDeportivos " +
             "WHERE j.idPersonal = :id")
     Optional<JugadorJPAEntity> findByIdWithContratos(@Param("id") UUID id);
@@ -29,12 +28,12 @@ public interface JugadorJPARepository extends JpaRepository<JugadorJPAEntity, UU
      @Query("""
            SELECT DISTINCT j FROM JugadorJPAEntity j
            JOIN j.contratos c
-           WHERE c.club.idEquipo = :idClub
+           WHERE c.equipo.idEquipo = :idEquipo
              AND c.estado = 'ACTIVO'
              AND c.fechaInicio <= CURRENT_TIMESTAMP
              AND c.fechaFin >= CURRENT_TIMESTAMP
            """)
-    List<JugadorJPAEntity> findByClub(@Param("idClub") UUID idClub);
+    List<JugadorJPAEntity> findByEquipo(@Param("idEquipo") UUID idEquipo);
  
     // Jugadores con un estado específico en sus datos deportivos
     @Query("SELECT j FROM JugadorJPAEntity j WHERE j.datosDeportivos.estadoJugador = :estado")

@@ -13,11 +13,11 @@ import org.springframework.data.repository.query.Param;
 import com.futbol.estadisticas.infrastructure.out.jpaEntity.TecnicoJPAEntity;
 
 public interface TecnicoJPARepository extends JpaRepository <TecnicoJPAEntity,UUID>{
-    @Query("SELECT t FROM TecnicoJPAEntity t WHERE t.clubActual.idEquipo = :idClub")
-    List<TecnicoJPAEntity> findByClub(@Param("idClub") UUID idClub);
+    @Query("SELECT t FROM TecnicoJPAEntity t WHERE t.equipoActual.idEquipo = :idEquipo")
+    List<TecnicoJPAEntity> findByEquipo(@Param("idEquipo") UUID idEquipo);
  
-    @Query("SELECT t FROM TecnicoJPAEntity t WHERE t.clubActual.idEquipo = :idClub")
-    Optional<TecnicoJPAEntity> findTecnicoActualByClub(@Param("idClub") UUID idClub);
+    @Query("SELECT t FROM TecnicoJPAEntity t WHERE t.equipoActual.idEquipo = :idEquipo")
+    Optional<TecnicoJPAEntity> findTecnicoActualByEquipo(@Param("idEquipo") UUID idEquipo);
 
     @Query("SELECT t FROM TecnicoJPAEntity t " +
             "WHERE LOWER(CONCAT(COALESCE(t.nombre, ''), ' ', COALESCE(t.apellido, ''))) " +

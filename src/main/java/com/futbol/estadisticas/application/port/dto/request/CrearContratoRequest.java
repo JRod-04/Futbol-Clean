@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 import com.futbol.estadisticas.domain.model.enums.EstadoContrato;
-import jakarta.validation.constraints.Future;
+import com.futbol.estadisticas.domain.model.enums.TipoContrato;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.Builder;
@@ -14,9 +14,14 @@ public record CrearContratoRequest(
         @NotNull(message = "El personal es obligatorio")
         UUID idPersonal,
  
-        @NotNull(message = "El club es obligatorio")
-        UUID idClub,
- 
+        @NotNull(message = "El equipo es obligatorio")
+        UUID idEquipo,
+
+        @NotNull(message = "Debe especificar el tipo de contrato")
+        TipoContrato tipoContrato,
+
+        Double costoFichaje,
+
         @NotNull(message = "La fecha de inicio es obligatoria")
         LocalDateTime fechaInicio,
 

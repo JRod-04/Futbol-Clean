@@ -48,11 +48,11 @@ public class EstadioController {
         return ResponseEntity.ok(estadioUseCase.actualizarEstadio(id, request));
     }
  
-    @PutMapping("/{id}/asignar-club/{idClub}")
+    @PutMapping("/{id}/asignar-equipo/{idEquipo}")
     public ResponseEntity<EstadioResponse> asignarAClub(
             @PathVariable UUID id,
-            @PathVariable UUID idClub) {
-        return ResponseEntity.ok(estadioUseCase.asignarEstadioAClub(id, idClub));
+            @PathVariable UUID idEquipo) {
+        return ResponseEntity.ok(estadioUseCase.asignarEstadioAEquipo(id, idEquipo));
     }
  
     @GetMapping("/{id}/ocupacion")

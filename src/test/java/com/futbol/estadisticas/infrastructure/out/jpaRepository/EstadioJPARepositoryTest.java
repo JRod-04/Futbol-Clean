@@ -3,7 +3,7 @@ package com.futbol.estadisticas.infrastructure.out.jpaRepository;
 import com.futbol.estadisticas.PostgresTestContainerConfig;
 import com.futbol.estadisticas.domain.model.Estadio;
 import com.futbol.estadisticas.infrastructure.out.jpaRepositoryAdapter.EstadioRepositoryAdapter;
-import com.futbol.estadisticas.infrastructure.out.jpaEntity.ClubJPAEntity;
+import com.futbol.estadisticas.infrastructure.out.jpaEntity.EquipoJPAEntity;
 import com.futbol.estadisticas.infrastructure.out.jpaEntity.EstadioJPAEntity;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -38,7 +38,7 @@ class EstadioJPARepositoryTest extends PostgresTestContainerConfig {
     private EstadioJPARepository repository;
 
     @Autowired
-    private ClubJPARepository clubRepository;
+    private EquipoJPARepository clubRepository;
 
     private static final UUID ID_ESTADIO_1 = UUID.fromString("11111111-1111-1111-1111-111111111111");
     private static final UUID ID_ESTADIO_2 = UUID.fromString("22222222-2222-2222-2222-222222222222");
@@ -71,7 +71,7 @@ class EstadioJPARepositoryTest extends PostgresTestContainerConfig {
         repository.saveAll(List.of(estadio1, estadio2));
 
         // Crear club que referencia al estadio1
-        ClubJPAEntity club = ClubJPAEntity.builder()
+        EquipoJPAEntity club = EquipoJPAEntity.builder()
                 .idEquipo(ID_CLUB_1)
                 .nombre("Arsenal FC")
                 .nombreCorto("ARS")
@@ -104,7 +104,7 @@ class EstadioJPARepositoryTest extends PostgresTestContainerConfig {
     @Test
     @DisplayName("findByClubPrincipal: debe encontrar el estadio de un club")
     void testFindByClubPrincipal() {
-        Optional<Estadio> estadio = adapter.findByClubPrincipal(ID_CLUB_1);
+        Optional<Estadio> estadio = adapter.findByEquipoPrincipal(ID_CLUB_1);
         assertThat(estadio).isPresent();
         assertThat(estadio.get().getNombre()).isEqualTo("Emirates Stadium");
         assertThat(estadio.get().getCapacidad()).isEqualTo(60704);

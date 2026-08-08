@@ -14,8 +14,8 @@ public class ClasificacionDTO {
     ) {}
     @Builder
     public record EquipoClasificacion(
-            UUID idClub,
-            String nombreClub,
+            UUID idEquipo,
+            String nombreEquipo,
             int partidosJugados,
             int ganados,
             int empatados,

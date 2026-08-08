@@ -1,7 +1,6 @@
 package com.futbol.estadisticas.domain.model;
 
 import java.time.LocalDate;
-import java.time.Period;
 import java.util.UUID;
 
 import lombok.AllArgsConstructor;
@@ -27,7 +26,7 @@ public class Estadio {
     private String direccion;
     private Integer capacidad;
     private LocalDate fechaFundacion;
-    private Club clubPrincipal;
+    private Equipo equipoPrincipal;
 
 
 

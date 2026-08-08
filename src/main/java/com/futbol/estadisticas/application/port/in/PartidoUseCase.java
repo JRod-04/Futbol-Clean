@@ -12,10 +12,8 @@ import com.futbol.estadisticas.application.port.dto.response.EventoPartidoRespon
 import com.futbol.estadisticas.application.port.dto.response.PartidoResponse;
 import com.futbol.estadisticas.application.port.dto.response.SustitucionResponse;
 import com.futbol.estadisticas.application.port.dto.response.TandaPenalesResponse;
-import com.futbol.estadisticas.domain.model.Partido;
 import com.futbol.estadisticas.domain.model.enums.EstadoPartido;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 
 public interface PartidoUseCase {
     
@@ -32,7 +30,7 @@ public interface PartidoUseCase {
 
     List<PartidoResponse> obtenerPartidosPorCompeticion(UUID idCompeticion);
  
-    List<PartidoResponse> obtenerPartidosPorClub(UUID idClub);
+    List<PartidoResponse> obtenerPartidosPorEquipo(UUID idEquipo);
 
     SustitucionResponse realizarSustitucion(UUID idPartido, RealizarSustitucionRequest request);
 

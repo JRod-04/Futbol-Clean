@@ -40,5 +40,5 @@ public class EstadioJPAEntity {
  
     // Relación inversa — Club es dueño de la FK
     @OneToOne(mappedBy = "estadio", fetch = FetchType.LAZY)
-    private ClubJPAEntity clubPrincipal;
+    private EquipoJPAEntity equipoPrincipal;
 }

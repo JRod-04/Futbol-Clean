@@ -5,17 +5,17 @@ import java.util.Optional;
 import java.util.UUID;
 
 import com.futbol.estadisticas.domain.model.Competicion;
+import com.futbol.estadisticas.infrastructure.out.jpaEntity.EquipoJPAEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
-import com.futbol.estadisticas.application.port.out.ClubRepositoryPort;
-import com.futbol.estadisticas.domain.model.Club;
+import com.futbol.estadisticas.application.port.out.EquipoRepositoryPort;
+import com.futbol.estadisticas.domain.model.Equipo;
 import com.futbol.estadisticas.infrastructure.out.InfrastructureMapper;
-import com.futbol.estadisticas.infrastructure.out.jpaEntity.ClubJPAEntity;
 import com.futbol.estadisticas.infrastructure.out.jpaEntity.EstadioJPAEntity;
 import com.futbol.estadisticas.infrastructure.out.jpaEntity.TecnicoJPAEntity;
-import com.futbol.estadisticas.infrastructure.out.jpaRepository.ClubJPARepository;
+import com.futbol.estadisticas.infrastructure.out.jpaRepository.EquipoJPARepository;
 import com.futbol.estadisticas.infrastructure.out.jpaRepository.EstadioJPARepository;
 import com.futbol.estadisticas.infrastructure.out.jpaRepository.TecnicoJPARepository;
 
@@ -24,35 +24,35 @@ import lombok.RequiredArgsConstructor;
 
 @Component
 @RequiredArgsConstructor
-public class ClubRepositoryAdapter implements ClubRepositoryPort{
+public class EquipoRepositoryAdapter implements EquipoRepositoryPort {
 
-    private final ClubJPARepository    repository;
+    private final EquipoJPARepository repository;
     private final EstadioJPARepository estadioRepo;
     private final TecnicoJPARepository tecnicoRepo;
     private final InfrastructureMapper mapper;
 
     @Override
-    public Page<Club> buscarClubPorNombre(String texto, Pageable pageable) {
+    public Page<Equipo> buscarEquipoPorNombre(String texto, Pageable pageable) {
         if (texto == null || texto.trim().isEmpty()) {
             return Page.empty(pageable);
         }
-        return repository.buscarClubPorTexto(texto.trim(), pageable)
+        return repository.buscarEquipoPorTexto(texto.trim(), pageable)
                 .map(mapper::DatostoDomain);
     }
 
     @Override
-    public Club save(Club club) {
-        ClubJPAEntity entity = mapper.toJpa(club);
+    public Equipo save(Equipo equipo) {
+        EquipoJPAEntity entity = mapper.toJpa(equipo);
  
-        if (club.getEstadio() != null) {
+        if (equipo.getEstadio() != null) {
             EstadioJPAEntity estadioJPA = estadioRepo
-                    .findById(club.getEstadio().getIdEstadio()).orElse(null);
+                    .findById(equipo.getEstadio().getIdEstadio()).orElse(null);
             entity.setEstadio(estadioJPA);
         }
  
-        if (club.getTecnicoActual() != null) {
+        if (equipo.getTecnicoActual() != null) {
             TecnicoJPAEntity tecnicoJPA = tecnicoRepo
-                    .findById(club.getTecnicoActual().getIdPersonal()).orElse(null);
+                    .findById(equipo.getTecnicoActual().getIdPersonal()).orElse(null);
             entity.setTecnicoActual(tecnicoJPA);
         }
  
@@ -60,31 +60,31 @@ public class ClubRepositoryAdapter implements ClubRepositoryPort{
     }
  
     @Override
-    public Optional<Club> findById(UUID idEquipo) {
+    public Optional<Equipo> findById(UUID idEquipo) {
         return repository.findByIdWithDetails(idEquipo)
                 .map(mapper::toDomainConClubYBásicos)
                 .map(this::cargarLesiones);
     }
 
-    private Club cargarLesiones(Club club) {
+    private Equipo cargarLesiones(Equipo club) {
         if (club == null || club.getContratos() == null) return club;
         return club;
 
     }
  
     @Override
-    public List<Club> findAll() {
+    public List<Equipo> findAll() {
         return repository.findAll().stream().map(mapper::DatostoDomain).toList();
     }
 
     @Override
-    public Optional<Club> findByIdWithContratos(UUID id) {
+    public Optional<Equipo> findByIdWithContratos(UUID id) {
         return repository.findByIdWithContratos(id).map(mapper::DatostoDomain);
             }
 
     @Override
-    public List<Competicion> findCompeticionesByClub(UUID idClub) {
-        return repository.findCompeticionesByClub(idClub).stream()
+    public List<Competicion> findCompeticionesByEquipo(UUID idEquipo) {
+        return repository.findCompeticionesByEquipo(idEquipo).stream()
                 .map(mapper::CompeticiontoDomain)
                 .toList();
     }
@@ -95,13 +95,13 @@ public class ClubRepositoryAdapter implements ClubRepositoryPort{
     }
 
     @Override
-    public void actualizarTecnicoActual(UUID idClub, UUID idTecnico) {
+    public void actualizarTecnicoActual(UUID idEquipo, UUID idTecnico) {
         if (idTecnico == null) {
-            repository.actualizarTecnicoActual(idClub, null);
+            repository.actualizarTecnicoActual(idEquipo, null);
         } else {
             tecnicoRepo.findById(idTecnico)
                     .orElseThrow(() -> new IllegalArgumentException("Técnico no encontrado: " + idTecnico));
-            repository.actualizarTecnicoActual(idClub, idTecnico);
+            repository.actualizarTecnicoActual(idEquipo, idTecnico);
         }
     }
 

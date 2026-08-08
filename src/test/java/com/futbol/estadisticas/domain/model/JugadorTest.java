@@ -41,14 +41,14 @@ class JugadorTest {
 
         jugador.setDatosDeportivos(datos);
 
-        Club club = Club.builder()
+        Equipo club = Equipo.builder()
                 .idEquipo(UUID.randomUUID())
                 .nombre("Arsenal FC")
                 .build();
 
         Contrato contrato = Contrato.builder()
                 .idContrato(UUID.randomUUID())
-                .club(club)
+                .equipo(club)
                 .fechaInicio(LocalDateTime.now().minusMonths(6))
                 .fechaFin(LocalDateTime.now().plusMonths(6))
                 .estado(EstadoContrato.ACTIVO)
@@ -59,16 +59,16 @@ class JugadorTest {
 
     @Test
     @DisplayName("getClubActual: debe retornar el club del contrato vigente")
-    void testGetClubActual() {
-        assertThat(jugador.getClubActual()).isNotNull();
-        assertThat(jugador.getClubActual().getNombre()).isEqualTo("Arsenal FC");
+    void testGetEquipoActual() {
+        assertThat(jugador.getEquipoActual()).isNotNull();
+        assertThat(jugador.getEquipoActual().getNombre()).isEqualTo("Arsenal FC");
     }
 
     @Test
     @DisplayName("getClubActual: debe retornar null cuando no hay contrato vigente")
-    void testGetClubActual_SinContrato() {
+    void testGetEquipoActual_SinContrato() {
         jugador.getContratos().clear();
-        assertThat(jugador.getClubActual()).isNull();
+        assertThat(jugador.getEquipoActual()).isNull();
     }
 
     @Test

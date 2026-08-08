@@ -32,7 +32,7 @@ public class EventosPartido {
     private TipoEvento tipoEvento;
     private Partido partido;
     private PersonalDeportivo personal;
-    private Club equipoFavorecido;
+    private Equipo equipoFavorecido;
     private EstadoPartido estadoEvento;
 
 
