@@ -14,7 +14,7 @@ public interface EstadioRepositoryPort {
  
     List<Estadio> findAll();
  
-    Optional<Estadio> findByClubPrincipal(UUID idClub);
+    Optional<Estadio> findByEquipoPrincipal(UUID idEquipo);
  
     boolean existsById(UUID idEstadio);
  

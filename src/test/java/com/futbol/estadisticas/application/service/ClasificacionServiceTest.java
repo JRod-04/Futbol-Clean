@@ -4,7 +4,7 @@ import com.futbol.estadisticas.application.port.dto.response.ClasificacionDTO.Cl
 import com.futbol.estadisticas.application.port.dto.response.ClasificacionDTO.EquipoClasificacion;
 import com.futbol.estadisticas.application.port.out.CompeticionRepositoryPort;
 import com.futbol.estadisticas.application.port.out.PartidoRepositoryPort;
-import com.futbol.estadisticas.domain.model.Club;
+import com.futbol.estadisticas.domain.model.Equipo;
 import com.futbol.estadisticas.domain.model.Competicion;
 import com.futbol.estadisticas.domain.model.Partido;
 import com.futbol.estadisticas.domain.model.enums.EstadoPartido;
@@ -43,10 +43,10 @@ class ClasificacionServiceTest {
     private UUID idClubVisitante;
     private UUID idClubLocal2;
     private UUID idClubVisitante2;
-    private Club clubLocal;
-    private Club clubVisitante;
-    private Club clubLocal2;
-    private Club clubVisitante2;
+    private Equipo clubLocal;
+    private Equipo clubVisitante;
+    private Equipo clubLocal2;
+    private Equipo clubVisitante2;
     private Competicion competicion;
 
     @BeforeEach
@@ -57,22 +57,22 @@ class ClasificacionServiceTest {
         idClubLocal2 = UUID.randomUUID();
         idClubVisitante2 = UUID.randomUUID();
 
-        clubLocal = Club.builder()
+        clubLocal = Equipo.builder()
                 .idEquipo(idClubLocal)
                 .nombre("Arsenal FC")
                 .build();
 
-        clubVisitante = Club.builder()
+        clubVisitante = Equipo.builder()
                 .idEquipo(idClubVisitante)
                 .nombre("Manchester City")
                 .build();
 
-        clubLocal2 = Club.builder()
+        clubLocal2 = Equipo.builder()
                 .idEquipo(idClubLocal2)
                 .nombre("Chelsea FC")
                 .build();
 
-        clubVisitante2 = Club.builder()
+        clubVisitante2 = Equipo.builder()
                 .idEquipo(idClubVisitante2)
                 .nombre("Liverpool FC")
                 .build();
@@ -123,7 +123,7 @@ class ClasificacionServiceTest {
 
         // Verificar Arsenal (3 puntos)
         EquipoClasificacion arsenal = tabla.tabla().stream()
-                .filter(e -> e.idClub().equals(idClubLocal))
+                .filter(e -> e.idEquipo().equals(idClubLocal))
                 .findFirst()
                 .orElseThrow();
         assertThat(arsenal.partidosJugados()).isEqualTo(1);
@@ -137,7 +137,7 @@ class ClasificacionServiceTest {
 
         // Verificar Chelsea (1 punto)
         EquipoClasificacion chelsea = tabla.tabla().stream()
-                .filter(e -> e.idClub().equals(idClubLocal2))
+                .filter(e -> e.idEquipo().equals(idClubLocal2))
                 .findFirst()
                 .orElseThrow();
         assertThat(chelsea.partidosJugados()).isEqualTo(1);
@@ -151,7 +151,7 @@ class ClasificacionServiceTest {
 
         // Verificar Liverpool (1 punto)
         EquipoClasificacion liverpool = tabla.tabla().stream()
-                .filter(e -> e.idClub().equals(idClubVisitante2))
+                .filter(e -> e.idEquipo().equals(idClubVisitante2))
                 .findFirst()
                 .orElseThrow();
         assertThat(liverpool.partidosJugados()).isEqualTo(1);
@@ -165,7 +165,7 @@ class ClasificacionServiceTest {
 
         // Verificar Manchester City (0 puntos)
         EquipoClasificacion city = tabla.tabla().stream()
-                .filter(e -> e.idClub().equals(idClubVisitante))
+                .filter(e -> e.idEquipo().equals(idClubVisitante))
                 .findFirst()
                 .orElseThrow();
         assertThat(city.partidosJugados()).isEqualTo(1);
@@ -214,9 +214,9 @@ class ClasificacionServiceTest {
 
         // Verificar orden: Arsenal primero (+3 dif), Chelsea segundo (+2 dif)
         List<EquipoClasificacion> ordenados = tabla.tabla();
-        assertThat(ordenados.get(0).idClub()).isEqualTo(idClubLocal);
+        assertThat(ordenados.get(0).idEquipo()).isEqualTo(idClubLocal);
         assertThat(ordenados.get(0).diferenciaGoles()).isEqualTo(3);
-        assertThat(ordenados.get(1).idClub()).isEqualTo(idClubLocal2);
+        assertThat(ordenados.get(1).idEquipo()).isEqualTo(idClubLocal2);
         assertThat(ordenados.get(1).diferenciaGoles()).isEqualTo(2);
     }
 
@@ -246,7 +246,7 @@ class ClasificacionServiceTest {
 
         // Arsenal debe tener 3 puntos (ganando en curso)
         EquipoClasificacion arsenal = tabla.tabla().stream()
-                .filter(e -> e.idClub().equals(idClubLocal))
+                .filter(e -> e.idEquipo().equals(idClubLocal))
                 .findFirst()
                 .orElseThrow();
         assertThat(arsenal.partidosJugados()).isEqualTo(1);
@@ -256,7 +256,7 @@ class ClasificacionServiceTest {
         assertThat(arsenal.perdidos()).isEqualTo(0);
 
         EquipoClasificacion city = tabla.tabla().stream()
-                .filter(e -> e.idClub().equals(idClubVisitante))
+                .filter(e -> e.idEquipo().equals(idClubVisitante))
                 .findFirst()
                 .orElseThrow();
         assertThat(city.partidosJugados()).isEqualTo(1);
@@ -287,13 +287,13 @@ class ClasificacionServiceTest {
         assertThat(tabla.tabla()).hasSize(2);
 
         EquipoClasificacion local = tabla.tabla().stream()
-                .filter(e -> e.idClub().equals(idClubLocal))
+                .filter(e -> e.idEquipo().equals(idClubLocal))
                 .findFirst()
                 .orElseThrow();
         assertThat(local.puntos()).isEqualTo(1);
 
         EquipoClasificacion visitante = tabla.tabla().stream()
-                .filter(e -> e.idClub().equals(idClubVisitante))
+                .filter(e -> e.idEquipo().equals(idClubVisitante))
                 .findFirst()
                 .orElseThrow();
         assertThat(visitante.puntos()).isEqualTo(1);
@@ -360,7 +360,7 @@ class ClasificacionServiceTest {
         ClasificacionResponse tabla = clasificacionService.obtenerTabla(idCompeticion);
 
         EquipoClasificacion arsenal = tabla.tabla().stream()
-                .filter(e -> e.idClub().equals(idClubLocal))
+                .filter(e -> e.idEquipo().equals(idClubLocal))
                 .findFirst()
                 .orElseThrow();
 

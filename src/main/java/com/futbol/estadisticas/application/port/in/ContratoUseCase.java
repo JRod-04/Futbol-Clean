@@ -1,6 +1,5 @@
 package com.futbol.estadisticas.application.port.in;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -18,7 +17,7 @@ public interface ContratoUseCase {
  
     ContratoResponse obtenerContratoVigenteDePersonal(UUID idPersonal);
  
-    List<ContratoResponse> obtenerContratosVigentesPorClub(UUID idClub);
+    List<ContratoResponse> obtenerContratosVigentesPorEquipo(UUID idEquipo);
  
     ContratoResponse renovarContrato(UUID idContrato, int mesesAdicionales);
  

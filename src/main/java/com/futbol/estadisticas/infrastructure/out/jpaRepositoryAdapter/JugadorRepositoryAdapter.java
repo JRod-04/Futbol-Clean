@@ -69,8 +69,8 @@ public class JugadorRepositoryAdapter implements JugadorRepositoryPort {
     }
 
     @Override
-    public List<Jugador> findByClub(UUID idClub) {
-        return repository.findByClub(idClub).stream().map(mapper::JugadortoDomain).toList();
+    public List<Jugador> findByEquipo(UUID idEquipo) {
+        return repository.findByEquipo(idEquipo).stream().map(mapper::JugadortoDomain).toList();
     }
 
     @Override

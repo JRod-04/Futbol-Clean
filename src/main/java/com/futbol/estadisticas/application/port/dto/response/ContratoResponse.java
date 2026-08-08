@@ -5,6 +5,7 @@ import java.util.UUID;
 
 import com.futbol.estadisticas.domain.model.enums.EstadoContrato;
 
+import com.futbol.estadisticas.domain.model.enums.TipoContrato;
 import lombok.Builder;
 
 @Builder
@@ -13,14 +14,16 @@ public record ContratoResponse(
         LocalDateTime fechaInicio,
         LocalDateTime fechaFin,
         Double sueldo,
+        TipoContrato tipo,
         EstadoContrato estado,
         boolean vigente,
  
         UUID idPersonal,
         String nombrePersonal,
  
-        UUID idClub,
-        String nombreClub
+        UUID idEquipo,
+        String nombreEquipo,
+        Double costoFichaje
 ) {
 
 }

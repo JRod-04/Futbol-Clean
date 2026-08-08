@@ -3,11 +3,10 @@ package com.futbol.estadisticas.application.service;
 import com.futbol.estadisticas.application.port.dto.request.CrearContratoRequest;
 import com.futbol.estadisticas.application.port.dto.response.ContratoResponse;
 import com.futbol.estadisticas.application.port.mapper.ContratoMapper;
-import com.futbol.estadisticas.application.port.out.ClubRepositoryPort;
+import com.futbol.estadisticas.application.port.out.EquipoRepositoryPort;
 import com.futbol.estadisticas.application.port.out.ContratoRepositoryPort;
 import com.futbol.estadisticas.application.port.out.PersonalDeportivoRepositoryPort;
-import com.futbol.estadisticas.application.service.ContratoService;
-import com.futbol.estadisticas.domain.model.Club;
+import com.futbol.estadisticas.domain.model.Equipo;
 import com.futbol.estadisticas.domain.model.Contrato;
 import com.futbol.estadisticas.domain.model.PersonalDeportivo;
 import com.futbol.estadisticas.domain.model.enums.EstadoContrato;
@@ -35,7 +34,7 @@ class ContratoServiceTest {
 
     @Mock private ContratoRepositoryPort contratoRepository;
     @Mock private PersonalDeportivoRepositoryPort personalRepository;
-    @Mock private ClubRepositoryPort clubRepository;
+    @Mock private EquipoRepositoryPort clubRepository;
     @Mock private ContratoMapper contratoMapper;
     @InjectMocks private ContratoService contratoService;
 
@@ -46,12 +45,12 @@ class ContratoServiceTest {
     private ContratoResponse response;
     private CrearContratoRequest request;
     private PersonalDeportivo personal;
-    private Club club;
+    private Equipo club;
 
     @BeforeEach
     void setUp() {
         personal = PersonalDeportivo.builder().idPersonal(ID_PERSONAL).build();
-        club = Club.builder().idEquipo(ID_CLUB).build();
+        club = Equipo.builder().idEquipo(ID_CLUB).build();
 
         request = new CrearContratoRequest(
                 ID_PERSONAL, ID_CLUB,
@@ -63,7 +62,7 @@ class ContratoServiceTest {
         contrato = Contrato.builder()
                 .idContrato(ID_CONTRATO)
                 .personal(personal)
-                .club(club)
+                .equipo(club)
                 .fechaInicio(request.fechaInicio())
                 .fechaFin(request.fechaFin())
                 .sueldo(request.sueldo())
@@ -181,14 +180,14 @@ class ContratoServiceTest {
 
     @Test
     @DisplayName("obtenerContratosVigentesPorClub: debe retornar contratos vigentes de un club")
-    void testObtenerContratosVigentesPorClub() {
-        when(contratoRepository.findVigentesByClub(ID_CLUB)).thenReturn(List.of(contrato));
+    void testObtenerContratosVigentesPorEquipo() {
+        when(contratoRepository.findVigentesByEquipo(ID_CLUB)).thenReturn(List.of(contrato));
         when(contratoMapper.toResponse(contrato)).thenReturn(response);
 
-        List<ContratoResponse> result = contratoService.obtenerContratosVigentesPorClub(ID_CLUB);
+        List<ContratoResponse> result = contratoService.obtenerContratosVigentesPorEquipo(ID_CLUB);
 
         assertThat(result).hasSize(1);
-        verify(contratoRepository).findVigentesByClub(ID_CLUB);
+        verify(contratoRepository).findVigentesByEquipo(ID_CLUB);
     }
 
     @Test

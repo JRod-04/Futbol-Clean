@@ -7,14 +7,12 @@ import org.springframework.stereotype.Component;
 
 import com.futbol.estadisticas.application.port.dto.response.PartidoResponse;
 
-import java.util.List;
-
 @Component
 public class PartidoMapper {
     
     public PartidoResponse toResponse(Partido partido) {
-        Club local      = partido.getEquipoLocal();
-        Club visitante  = partido.getEquipoVisitante();
+        Equipo local      = partido.getEquipoLocal();
+        Equipo visitante  = partido.getEquipoVisitante();
         Arbitro arbitro = partido.getArbitro();
         Estadio estadio = partido.getEstadio();
         Competicion competicion = partido.getCompeticion();

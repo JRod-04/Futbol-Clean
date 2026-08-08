@@ -51,9 +51,9 @@ public class ContratoController {
         return ResponseEntity.ok(contratoUseCase.obtenerContratoVigenteDePersonal(idPersonal));
     }
  
-    @GetMapping("/club/{idClub}/vigentes")
-    public ResponseEntity<List<ContratoResponse>> vigentesPorClub(@PathVariable UUID idClub) {
-        return ResponseEntity.ok(contratoUseCase.obtenerContratosVigentesPorClub(idClub));
+    @GetMapping("/equipo/{idEquipo}/vigentes")
+    public ResponseEntity<List<ContratoResponse>> vigentesPorEquipo(@PathVariable UUID idEquipo) {
+        return ResponseEntity.ok(contratoUseCase.obtenerContratosVigentesPorEquipo(idEquipo));
     }
  
     @PatchMapping("/{id}/renovar")

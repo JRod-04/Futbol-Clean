@@ -32,8 +32,8 @@ public class Partido {
    
     private LocalDateTime fechaYHora;
     private EstadoPartido estado;
-    private Club equipoLocal;
-    private Club equipoVisitante;
+    private Equipo equipoLocal;
+    private Equipo equipoVisitante;
     private Estadio estadio;
     private Arbitro arbitro;
     private Competicion competicion;
@@ -96,7 +96,7 @@ public class Partido {
         titularesVisitante.forEach(jugador -> agregarEventoTitular(jugador, equipoVisitante));
     }
 
-    private void agregarEventoTitular(Jugador jugador, Club club) {
+    private void agregarEventoTitular(Jugador jugador, Equipo club) {
         EventosPartido eventoTitular = EventosPartido.builder()
                 .idEvento(UUID.randomUUID())
                 .minuto(LocalTime.of(0, 0))
@@ -584,7 +584,7 @@ public class Partido {
     }
 
 
-    private void restarUltimoGol(Club equipo) {
+    private void restarUltimoGol(Equipo equipo) {
         boolean esLocal = equipo.getIdEquipo().equals(this.equipoLocal.getIdEquipo());
 
 
@@ -617,7 +617,7 @@ public class Partido {
 
 
 
-    public  List<EventosPartido> realizarSustitucion(Jugador jugadorEntrante, Jugador jugadorSaliente, Club club, LocalTime minuto) {
+    public  List<EventosPartido> realizarSustitucion(Jugador jugadorEntrante, Jugador jugadorSaliente, Equipo club, LocalTime minuto) {
         if (jugadorEntrante == null || jugadorSaliente == null) {
             throw new IllegalArgumentException("Los jugadores de la sustitución no pueden ser nulos");
         }

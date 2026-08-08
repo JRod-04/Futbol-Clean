@@ -18,9 +18,9 @@ public interface TecnicoRepositoryPort {
  
     List<Tecnico> findAll();
  
-    List<Tecnico> findByClub(UUID idClub);
+    List<Tecnico> findByEquipo(UUID idEquipo);
  
-    Optional<Tecnico> findTecnicoActualByClub(UUID idClub);
+    Optional<Tecnico> findTecnicoActualByEquipo(UUID idEquipo);
  
     boolean existsById(UUID idPersonal);
  

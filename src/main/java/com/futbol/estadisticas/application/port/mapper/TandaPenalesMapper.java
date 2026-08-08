@@ -2,7 +2,7 @@ package com.futbol.estadisticas.application.port.mapper;
 
 import com.futbol.estadisticas.application.port.dto.response.EventoPartidoResponse;
 import com.futbol.estadisticas.application.port.dto.response.TandaPenalesResponse;
-import com.futbol.estadisticas.domain.model.Club;
+import com.futbol.estadisticas.domain.model.Equipo;
 import com.futbol.estadisticas.domain.model.EventosPartido;
 import com.futbol.estadisticas.domain.model.Partido;
 import com.futbol.estadisticas.domain.model.enums.EstadoPartido;
@@ -34,8 +34,8 @@ public class TandaPenalesMapper {
                         e.getTipoEvento() == TipoEvento.PENALTI_FALLADO)
                 .collect(Collectors.toList());
 
-        Club local = partido.getEquipoLocal();
-        Club visitante = partido.getEquipoVisitante();
+        Equipo local = partido.getEquipoLocal();
+        Equipo visitante = partido.getEquipoVisitante();
 
         // Filtrar por equipo
         List<EventoPartidoResponse> penalesLocal = eventosPenaltis.stream()

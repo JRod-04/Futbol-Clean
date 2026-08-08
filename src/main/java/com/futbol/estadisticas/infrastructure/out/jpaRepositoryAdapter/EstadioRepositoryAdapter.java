@@ -35,8 +35,8 @@ public class EstadioRepositoryAdapter implements EstadioRepositoryPort {
     }
  
     @Override
-    public Optional<Estadio> findByClubPrincipal(UUID idClub) {
-        return repository.findByClubPrincipal(idClub).map(mapper::EstadiotoDomain);
+    public Optional<Estadio> findByEquipoPrincipal(UUID idEquipo) {
+        return repository.findByEquipoPrincipal(idEquipo).map(mapper::EstadiotoDomain);
     }
  
     @Override

@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.UUID;
 
 import com.futbol.estadisticas.domain.model.enums.Nacion;
+import com.futbol.estadisticas.domain.model.enums.TipoContrato;
 import com.futbol.estadisticas.domain.model.enums.TipoPersonal;
 
 import lombok.AllArgsConstructor;
@@ -50,18 +51,69 @@ public class PersonalDeportivo {
         return Period.between(fechaNacimiento, LocalDate.now()).getYears();
     }
     
-    //Devuelve el contrato actualmente vigente (ACTIVO y dentro del rango de fechas).
     public Contrato getContratoVigente() {
         return contratos.stream()
             .filter(Contrato::estaVigente)
             .findFirst()
             .orElse(null);
     }
-      public void agregarContrato(Contrato contrato) {
-      if (contrato != null) {
-          this.contratos.add(contrato);
-          contrato.setPersonal(this);
-      }
+
+
+          public void agregarContrato(Contrato contrato) {
+              if (contrato == null) {
+                  throw new IllegalArgumentException("El contrato no puede ser nulo");
+              }
+
+              contrato.validarContratoConPersonal(this);
+
+              contrato.validarContratoConEquipo(contrato.getEquipo());
+
+              this.contratos.add(contrato);
+              contrato.setPersonal(this);
+          }
+
+          public boolean puedeRegistrarseEnEquipo(Equipo equipo) {
+              if (equipo == null) return false;
+
+              Contrato contratoTemp = Contrato.builder()
+                      .tipoContrato(TipoContrato.PROFESIONAL)
+                      .equipo(equipo)
+                      .build();
+
+              try {
+                  contratoTemp.validarContratoConPersonal(this);
+                  return true;
+              } catch (IllegalStateException e) {
+                  return false;
+              }
+          }
+
+
+          public List<Contrato> getContratosPorTipo(TipoContrato tipo) {
+              return contratos.stream()
+                      .filter(c -> c.getTipoContrato() == tipo)
+                      .toList();
+          }
+
+
+          public boolean tieneContratoProfesionalVigente() {
+              return contratos.stream()
+                      .filter(Contrato::estaVigente)
+                      .anyMatch(Contrato::esProfesional);
+          }
+
+
+          public boolean tieneContratoConvocatoriaVigente() {
+              return contratos.stream()
+                      .filter(Contrato::estaVigente)
+                      .anyMatch(Contrato::esConvocatoria);
+          }
+
+
+          public Equipo getEquipoActual() {
+              Contrato vigente = getContratoVigente();
+              return vigente != null ? vigente.getEquipo() : null;
+          }
   }
-}
+
 

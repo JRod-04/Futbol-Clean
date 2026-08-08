@@ -18,8 +18,8 @@ public record TecnicoResponse(
         Nacion nacionalidad,
         String estiloJuego,
         String alineacionFavorita,
-        String clubActual,
-        UUID idClubActual
+        String equipoActual,
+        UUID idEquipoActual
 ) {
 
 }

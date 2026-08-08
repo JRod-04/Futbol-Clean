@@ -64,13 +64,13 @@ public class PartidoJPAEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_equipo_local", nullable = false,
                 foreignKey = @ForeignKey(name = "fk_partido_local"))
-    private ClubJPAEntity equipoLocal;
+    private EquipoJPAEntity equipoLocal;
  
     // FK equipo visitante
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_equipo_visitante", nullable = false,
                 foreignKey = @ForeignKey(name = "fk_partido_visitante"))
-    private ClubJPAEntity equipoVisitante;
+    private EquipoJPAEntity equipoVisitante;
  
     // FK estadio
     @ManyToOne(fetch = FetchType.LAZY)

@@ -5,7 +5,7 @@ import com.futbol.estadisticas.application.port.dto.request.CrearJugadorRequest;
 import com.futbol.estadisticas.application.port.dto.response.JugadorResponse;
 import com.futbol.estadisticas.application.port.mapper.JugadorMapper;
 import com.futbol.estadisticas.application.port.out.JugadorRepositoryPort;
-import com.futbol.estadisticas.domain.model.Club;
+import com.futbol.estadisticas.domain.model.Equipo;
 import com.futbol.estadisticas.domain.model.Contrato;
 import com.futbol.estadisticas.domain.model.DatosDeportivos;
 import com.futbol.estadisticas.domain.model.Jugador;
@@ -58,8 +58,8 @@ class JugadorServiceTest {
     private Jugador jugador;
     private Jugador jugador2;
     private DatosDeportivos datosDeportivos;
-    private Club club;
-    private Club club2;
+    private Equipo club;
+    private Equipo club2;
     private Lesion lesion;
     private Lesion lesion2;
     private JugadorResponse response;
@@ -70,14 +70,14 @@ class JugadorServiceTest {
     @BeforeEach
     void setUp() {
         // Crear clubes
-        club = Club.builder()
+        club = Equipo.builder()
                 .idEquipo(ID_CLUB)
                 .nombre("Arsenal FC")
                 .nombreCorto("Arsenal")
                 .fechaFundacion(LocalDate.of(1886, 10, 1))
                 .build();
 
-        club2 = Club.builder()
+        club2 = Equipo.builder()
                 .idEquipo(ID_CLUB_2)
                 .nombre("FC Barcelona")
                 .nombreCorto("Barça")
@@ -132,7 +132,7 @@ class JugadorServiceTest {
         // Agregar contrato al jugador
         Contrato contrato = Contrato.builder()
                 .idContrato(UUID.randomUUID())
-                .club(club)
+                .equipo(club)
                 .fechaInicio(LocalDateTime.now().minusMonths(6))
                 .fechaFin(LocalDateTime.now().plusMonths(6))
                 .sueldo(5_000_000.0)
@@ -268,8 +268,8 @@ class JugadorServiceTest {
         assertThat(result.posicion()).isEqualTo(PosicionJugador.EXTREMO_DERECHO);
         assertThat(result.dorsal()).isEqualTo(7);
         assertThat(result.estadoJugador()).isEqualTo(EstadoJugador.TITULAR);
-        assertThat(result.clubActual()).isEqualTo("Arsenal FC");
-        assertThat(result.idClubActual()).isEqualTo(ID_CLUB);
+        assertThat(result.equipoActual()).isEqualTo("Arsenal FC");
+        assertThat(result.idEquipoActual()).isEqualTo(ID_CLUB);
         assertThat(result.lesionesActivas()).isEqualTo(1);
 
         verify(jugadorRepository).findById(ID_JUGADOR);
@@ -327,33 +327,33 @@ class JugadorServiceTest {
 
     @Test
     @DisplayName("obtenerJugadoresPorClub: debe retornar jugadores de un club")
-    void testObtenerJugadoresPorClub() {
+    void testObtenerJugadoresPorEquipo() {
         List<Jugador> jugadores = List.of(jugador);
         List<JugadorResponse> responses = List.of(response);
 
-        when(jugadorRepository.findByClub(ID_CLUB)).thenReturn(jugadores);
+        when(jugadorRepository.findByEquipo(ID_CLUB)).thenReturn(jugadores);
         when(jugadorMapper.toResponse(jugador)).thenReturn(response);
 
-        List<JugadorResponse> result = jugadorService.obtenerJugadoresPorClub(ID_CLUB);
+        List<JugadorResponse> result = jugadorService.obtenerJugadoresPorEquipo(ID_CLUB);
 
         assertThat(result).hasSize(1);
-        assertThat(result.get(0).clubActual()).isEqualTo("Arsenal FC");
-        assertThat(result.get(0).idClubActual()).isEqualTo(ID_CLUB);
+        assertThat(result.get(0).equipoActual()).isEqualTo("Arsenal FC");
+        assertThat(result.get(0).idEquipoActual()).isEqualTo(ID_CLUB);
 
-        verify(jugadorRepository).findByClub(ID_CLUB);
+        verify(jugadorRepository).findByEquipo(ID_CLUB);
         verify(jugadorMapper).toResponse(jugador);
     }
 
     @Test
     @DisplayName("obtenerJugadoresPorClub: debe retornar lista vacía cuando el club no tiene jugadores")
-    void testObtenerJugadoresPorClub_Vacio() {
+    void testObtenerJugadoresPorEquipo_Vacio() {
         UUID clubSinJugadores = UUID.randomUUID();
-        when(jugadorRepository.findByClub(clubSinJugadores)).thenReturn(List.of());
+        when(jugadorRepository.findByEquipo(clubSinJugadores)).thenReturn(List.of());
 
-        List<JugadorResponse> result = jugadorService.obtenerJugadoresPorClub(clubSinJugadores);
+        List<JugadorResponse> result = jugadorService.obtenerJugadoresPorEquipo(clubSinJugadores);
 
         assertThat(result).isEmpty();
-        verify(jugadorRepository).findByClub(clubSinJugadores);
+        verify(jugadorRepository).findByEquipo(clubSinJugadores);
         verify(jugadorMapper, never()).toResponse(any());
     }
 

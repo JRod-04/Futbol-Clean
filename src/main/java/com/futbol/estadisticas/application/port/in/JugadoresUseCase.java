@@ -29,7 +29,7 @@ public interface JugadoresUseCase {
  
     List<JugadorResponse> obtenerTodosLosJugadores();
  
-    List<JugadorResponse> obtenerJugadoresPorClub(UUID idClub);
+    List<JugadorResponse> obtenerJugadoresPorEquipo(UUID idEquipo);
  
     List<JugadorResponse> obtenerJugadoresPorPosicion(PosicionJugador posicion);
  

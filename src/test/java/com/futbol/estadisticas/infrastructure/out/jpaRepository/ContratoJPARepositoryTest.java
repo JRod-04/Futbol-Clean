@@ -39,7 +39,7 @@ class ContratoJPARepositoryTest extends PostgresTestContainerConfig {
     private JugadorJPARepository jugadorRepository;
 
     @Autowired
-    private ClubJPARepository clubRepository;
+    private EquipoJPARepository clubRepository;
 
     @Autowired
     private EstadioJPARepository estadioRepository;
@@ -92,7 +92,7 @@ class ContratoJPARepositoryTest extends PostgresTestContainerConfig {
         estadioRepository.saveAll(List.of(estadio1, estadio2));
 
         // 2. Crear clubes
-        ClubJPAEntity club1 = ClubJPAEntity.builder()
+        EquipoJPAEntity club1 = EquipoJPAEntity.builder()
                 .idEquipo(ID_CLUB_1)
                 .nombre("Club 1")
                 .nombreCorto("CL1")
@@ -100,7 +100,7 @@ class ContratoJPARepositoryTest extends PostgresTestContainerConfig {
                 .estadio(estadio1)
                 .build();
 
-        ClubJPAEntity club2 = ClubJPAEntity.builder()
+        EquipoJPAEntity club2 = EquipoJPAEntity.builder()
                 .idEquipo(ID_CLUB_2)
                 .nombre("Club 2")
                 .nombreCorto("CL2")
@@ -142,7 +142,7 @@ class ContratoJPARepositoryTest extends PostgresTestContainerConfig {
         ContratoJPAEntity contratoActivo = ContratoJPAEntity.builder()
                 .idContrato(ID_CONTRATO_ACTIVO)
                 .personal(jugador1)
-                .club(club1)
+                .equipo(club1)
                 .fechaInicio(LocalDateTime.now().minusMonths(6))
                 .fechaFin(LocalDateTime.now().plusMonths(6))
                 .sueldo(100000.0)
@@ -153,7 +153,7 @@ class ContratoJPARepositoryTest extends PostgresTestContainerConfig {
         ContratoJPAEntity contratoFinalizado = ContratoJPAEntity.builder()
                 .idContrato(ID_CONTRATO_FINALIZADO)
                 .personal(jugador1)
-                .club(club2)
+                .equipo(club2)
                 .fechaInicio(LocalDateTime.now().minusMonths(12))
                 .fechaFin(LocalDateTime.now().minusMonths(1))
                 .sueldo(80000.0)
@@ -164,7 +164,7 @@ class ContratoJPARepositoryTest extends PostgresTestContainerConfig {
         ContratoJPAEntity contratoFuturo = ContratoJPAEntity.builder()
                 .idContrato(ID_CONTRATO_FUTURO)
                 .personal(jugador2)
-                .club(club1)
+                .equipo(club1)
                 .fechaInicio(LocalDateTime.now().plusMonths(1))
                 .fechaFin(LocalDateTime.now().plusMonths(13))
                 .sueldo(120000.0)
@@ -211,8 +211,8 @@ class ContratoJPARepositoryTest extends PostgresTestContainerConfig {
 
     @Test
     @DisplayName("findByClubIdEquipo: debe encontrar los contratos de un club")
-    void testFindByClubIdEquipo() {
-        List<ContratoJPAEntity> contratos = contratoRepository.findByClubIdEquipo(idClub1);
+    void testFindByEquipoIdEquipo() {
+        List<ContratoJPAEntity> contratos = contratoRepository.findByEquipoIdEquipo(idClub1);
         assertThat(contratos).hasSize(2);
         assertThat(contratos)
                 .extracting(ContratoJPAEntity::getPersonal)
@@ -236,14 +236,14 @@ class ContratoJPARepositoryTest extends PostgresTestContainerConfig {
 
     @Test
     @DisplayName("findVigentesByClub: debe encontrar los contratos vigentes de un club")
-    void testFindVigentesByClub() {
+    void testFindVigentesByEquipo() {
         // Club 1 tiene 1 contrato vigente (Jugador 1)
-        List<ContratoJPAEntity> contratosVigentes = contratoRepository.findVigentesByClub(idClub1);
+        List<ContratoJPAEntity> contratosVigentes = contratoRepository.findVigentesByEquipo(idClub1);
         assertThat(contratosVigentes).hasSize(1);
         assertThat(contratosVigentes.get(0).getIdContrato()).isEqualTo(idContratoActivo);
 
         // Club 2 tiene 0 contratos vigentes
-        List<ContratoJPAEntity> contratosVigentes2 = contratoRepository.findVigentesByClub(idClub2);
+        List<ContratoJPAEntity> contratosVigentes2 = contratoRepository.findVigentesByEquipo(idClub2);
         assertThat(contratosVigentes2).isEmpty();
     }
 
@@ -283,7 +283,7 @@ class ContratoJPARepositoryTest extends PostgresTestContainerConfig {
         ContratoJPAEntity nuevoContrato = ContratoJPAEntity.builder()
                 .idContrato(nuevoId)
                 .personal(jugadorRepository.findById(idJugador2).orElseThrow())
-                .club(clubRepository.findById(idClub2).orElseThrow())
+                .equipo(clubRepository.findById(idClub2).orElseThrow())
                 .fechaInicio(LocalDateTime.now())
                 .fechaFin(LocalDateTime.now().plusYears(1))
                 .sueldo(150000.0)

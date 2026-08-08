@@ -16,7 +16,7 @@ public interface EstadioUseCase {
  
     EstadioResponse actualizarEstadio(UUID idEstadio, ActualizarEstadioRequest request);
  
-    EstadioResponse asignarEstadioAClub(UUID idEstadio, UUID idClub);
+    EstadioResponse asignarEstadioAEquipo(UUID idEstadio, UUID idEquipo);
  
     double calcularPorcentajeOcupacion(UUID idEstadio, Integer espectadores);
  

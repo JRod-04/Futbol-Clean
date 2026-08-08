@@ -13,11 +13,11 @@ import com.futbol.estadisticas.infrastructure.out.jpaEntity.ContratoJPAEntity;
 public interface ContratoJPARepository extends JpaRepository <ContratoJPAEntity, UUID>{
     List<ContratoJPAEntity> findByPersonalIdPersonal(UUID idPersonal);
  
-    List<ContratoJPAEntity> findByClubIdEquipo(UUID idClub);
+    List<ContratoJPAEntity> findByEquipoIdEquipo(UUID idEquipo);
 
     @Query("SELECT c FROM ContratoJPAEntity c " +
             "LEFT JOIN FETCH c.personal " +
-            "LEFT JOIN FETCH c.club " +
+            "LEFT JOIN FETCH c.equipo " +
             "WHERE c.idContrato = :id")
     Optional<ContratoJPAEntity> findByIdWithRelations(@Param("id") UUID id);
 
@@ -32,10 +32,10 @@ public interface ContratoJPARepository extends JpaRepository <ContratoJPAEntity,
  
     @Query("""
            SELECT c FROM ContratoJPAEntity c
-           WHERE c.club.idEquipo = :idClub
+           WHERE c.equipo.idEquipo = :idEquipo
              AND c.estado = 'ACTIVO'
              AND c.fechaInicio <= CURRENT_TIMESTAMP
              AND c.fechaFin >= CURRENT_TIMESTAMP
            """)
-    List<ContratoJPAEntity> findVigentesByClub(@Param("idClub") UUID idClub);
+    List<ContratoJPAEntity> findVigentesByEquipo(@Param("idEquipo") UUID idEquipo);
 }

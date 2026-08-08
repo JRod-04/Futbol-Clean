@@ -34,7 +34,7 @@ public class CompeticionJPAEntity {
 
     @ManyToOne
     @JoinColumn(name = "id_equipo_ganador")
-    private ClubJPAEntity equipoGanador;
+    private EquipoJPAEntity equipoGanador;
 
     // Partidos de esta competición (relación inversa)
     @OneToMany(mappedBy = "competicion", fetch = FetchType.LAZY)

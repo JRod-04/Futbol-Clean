@@ -32,13 +32,13 @@ class TecnicoTest {
     @Test
     @DisplayName("asignarClub: debe asignar un club al técnico")
     void testAsignarClub() {
-        Club club = Club.builder()
+        Equipo club = Equipo.builder()
                 .idEquipo(UUID.randomUUID())
                 .nombre("Arsenal FC")
                 .build();
 
         tecnico.asignarClub(club);
-        assertThat(tecnico.getClubActualAsignado()).isEqualTo(club);
+        assertThat(tecnico.getEquipoActualAsignado()).isEqualTo(club);
     }
 
     @Test
@@ -52,14 +52,14 @@ class TecnicoTest {
     @Test
     @DisplayName("desvincularClub: debe desvincular al técnico del club")
     void testDesvincularClub() {
-        Club club = Club.builder()
+        Equipo club = Equipo.builder()
                 .idEquipo(UUID.randomUUID())
                 .nombre("Arsenal FC")
                 .build();
 
         tecnico.asignarClub(club);
         tecnico.desvincularClub();
-        assertThat(tecnico.getClubActualAsignado()).isNull();
+        assertThat(tecnico.getEquipoActualAsignado()).isNull();
     }
 
     @Test
@@ -104,7 +104,7 @@ class TecnicoTest {
     @DisplayName("getClubActual: debe retornar el club actual si tiene contrato vigente")
     void testGetClubActual() {
         // No hay contrato, debería retornar clubActualAsignado
-        Club club = Club.builder()
+        Equipo club = Equipo.builder()
                 .idEquipo(UUID.randomUUID())
                 .nombre("Arsenal FC")
                 .build();

@@ -18,11 +18,11 @@ public interface ContratoRepositoryPort {
  
     List<Contrato> findByPersonal(UUID idPersonal);
  
-    List<Contrato> findByClub(UUID idClub);
+    List<Contrato> findByEquipo(UUID idEquipo);
  
     Optional<Contrato> findVigenteByPersonal(UUID idPersonal);
  
-    List<Contrato> findVigentesByClub(UUID idClub);
+    List<Contrato> findVigentesByEquipo(UUID idEquipo);
  
     boolean existsById(UUID idContrato);
  

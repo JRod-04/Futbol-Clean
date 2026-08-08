@@ -3,7 +3,6 @@ package com.futbol.estadisticas.domain.model;
 import com.futbol.estadisticas.domain.model.enums.EstadoContrato;
 import com.futbol.estadisticas.domain.model.enums.EstadoJugador;
 import com.futbol.estadisticas.domain.model.enums.Nacion;
-import com.futbol.estadisticas.domain.model.enums.PosicionJugador;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -17,7 +16,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class ClubTest {
 
-    private Club club;
+    private Equipo club;
     private Estadio estadio;
     private static final UUID ID_CLUB = UUID.randomUUID();
 
@@ -29,7 +28,7 @@ class ClubTest {
                 .capacidad(60704)
                 .build();
 
-        club = Club.builder()
+        club = Equipo.builder()
                 .idEquipo(ID_CLUB)
                 .nombre("Arsenal FC")
                 .nombreCorto("ARS")
@@ -49,7 +48,7 @@ class ClubTest {
         club.agregarContrato(contrato);
 
         assertThat(club.getContratos()).hasSize(1);
-        assertThat(contrato.getClub()).isEqualTo(club);
+        assertThat(contrato.getEquipo()).isEqualTo(club);
     }
 
     @Test
@@ -142,7 +141,7 @@ class ClubTest {
 
         assertThat(club.getTecnicoActual()).isEqualTo(tecnico);
         assertThat(club.getTecnicos()).hasSize(1);
-        assertThat(tecnico.getClubActualAsignado()).isEqualTo(club);
+        assertThat(tecnico.getEquipoActualAsignado()).isEqualTo(club);
     }
 
     @Test
@@ -166,7 +165,7 @@ class ClubTest {
         club.desvincularTecnico();
 
         assertThat(club.getTecnicoActual()).isNull();
-        assertThat(tecnico.getClubActualAsignado()).isNull();
+        assertThat(tecnico.getEquipoActualAsignado()).isNull();
     }
 
     @Test

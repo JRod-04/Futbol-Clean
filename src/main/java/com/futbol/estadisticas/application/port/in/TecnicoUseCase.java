@@ -19,7 +19,7 @@ public interface TecnicoUseCase {
  
     List<TecnicoResponse> obtenerTodosTecnicos();
  
-    TecnicoResponse obtenerTecnicoActualDeClub(UUID idClub);
+    TecnicoResponse obtenerTecnicoActualDeEquipo(UUID idEquipo);
  
     TecnicoResponse actualizarTecnico(UUID idTecnico, ActualizarTecnicoRequest request);
 

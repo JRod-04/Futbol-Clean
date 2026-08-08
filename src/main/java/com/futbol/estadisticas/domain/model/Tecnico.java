@@ -21,7 +21,7 @@ public class Tecnico extends PersonalDeportivo {
 
     private String estiloJuego;
     private String alineacionFavorita;
-    private Club clubActualAsignado;
+    private Equipo equipoActualAsignado;
 
     public Tecnico(UUID idPersonal, String nombre, String apellido,
                    LocalDate fechaNacimiento, Nacion nacionalidad,
@@ -33,22 +33,22 @@ public class Tecnico extends PersonalDeportivo {
     }
 
     //Devuelve el contrato Vigente
-    public Club getClubActual() {
+    public Equipo getClubActual() {
         Contrato contrato = getContratoVigente();
-        return contrato != null ? contrato.getClub() : clubActualAsignado;
+        return contrato != null ? contrato.getEquipo() : equipoActualAsignado;
     }
 
     //Asigna un club al técnico. 
-    public void asignarClub(Club club) {
+    public void asignarClub(Equipo club) {
         if (club == null) {
             throw new IllegalArgumentException("El club no puede ser nulo");
         }
-        this.clubActualAsignado = club;
+        this.equipoActualAsignado = club;
     }
 
     //Desvincula al técnico de su club actual. 
     public void desvincularClub() {
-        this.clubActualAsignado = null;
+        this.equipoActualAsignado = null;
     }
 
     

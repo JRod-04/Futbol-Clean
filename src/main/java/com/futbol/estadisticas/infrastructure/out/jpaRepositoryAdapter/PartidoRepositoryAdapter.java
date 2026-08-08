@@ -1,7 +1,6 @@
 package com.futbol.estadisticas.infrastructure.out.jpaRepositoryAdapter;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -13,10 +12,9 @@ import org.springframework.stereotype.Component;
 
 import com.futbol.estadisticas.application.port.out.PartidoRepositoryPort;
 import com.futbol.estadisticas.domain.model.Partido;
-import com.futbol.estadisticas.domain.model.enums.EstadoPartido;
 import com.futbol.estadisticas.infrastructure.out.InfrastructureMapper;
 import com.futbol.estadisticas.infrastructure.out.jpaRepository.ArbitroJPARepository;
-import com.futbol.estadisticas.infrastructure.out.jpaRepository.ClubJPARepository;
+import com.futbol.estadisticas.infrastructure.out.jpaRepository.EquipoJPARepository;
 import com.futbol.estadisticas.infrastructure.out.jpaRepository.CompeticionJPARepository;
 import com.futbol.estadisticas.infrastructure.out.jpaRepository.EstadioJPARepository;
 import com.futbol.estadisticas.infrastructure.out.jpaRepository.PartidoJPARepository;
@@ -29,7 +27,7 @@ import lombok.RequiredArgsConstructor;
 public class PartidoRepositoryAdapter implements PartidoRepositoryPort {
 
     private final PartidoJPARepository     repository;
-    private final ClubJPARepository        clubRepo;
+    private final EquipoJPARepository clubRepo;
     private final EstadioJPARepository     estadioRepo;
     private final ArbitroJPARepository     arbitroRepo;
     private final CompeticionJPARepository competicionRepo;
@@ -37,9 +35,9 @@ public class PartidoRepositoryAdapter implements PartidoRepositoryPort {
  
     @Override
     public Partido save(Partido partido) {
-        ClubJPAEntity local = clubRepo.findById(
+        EquipoJPAEntity local = clubRepo.findById(
                 partido.getEquipoLocal().getIdEquipo()).orElseThrow();
-        ClubJPAEntity visitante = clubRepo.findById(
+        EquipoJPAEntity visitante = clubRepo.findById(
                 partido.getEquipoVisitante().getIdEquipo()).orElseThrow();
         EstadioJPAEntity estadio = partido.getEstadio() != null
                 ? estadioRepo.findById(partido.getEstadio().getIdEstadio()).orElse(null) : null;
@@ -84,8 +82,8 @@ public class PartidoRepositoryAdapter implements PartidoRepositoryPort {
     }
  
     @Override
-    public List<Partido> findByClub(UUID idClub) {
-        return repository.findByClub(idClub).stream().map(mapper::PartidotoDomain).toList();
+    public List<Partido> findByEquipo(UUID idEquipo) {
+        return repository.findByEquipo(idEquipo).stream().map(mapper::PartidotoDomain).toList();
     }
  
     @Override

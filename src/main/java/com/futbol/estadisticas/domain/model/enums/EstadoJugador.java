@@ -17,23 +17,19 @@ public enum EstadoJugador {
     private final String descripcion;
     private final int orden;
     
-    //Verifica si el jugador está disponible para jugar 
     public boolean estaDisponible() {
         return this == TITULAR || this == SUPLENTE;
     }
     
-    //Verifica si el jugador está inactivo
     public boolean estaInactivo() {
         return this == LESIONADO || this == SUSPENDIDO || this == RETIRADO || this == APARTADO;
     }
     
-    //Verifica si el jugador puede ser convocado
     public boolean puedeSerConvocado() {
         return this == TITULAR || this == SUPLENTE;
     }
     
-    //Obtiene el estado base (sin considerar lesiones o suspensiones)
-    
+
     public EstadoJugador getEstadoBase() {
         if (this == LESIONADO || this == SUSPENDIDO || this == APARTADO) {
             return SUPLENTE; 
@@ -41,19 +37,15 @@ public enum EstadoJugador {
         return this;
     }
     
-    //Transición de estado válida
     public boolean puedeTransicionarA(EstadoJugador nuevoEstado) {
-        // Un jugador retirado no puede cambiar de estado
         if (this == RETIRADO) {
             return false;
         }
         
-        // Un jugador suspendido solo puede pasar a SUPLENTE o TITULAR
         if (this == SUSPENDIDO && nuevoEstado != SUPLENTE && nuevoEstado != TITULAR) {
             return false;
         }
         
-        // Un jugador lesionado solo puede pasar a SUPLENTE o TITULAR (cuando se recupere)
         if (this == LESIONADO && nuevoEstado != SUPLENTE && nuevoEstado != TITULAR) {
             return false;
         }

@@ -39,7 +39,7 @@ import lombok.RequiredArgsConstructor;
 public class PartidoService implements PartidoUseCase {
 
     private final PartidoRepositoryPort           partidoRepository;
-    private final ClubRepositoryPort              clubRepository;
+    private final EquipoRepositoryPort clubRepository;
     private final CompeticionRepositoryPort       competicionRepository;
     private final ArbitroRepositoryPort           arbitroRepository;
     private final EstadioRepositoryPort           estadioRepository;
@@ -53,8 +53,8 @@ public class PartidoService implements PartidoUseCase {
     @Override
     public PartidoResponse programarPartido(CrearPartidoRequest request) {
         
-        Club local      = findClubOrThrow(request.idEquipoLocal());
-        Club visitante  = findClubOrThrow(request.idEquipoVisitante());
+        Equipo local      = findClubOrThrow(request.idEquipoLocal());
+        Equipo visitante  = findClubOrThrow(request.idEquipoVisitante());
         Competicion competicion = findCompeticionOrThrow(request.idCompeticion());
         Arbitro arbitro = findArbitroOrThrow(request.idArbitro());
  
@@ -100,8 +100,8 @@ public class PartidoService implements PartidoUseCase {
 
         for (CrearPartidoRequest request : requests) {
             // Validar y obtener dependencias
-            Club local = findClubOrThrow(request.idEquipoLocal());
-            Club visitante = findClubOrThrow(request.idEquipoVisitante());
+            Equipo local = findClubOrThrow(request.idEquipoLocal());
+            Equipo visitante = findClubOrThrow(request.idEquipoVisitante());
             Competicion competicion = findCompeticionOrThrow(request.idCompeticion());
             Arbitro arbitro = findArbitroOrThrow(request.idArbitro());
 
@@ -205,8 +205,8 @@ public class PartidoService implements PartidoUseCase {
  
     @Override
     @Transactional(readOnly = true)
-    public List<PartidoResponse> obtenerPartidosPorClub(UUID idClub) {
-        return partidoRepository.findByClub(idClub).stream()
+    public List<PartidoResponse> obtenerPartidosPorEquipo(UUID idEquipo) {
+        return partidoRepository.findByEquipo(idEquipo).stream()
                 .map(partidoMapper::toResponse)
                 .toList();
     }
@@ -217,7 +217,7 @@ public class PartidoService implements PartidoUseCase {
 
         Jugador jugadorEntrante = findJugadorOrThrow(request.idJugadorEntrante());
         Jugador jugadorSaliente = findJugadorOrThrow(request.idJugadorSaliente());
-        Club club = findClubOrThrow(request.idClub());
+        Equipo club = findClubOrThrow(request.idEquipo());
 
         List<EventosPartido> eventosSustitucion =
                 partido.realizarSustitucion(jugadorEntrante, jugadorSaliente, club, request.minuto());
@@ -307,7 +307,7 @@ public class PartidoService implements PartidoUseCase {
                             "Personal no encontrado con id: " + request.idPersonal()));
         }
 
-        Club equipoFavorecido = null;
+        Equipo equipoFavorecido = null;
         if (request.idEquipoFavorecido() != null) {
             equipoFavorecido = findClubOrThrow(request.idEquipoFavorecido());
         }
@@ -348,7 +348,7 @@ public class PartidoService implements PartidoUseCase {
                         .orElseThrow(() -> new PersonalNotFoundException("Personal no encontrado"));
             }
 
-            Club equipoFavorecido = null;
+            Equipo equipoFavorecido = null;
             if (request.idEquipoFavorecido() != null) {
                 equipoFavorecido = findClubOrThrow(request.idEquipoFavorecido());
             }
@@ -494,7 +494,7 @@ public class PartidoService implements PartidoUseCase {
                         "Partido no encontrado con id: " + idPartido));
     }
  
-    private Club findClubOrThrow(UUID idClub) {
+    private Equipo findClubOrThrow(UUID idClub) {
         return clubRepository.findById(idClub)
                 .orElseThrow(() -> new IllegalArgumentException(
                         "Club no encontrado con id: " + idClub));

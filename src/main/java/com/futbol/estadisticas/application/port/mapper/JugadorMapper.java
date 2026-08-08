@@ -8,11 +8,10 @@ import org.springframework.stereotype.Component;
 
 import com.futbol.estadisticas.application.port.dto.request.CrearJugadorRequest;
 import com.futbol.estadisticas.application.port.dto.response.JugadorResponse;
-import com.futbol.estadisticas.domain.model.Club;
+import com.futbol.estadisticas.domain.model.Equipo;
 import com.futbol.estadisticas.domain.model.DatosDeportivos;
 import com.futbol.estadisticas.domain.model.Jugador;
 import com.futbol.estadisticas.domain.model.enums.EstadoJugador;
-import com.futbol.estadisticas.domain.model.enums.PosicionJugador;
 import com.futbol.estadisticas.domain.model.enums.TipoPersonal;
 
 @Component
@@ -52,7 +51,7 @@ public class JugadorMapper {
  
     public JugadorResponse toResponse(Jugador jugador) {
         DatosDeportivos datos = jugador.getDatosDeportivos();
-        Club club = jugador.getClubActual();
+        Equipo club = jugador.getEquipoActual();
         long lesionesActivas = jugador.getLesiones().stream()
                 .filter(l -> l.esActiva())
                 .count();

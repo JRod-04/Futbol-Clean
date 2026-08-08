@@ -47,9 +47,9 @@ public class Jugador extends PersonalDeportivo {
 
 
     //Devuelve el club con el que el jugador tiene contrato vigente, o null si no tiene.
-    public Club getClubActual() {
+    public Equipo getEquipoActual() {
         Contrato contrato = getContratoVigente();
-        return contrato != null ? contrato.getClub() : null;
+        return contrato != null ? contrato.getEquipo() : null;
     }
 
     //Registra una lesión en el jugador y actualiza su estado a LESIONADO.

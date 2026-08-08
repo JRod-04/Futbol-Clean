@@ -62,9 +62,9 @@ public class JugadorController {
         return ResponseEntity.ok(jugadoresUseCase.obtenerJugadorPorId(id));
     }
  
-    @GetMapping("/club/{idClub}")
-    public ResponseEntity<List<JugadorResponse>> porClub(@PathVariable UUID idClub) {
-        return ResponseEntity.ok(jugadoresUseCase.obtenerJugadoresPorClub(idClub));
+    @GetMapping("/club/{idEquipo}")
+    public ResponseEntity<List<JugadorResponse>> porEquipo(@PathVariable UUID idEquipo) {
+        return ResponseEntity.ok(jugadoresUseCase.obtenerJugadoresPorEquipo(idEquipo));
     }
  
     @GetMapping("/posicion/{posicion}")

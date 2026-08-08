@@ -8,7 +8,7 @@ import com.futbol.estadisticas.domain.model.enums.JuegoPies;
 import com.futbol.estadisticas.domain.model.enums.Nacion;
 import com.futbol.estadisticas.domain.model.enums.PosicionJugador;
 import com.futbol.estadisticas.infrastructure.out.jpaRepositoryAdapter.JugadorRepositoryAdapter;
-import com.futbol.estadisticas.infrastructure.out.jpaEntity.ClubJPAEntity;
+import com.futbol.estadisticas.infrastructure.out.jpaEntity.EquipoJPAEntity;
 import com.futbol.estadisticas.infrastructure.out.jpaEntity.ContratoJPAEntity;
 import com.futbol.estadisticas.infrastructure.out.jpaEntity.DatosDeportivosJPAEntity;
 import com.futbol.estadisticas.infrastructure.out.jpaEntity.JugadorJPAEntity;
@@ -49,7 +49,7 @@ class JugadorJPARepositoryTest extends PostgresTestContainerConfig {
     private JugadorJPARepository repository;
 
     @Autowired
-    private ClubJPARepository clubRepository;
+    private EquipoJPARepository clubRepository;
 
     private static final UUID ID_JUGADOR_1 = UUID.fromString("ffffffff-ffff-ffff-ffff-ffffffffffff");
     private static final UUID ID_JUGADOR_2 = UUID.fromString("11111111-2222-3333-4444-555555555555");
@@ -64,7 +64,7 @@ class JugadorJPARepositoryTest extends PostgresTestContainerConfig {
         clubRepository.deleteAll();
 
         // Crear club
-        ClubJPAEntity club = ClubJPAEntity.builder()
+        EquipoJPAEntity club = EquipoJPAEntity.builder()
                 .idEquipo(ID_CLUB)
                 .nombre("FC Barcelona")
                 .nombreCorto("Barça")
@@ -103,7 +103,7 @@ class JugadorJPARepositoryTest extends PostgresTestContainerConfig {
                 .sueldo(5000000.0)
                 .estado(EstadoContrato.ACTIVO)
                 .personal(jugador1)
-                .club(club)
+                .equipo(club)
                 .build();
         jugador1.setContratos(List.of(contrato1));
 
@@ -138,7 +138,7 @@ class JugadorJPARepositoryTest extends PostgresTestContainerConfig {
                 .sueldo(3000000.0)
                 .estado(EstadoContrato.ACTIVO)
                 .personal(jugador2)
-                .club(club)
+                .equipo(club)
                 .build();
         jugador2.setContratos(List.of(contrato2));
 
@@ -173,7 +173,7 @@ class JugadorJPARepositoryTest extends PostgresTestContainerConfig {
                 .sueldo(4000000.0)
                 .estado(EstadoContrato.ACTIVO)
                 .personal(jugador3)
-                .club(club)
+                .equipo(club)
                 .build();
         jugador3.setContratos(List.of(contrato3));
 
@@ -206,8 +206,8 @@ class JugadorJPARepositoryTest extends PostgresTestContainerConfig {
 
     @Test
     @DisplayName("findByClub: debe encontrar jugadores con contrato activo en un club")
-    void testFindByClub() {
-        List<Jugador> jugadores = adapter.findByClub(ID_CLUB);
+    void testFindByEquipo() {
+        List<Jugador> jugadores = adapter.findByEquipo(ID_CLUB);
         
         assertThat(jugadores).hasSize(3);
         assertThat(jugadores)
@@ -393,9 +393,9 @@ class JugadorJPARepositoryTest extends PostgresTestContainerConfig {
 
     @Test
     @DisplayName("findByClub: debe retornar lista vacía cuando el club no tiene jugadores con contrato activo")
-    void testFindByClub_SinJugadores() {
+    void testFindByEquipo_SinJugadores() {
         UUID clubSinJugadores = UUID.randomUUID();
-        List<Jugador> jugadores = adapter.findByClub(clubSinJugadores);
+        List<Jugador> jugadores = adapter.findByEquipo(clubSinJugadores);
         assertThat(jugadores).isEmpty();
     }
 }

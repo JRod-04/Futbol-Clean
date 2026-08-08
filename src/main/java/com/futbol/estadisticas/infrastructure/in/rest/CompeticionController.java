@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.UUID;
 
 import com.futbol.estadisticas.application.port.dto.request.ActualizarGanadorRequest;
-import com.futbol.estadisticas.application.port.dto.response.ClubResponse;
+import com.futbol.estadisticas.application.port.dto.response.EquipoResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -42,10 +42,10 @@ public class CompeticionController {
         return ResponseEntity.ok(competicionUseCase.obtenerCompeticionesActivas());
     }
 
-    @GetMapping("/{id}/clubes")
-    public ResponseEntity<List<ClubResponse>> obtenerClubesParticipantes(
+    @GetMapping("/{id}/equipos")
+    public ResponseEntity<List<EquipoResponse>> obtenerClubesParticipantes(
             @PathVariable UUID id) {
-        return ResponseEntity.ok(competicionUseCase.obtenerClubesParticipantes(id));
+        return ResponseEntity.ok(competicionUseCase.obtenerEquiposParticipantes(id));
     }
  
     @GetMapping("/{id}")

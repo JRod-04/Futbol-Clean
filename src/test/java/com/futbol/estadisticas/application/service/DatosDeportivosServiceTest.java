@@ -4,8 +4,7 @@ import com.futbol.estadisticas.application.port.dto.response.DatosDeportivosResp
 import com.futbol.estadisticas.application.port.mapper.DatosDeportivosMapper;
 import com.futbol.estadisticas.application.port.out.DatosDeportivosRepositoryPort;
 import com.futbol.estadisticas.application.port.out.JugadorRepositoryPort;
-import com.futbol.estadisticas.application.service.DatosDeportivosService;
-import com.futbol.estadisticas.domain.model.Club;
+import com.futbol.estadisticas.domain.model.Equipo;
 import com.futbol.estadisticas.domain.model.Contrato;
 import com.futbol.estadisticas.domain.model.DatosDeportivos;
 import com.futbol.estadisticas.domain.model.Jugador;
@@ -46,11 +45,11 @@ class DatosDeportivosServiceTest {
     private Jugador jugador;
     private DatosDeportivos datos;
     private DatosDeportivosResponse response;
-    private Club club;
+    private Equipo club;
 
     @BeforeEach
     void setUp() {
-        club = Club.builder()
+        club = Equipo.builder()
                 .idEquipo(ID_CLUB)
                 .nombre("Arsenal FC")
                 .build();
@@ -218,7 +217,7 @@ class DatosDeportivosServiceTest {
     void testActualizarDorsal() {
         // Given - jugador con club
         Contrato contrato = Contrato.builder()
-                .club(club)
+                .equipo(club)
                 .fechaInicio(LocalDateTime.now().minusMonths(6))
                 .fechaFin(LocalDateTime.now().plusMonths(6))
                 .estado(EstadoContrato.ACTIVO)
@@ -228,7 +227,7 @@ class DatosDeportivosServiceTest {
 
         when(jugadorRepository.findById(ID_JUGADOR)).thenReturn(Optional.of(jugador));
         when(datosDeportivosRepository.findByJugador(ID_JUGADOR)).thenReturn(Optional.of(datos));
-        when(jugadorRepository.findByClub(ID_CLUB)).thenReturn(List.of(jugador));
+        when(jugadorRepository.findByEquipo(ID_CLUB)).thenReturn(List.of(jugador));
         when(datosDeportivosRepository.save(any(DatosDeportivos.class))).thenReturn(datos);
         when(datosDeportivosMapper.toResponse(datos, jugador)).thenReturn(response);
 
@@ -238,7 +237,7 @@ class DatosDeportivosServiceTest {
         // Then
         assertThat(result).isNotNull();
         assertThat(datos.getDorsal()).isEqualTo(10);
-        verify(jugadorRepository).findByClub(ID_CLUB);
+        verify(jugadorRepository).findByEquipo(ID_CLUB);
         verify(datosDeportivosRepository).save(any(DatosDeportivos.class));
     }
 
@@ -257,7 +256,7 @@ class DatosDeportivosServiceTest {
         otroJugador.setDatosDeportivos(datosOtro);
 
         Contrato contrato = Contrato.builder()
-                .club(club)
+                .equipo(club)
                 .fechaInicio(LocalDateTime.now().minusMonths(6))
                 .fechaFin(LocalDateTime.now().plusMonths(6))
                 .estado(EstadoContrato.ACTIVO)
@@ -267,7 +266,7 @@ class DatosDeportivosServiceTest {
 
         when(jugadorRepository.findById(ID_JUGADOR)).thenReturn(Optional.of(jugador));
         when(datosDeportivosRepository.findByJugador(ID_JUGADOR)).thenReturn(Optional.of(datos));
-        when(jugadorRepository.findByClub(ID_CLUB)).thenReturn(List.of(jugador, otroJugador));
+        when(jugadorRepository.findByEquipo(ID_CLUB)).thenReturn(List.of(jugador, otroJugador));
 
         // When & Then
         assertThatThrownBy(() -> datosDeportivosService.actualizarDorsal(ID_JUGADOR, 10))
@@ -280,7 +279,7 @@ class DatosDeportivosServiceTest {
     void testActualizarDorsal_DorsalLibre() {
         // Given - jugador con club y dorsal libre
         Contrato contrato = Contrato.builder()
-                .club(club)
+                .equipo(club)
                 .fechaInicio(LocalDateTime.now().minusMonths(6))
                 .fechaFin(LocalDateTime.now().plusMonths(6))
                 .estado(EstadoContrato.ACTIVO)
@@ -290,7 +289,7 @@ class DatosDeportivosServiceTest {
 
         when(jugadorRepository.findById(ID_JUGADOR)).thenReturn(Optional.of(jugador));
         when(datosDeportivosRepository.findByJugador(ID_JUGADOR)).thenReturn(Optional.of(datos));
-        when(jugadorRepository.findByClub(ID_CLUB)).thenReturn(List.of(jugador));
+        when(jugadorRepository.findByEquipo(ID_CLUB)).thenReturn(List.of(jugador));
         when(datosDeportivosRepository.save(any(DatosDeportivos.class))).thenReturn(datos);
         when(datosDeportivosMapper.toResponse(datos, jugador)).thenReturn(response);
 
@@ -320,7 +319,7 @@ class DatosDeportivosServiceTest {
         // Then
         assertThat(result).isNotNull();
         assertThat(datos.getDorsal()).isEqualTo(10);
-        verify(jugadorRepository, never()).findByClub(any());
+        verify(jugadorRepository, never()).findByEquipo(any());
         verify(datosDeportivosRepository).save(any(DatosDeportivos.class));
     }
 
