@@ -13,7 +13,7 @@ import com.futbol.estadisticas.domain.model.Partido;
 
 @Component
 public class CompeticionMapper {
-     public Competicion toEntity(CrearCompeticionRequest request) {
+    public Competicion toEntity(CrearCompeticionRequest request) {
         return Competicion.builder()
                 .idCompeticion(UUID.randomUUID())
                 .nombre(request.nombre())

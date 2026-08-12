@@ -92,7 +92,7 @@ public class ContratoRepositoryAdapter implements ContratoRepositoryPort {
  
     @Override
     public void deleteById(UUID idContrato) {
-        repository.deleteById(idContrato);
+        repository.deleteContratoById(idContrato);
     }
 
     @Override

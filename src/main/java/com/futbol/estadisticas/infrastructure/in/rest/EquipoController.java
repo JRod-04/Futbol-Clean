@@ -3,6 +3,8 @@ package com.futbol.estadisticas.infrastructure.in.rest;
 import java.util.List;
 import java.util.UUID;
 
+import com.futbol.estadisticas.application.port.dto.request.AlineacionRequest;
+import com.futbol.estadisticas.application.port.dto.response.AlineacionResponse;
 import com.futbol.estadisticas.application.port.dto.response.CompeticionResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -40,13 +42,21 @@ private final EquipoUseCase equipoUseCase;
     public ResponseEntity<EquipoResponse> obtenerPorId(@PathVariable UUID id) {
         return ResponseEntity.ok(equipoUseCase.obtenerEquipoPorId(id));
     }
- 
+    @PatchMapping("/{idEquipo}/alineacion")
+    public ResponseEntity<AlineacionResponse> establecerAlineacionTitular(
+            @PathVariable UUID idEquipo,
+            @Valid @RequestBody AlineacionRequest request) {
+
+        return ResponseEntity.ok(equipoUseCase.establecerAlineacionTitular(idEquipo, request));
+    }
+
+
     @GetMapping("/{id}/jugadores")
     public ResponseEntity<List<JugadorResponse>> jugadoresActivos(@PathVariable UUID id) {
         return ResponseEntity.ok(equipoUseCase.obtenerJugadoresActivosDeEquipo(id));
     }
  
-    @GetMapping("/{id}/jugadores/disponibles")
+    @GetMapping("/{id}/disponibles")
     public ResponseEntity<List<JugadorResponse>> jugadoresDisponibles(@PathVariable UUID id) {
         return ResponseEntity.ok(equipoUseCase.obtenerJugadoresDisponiblesDeEquipo(id));
     }

@@ -18,7 +18,8 @@ public record EventoPartidoResponse(
  
         UUID idPersonal,
         String nombreJugador,
- 
+
+        UUID idEquipoFavorecido,
         String nombreEquipoFavorecido,
  
         boolean esGol,

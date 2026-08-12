@@ -5,6 +5,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -38,4 +39,8 @@ public interface ContratoJPARepository extends JpaRepository <ContratoJPAEntity,
              AND c.fechaFin >= CURRENT_TIMESTAMP
            """)
     List<ContratoJPAEntity> findVigentesByEquipo(@Param("idEquipo") UUID idEquipo);
+
+    @Modifying
+    @Query("DELETE FROM ContratoJPAEntity e WHERE e.idContrato = :idContrato")
+    void deleteContratoById(@Param("idContrato") UUID idContrato);
 }

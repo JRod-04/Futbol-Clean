@@ -2,6 +2,7 @@ package com.futbol.estadisticas.application.service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -84,9 +85,19 @@ public class ContratoService implements ContratoUseCase {
             Equipo equipo = equipoRepository.findById(request.idEquipo())
                     .orElseThrow(() -> new IllegalArgumentException("Club no encontrado"));
 
-            contratoRepository.findVigenteByPersonal(request.idPersonal()).ifPresent(c -> {
-                throw new IllegalStateException("El personal ya tiene contrato vigente");
-            });
+            Optional<Contrato> contratoVigente = contratoRepository.findVigenteByPersonal(request.idPersonal());
+
+            if (contratoVigente.isPresent()) {
+                Contrato existente = contratoVigente.get();
+
+                if (existente.estaVigente() && request.estado() == EstadoContrato.ACTIVO) {
+                    throw new IllegalStateException(
+                            "El personal ya tiene un contrato activo con: "
+                                    + existente.getEquipo().getNombre()
+                                    + " (vigente hasta: " + existente.getFechaFin() + ")");
+                }
+
+            }
 
             Contrato contrato = contratoMapper.toEntity(
                     UUID.randomUUID(),
@@ -239,6 +250,6 @@ public class ContratoService implements ContratoUseCase {
             club.getContratos().remove(contrato);
         }
 
-        contratoRepository.delete(contrato);
+        contratoRepository.deleteById(idContrato);
     }
 }

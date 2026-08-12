@@ -167,7 +167,7 @@ class JugadorServiceTest {
                 .pieHabil(JuegoPies.ZURDO)
                 .altura(178)
                 .peso(70)
-                .posicion(PosicionJugador.EXTREMO_DERECHO)
+                .posiciones(PosicionJugador.EXTREMO_DERECHO)
                 .dorsal(7)
                 .estadoJugador(EstadoJugador.TITULAR)
                 .valorMercado(85_000_000.0)

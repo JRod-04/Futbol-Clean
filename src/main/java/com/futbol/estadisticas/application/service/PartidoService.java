@@ -9,8 +9,8 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import com.futbol.estadisticas.application.port.dto.request.RealizarSustitucionRequest;
-import com.futbol.estadisticas.application.port.dto.response.SustitucionResponse;
-import com.futbol.estadisticas.application.port.dto.response.TandaPenalesResponse;
+import com.futbol.estadisticas.application.port.dto.response.*;
+import com.futbol.estadisticas.application.port.mapper.AlineacionMapper;
 import com.futbol.estadisticas.application.port.mapper.TandaPenalesMapper;
 import com.futbol.estadisticas.application.port.out.*;
 import com.futbol.estadisticas.domain.model.*;
@@ -23,8 +23,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.futbol.estadisticas.application.port.dto.request.CrearPartidoRequest;
 import com.futbol.estadisticas.application.port.dto.request.RegistrarEventoRequest;
-import com.futbol.estadisticas.application.port.dto.response.EventoPartidoResponse;
-import com.futbol.estadisticas.application.port.dto.response.PartidoResponse;
 import com.futbol.estadisticas.application.port.in.PartidoUseCase;
 import com.futbol.estadisticas.application.port.mapper.EventosPartidoMapper;
 import com.futbol.estadisticas.application.port.mapper.PartidoMapper;
@@ -39,7 +37,7 @@ import lombok.RequiredArgsConstructor;
 public class PartidoService implements PartidoUseCase {
 
     private final PartidoRepositoryPort           partidoRepository;
-    private final EquipoRepositoryPort clubRepository;
+    private final EquipoRepositoryPort            clubRepository;
     private final CompeticionRepositoryPort       competicionRepository;
     private final ArbitroRepositoryPort           arbitroRepository;
     private final EstadioRepositoryPort           estadioRepository;
@@ -48,16 +46,17 @@ public class PartidoService implements PartidoUseCase {
     private final PersonalDeportivoRepositoryPort personalRepository;
     private final PartidoMapper                   partidoMapper;
     private final EventosPartidoMapper            eventosMapper;
+    private final AlineacionMapper                alineacionMapper;
     private final TandaPenalesMapper              tandapenalesMapper;
- 
+
     @Override
     public PartidoResponse programarPartido(CrearPartidoRequest request) {
-        
+
         Equipo local      = findClubOrThrow(request.idEquipoLocal());
         Equipo visitante  = findClubOrThrow(request.idEquipoVisitante());
         Competicion competicion = findCompeticionOrThrow(request.idCompeticion());
         Arbitro arbitro = findArbitroOrThrow(request.idArbitro());
- 
+
         if (local.getIdEquipo().equals(visitante.getIdEquipo())) {
             throw new IllegalArgumentException("Un club no puede jugar contra sí mismo");
         }
@@ -65,7 +64,7 @@ public class PartidoService implements PartidoUseCase {
             throw new IllegalStateException(
                     "No se puede programar un partido en una competición finalizada");
         }
- 
+
         Partido partido = Partido.builder()
                 .idPartido(UUID.randomUUID())
                 .equipoLocal(local)
@@ -79,17 +78,17 @@ public class PartidoService implements PartidoUseCase {
                 .golesLocal(0)
                 .golesVisitante(0)
                 .build();
- 
+
         if (request.idEstadio() != null) {
             Estadio estadio = estadioRepository.findById(request.idEstadio())
                     .orElseThrow(() -> new IllegalArgumentException(
                             "Estadio no encontrado con id: " + request.idEstadio()));
             partido.setEstadio(estadio);
         }
- 
+
         competicion.agregarPartido(partido);
         arbitro.agregarPartido(partido);
- 
+
         return partidoMapper.toResponse(partidoRepository.save(partido));
     }
 
@@ -99,7 +98,6 @@ public class PartidoService implements PartidoUseCase {
         List<Partido> partidos = new ArrayList<>();
 
         for (CrearPartidoRequest request : requests) {
-            // Validar y obtener dependencias
             Equipo local = findClubOrThrow(request.idEquipoLocal());
             Equipo visitante = findClubOrThrow(request.idEquipoVisitante());
             Competicion competicion = findCompeticionOrThrow(request.idCompeticion());
@@ -132,7 +130,6 @@ public class PartidoService implements PartidoUseCase {
                 partido.setEstadio(estadio);
             }
 
-            // Agregar a las colecciones de las entidades relacionadas (opcional)
             competicion.agregarPartido(partido);
             arbitro.agregarPartido(partido);
 
@@ -183,16 +180,76 @@ public class PartidoService implements PartidoUseCase {
         return tandapenalesMapper.toResponse(partido);
     }
 
+    @Override
+    public PartidoConAlineacionResponse obtenerPartidoConAlineacion(UUID idPartido) {
+        Partido partido = partidoRepository.findById(idPartido)
+                .orElseThrow(() -> new IllegalArgumentException("Partido no encontrado con id: " + idPartido));
 
-    private EstadoPartido obtenerEstadoFinalizacion(Partido partido) {
-        if (partido == null || partido.getEventos() == null) {
-            return null;
+        List<EventosPartido> eventosTitulares = partido.getEventos().stream()
+                .filter(e -> e.getTipoEvento() == TipoEvento.TITULAR)
+                .toList();
+
+        AlineacionResponse alineacionLocal = null;
+        if (partido.getAlineacionLocal() != null) {
+            List<JugadorPosicionResponse> titularesLocal = eventosTitulares.stream()
+                    .filter(e -> e.getEquipoFavorecido() != null)
+                    .filter(e -> e.getEquipoFavorecido().getIdEquipo().equals(partido.getEquipoLocal().getIdEquipo()))
+                    .map(e -> {
+                        Jugador jugador = (Jugador) e.getPersonal();
+                        String posicionAbreviatura = e.getDescripcion();
+                        return JugadorPosicionResponse.builder()
+                                .idJugador(jugador.getIdPersonal())
+                                .nombreCompleto(jugador.getNombreCompleto())
+                                .posicionenPartido(posicionAbreviatura)
+                                .dorsal(jugador.getDatosDeportivos() != null ?
+                                        jugador.getDatosDeportivos().getDorsal() : null)
+                                .build();
+                    })
+                    .toList();
+
+            alineacionLocal = AlineacionResponse.builder()
+                    .idEquipo(partido.getEquipoLocal().getIdEquipo())
+                    .nombreEquipo(partido.getEquipoLocal().getNombre())
+                    .nombreAlineacion(partido.getAlineacionLocal())
+                    .titulares(titularesLocal)
+                    .build();
         }
-        return partido.getEventos().stream()
-                .filter(e -> e.getTipoEvento() == TipoEvento.FIN_PARTIDO)
-                .findFirst()
-                .map(EventosPartido::getEstadoEvento)
-                .orElse(null);
+
+        // 3. Procesar titulares visitantes
+        AlineacionResponse alineacionVisitante = null;
+        if (partido.getAlineacionVisitante() != null) {
+            List<JugadorPosicionResponse> titularesVisitante = eventosTitulares.stream()
+                    .filter(e -> e.getEquipoFavorecido() != null)
+                    .filter(e -> e.getEquipoFavorecido().getIdEquipo().equals(partido.getEquipoVisitante().getIdEquipo()))
+                    .map(e -> {
+                        Jugador jugador = (Jugador) e.getPersonal();
+                        // ✅ La posición está en la descripción (abreviatura)
+                        String posicionAbreviatura = e.getDescripcion(); // "GK", "LW", "CAM", etc.
+                        return JugadorPosicionResponse.builder()
+                                .idJugador(jugador.getIdPersonal())
+                                .nombreCompleto(jugador.getNombreCompleto())
+                                .posicionenPartido(posicionAbreviatura)
+                                .dorsal(jugador.getDatosDeportivos() != null ?
+                                        jugador.getDatosDeportivos().getDorsal() : null)
+                                .build();
+                    })
+                    .toList();
+
+            alineacionVisitante = AlineacionResponse.builder()
+                    .idEquipo(partido.getEquipoVisitante().getIdEquipo())
+                    .nombreEquipo(partido.getEquipoVisitante().getNombre())
+                    .nombreAlineacion(partido.getAlineacionVisitante())
+                    .titulares(titularesVisitante)
+                    .build();
+        }
+
+        // 4. Construir respuesta final
+        return alineacionMapper.toPartidoWithAlineacion(
+                partido,
+                alineacionLocal,
+                alineacionVisitante,
+                partidoMapper
+        );
     }
 
     @Override
@@ -282,9 +339,9 @@ public class PartidoService implements PartidoUseCase {
     }
 
     @Override
-    public PartidoResponse finalizarPartido(UUID idPartido) {
+    public PartidoResponse finalizarPartido(UUID idPartido, LocalTime minutoDeFinal ) {
         Partido partido = getPartidoOrThrow(idPartido);
-        partido.finalizarPartido();
+        partido.finalizarPartido(minutoDeFinal);
         return partidoMapper.toResponse(partidoRepository.save(partido));
     }
 
@@ -510,5 +567,16 @@ public class PartidoService implements PartidoUseCase {
         return arbitroRepository.findById(idArbitro)
                 .orElseThrow(() -> new IllegalArgumentException(
                         "Árbitro no encontrado con id: " + idArbitro));
+    }
+
+    private EstadoPartido obtenerEstadoFinalizacion(Partido partido) {
+        if (partido == null || partido.getEventos() == null) {
+            return null;
+        }
+        return partido.getEventos().stream()
+                .filter(e -> e.getTipoEvento() == TipoEvento.FIN_PARTIDO)
+                .findFirst()
+                .map(EventosPartido::getEstadoEvento)
+                .orElse(null);
     }
 }

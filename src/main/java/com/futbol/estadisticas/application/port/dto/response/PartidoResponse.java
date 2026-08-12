@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.jar.JarOutputStream;
 
+import com.futbol.estadisticas.domain.model.enums.Alineacion;
 import com.futbol.estadisticas.domain.model.enums.EstadoPartido;
 
 import com.futbol.estadisticas.domain.model.enums.FaseTorneo;
@@ -22,10 +23,14 @@ public record PartidoResponse(
 
         UUID idEquipoLocal,
         String nombreEquipoLocal,
- 
+        Alineacion alineacionLocal,
+
+
         UUID idEquipoVisitante,
         String nombreEquipoVisitante,
- 
+        Alineacion alineacionVisitante,
+
+
         int golesLocal,
         int golesVisitante,
         String resultado,

@@ -18,7 +18,6 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/apifutbol/contratos")
 @RequiredArgsConstructor
 @CrossOrigin(origins = "*")
-
 public class ContratoController {
 
     private final ContratoUseCase contratoUseCase;

@@ -3,7 +3,9 @@ package com.futbol.estadisticas.application.port.in;
 import java.util.List;
 import java.util.UUID;
 
+import com.futbol.estadisticas.application.port.dto.request.AlineacionRequest;
 import com.futbol.estadisticas.application.port.dto.request.CrearEquipoRequest;
+import com.futbol.estadisticas.application.port.dto.response.AlineacionResponse;
 import com.futbol.estadisticas.application.port.dto.response.EquipoResponse;
 import com.futbol.estadisticas.application.port.dto.response.CompeticionResponse;
 import com.futbol.estadisticas.application.port.dto.response.JugadorResponse;
@@ -11,6 +13,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 public interface EquipoUseCase {
+    AlineacionResponse establecerAlineacionTitular(UUID idEquipo, AlineacionRequest request);
 
     Page<EquipoResponse> buscarEquipos(String texto, Pageable pageable);
 

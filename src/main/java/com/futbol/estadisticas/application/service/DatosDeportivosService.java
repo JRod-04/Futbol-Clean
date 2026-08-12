@@ -100,11 +100,6 @@ public class DatosDeportivosService implements DatosDeportivosUseCase {
                         && j.getDatosDeportivos().getEstadoJugador() == EstadoJugador.TITULAR
                         && !j.getIdPersonal().equals(idJugadorExcluido))
                 .count();
-
-        if (titularesEnClub >= 11) {
-            throw new IllegalStateException(
-                    "El club " + club.getNombre() + " ya tiene 11 jugadores titulares");
-        }
     }
 
 

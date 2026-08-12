@@ -3,13 +3,13 @@ package com.futbol.estadisticas.domain.model;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import com.futbol.estadisticas.domain.model.enums.Nacion;
+import com.futbol.estadisticas.application.port.dto.response.JugadorPosicionNotificacionDTO;
+import com.futbol.estadisticas.domain.model.enums.*;
 
-import com.futbol.estadisticas.domain.model.enums.TipoContrato;
-import com.futbol.estadisticas.domain.model.enums.TipoEquipo;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -175,5 +175,46 @@ public class Equipo {
         }
         this.tecnicoActual.desvincularClub();
         this.tecnicoActual = null;
+    }
+
+    public List<JugadorPosicionNotificacionDTO> asignarPosiciones(Alineacion alineacion, Map<String, UUID> mapaCampos) {
+        List<PosicionJugador> posicionesRequeridas = alineacion.getPosicionesAplanadas();
+        List<JugadorPosicionNotificacionDTO> jugadoresConPosicion = new ArrayList<>();
+
+        for (PosicionJugador posicion : posicionesRequeridas) {
+            String campo = posicion.getNombreCampo();
+            UUID idJugador = mapaCampos.get(campo);
+
+            if (idJugador == null) {
+                throw new IllegalArgumentException("Falta el jugador para la posición: " + posicion.getDisplayName());
+            }
+
+            Jugador jugador = getJugadorActivoById(idJugador);
+            if (jugador == null) {
+                throw new IllegalArgumentException("Jugador con ID " + idJugador + " no pertenece al equipo");
+            }
+
+            PosicionJugador posicionActual = jugador.getDatosDeportivos() != null
+                    ? jugador.getDatosDeportivos().getPosicionActual()
+                    : null;
+
+            boolean posicionCambiada = posicionActual != posicion;
+
+            if (posicionCambiada && jugador.getDatosDeportivos() != null) {
+                jugador.getDatosDeportivos().agregarPosicion(posicion);
+                jugador.getDatosDeportivos().setJugador(jugador);
+            }
+
+            jugadoresConPosicion.add(new JugadorPosicionNotificacionDTO(jugador, posicionActual, posicion, posicionCambiada));
+        }
+
+        return jugadoresConPosicion;
+    }
+
+    private Jugador getJugadorActivoById(UUID id) {
+        return getJugadoresActivos().stream()
+                .filter(j -> j.getIdPersonal().equals(id))
+                .findFirst()
+                .orElse(null);
     }
 }

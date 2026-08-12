@@ -1,24 +1,30 @@
 package com.futbol.estadisticas.application.service;
 
+import java.time.LocalTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
-import com.futbol.estadisticas.application.port.dto.response.CompeticionResponse;
+import com.futbol.estadisticas.application.port.dto.request.AlineacionRequest;
+import com.futbol.estadisticas.application.port.dto.response.*;
+import com.futbol.estadisticas.application.port.in.DatosDeportivosUseCase;
+import com.futbol.estadisticas.application.port.mapper.AlineacionMapper;
 import com.futbol.estadisticas.application.port.mapper.CompeticionMapper;
-import com.futbol.estadisticas.domain.model.Competicion;
+import com.futbol.estadisticas.application.port.out.*;
+import com.futbol.estadisticas.domain.model.*;
+import com.futbol.estadisticas.domain.model.enums.Alineacion;
+import com.futbol.estadisticas.domain.model.enums.PosicionJugador;
+import com.futbol.estadisticas.domain.model.enums.TipoEvento;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.futbol.estadisticas.application.port.dto.request.CrearEquipoRequest;
-import com.futbol.estadisticas.application.port.dto.response.EquipoResponse;
-import com.futbol.estadisticas.application.port.dto.response.JugadorResponse;
 import com.futbol.estadisticas.application.port.in.EquipoUseCase;
 import com.futbol.estadisticas.application.port.mapper.EquipoMapper;
 import com.futbol.estadisticas.application.port.mapper.JugadorMapper;
-import com.futbol.estadisticas.application.port.out.EquipoRepositoryPort;
-import com.futbol.estadisticas.domain.model.Equipo;
 
 import lombok.RequiredArgsConstructor;
 
@@ -29,9 +35,83 @@ public class EquipoService implements EquipoUseCase {
 
     private final EquipoRepositoryPort equipoRepository;
     private final EquipoMapper equipoMapper;
-    private final JugadorMapper      jugadorMapper;
+    private final AlineacionMapper alineacionMapper;
+    private final PartidoRepositoryPort partidoRepository;
+    private final EventosPartidoRepositoryPort eventosPartidoRepository;
+    private final DatosDeportivosUseCase datosDeportivosUseCase;
+    private final DatosDeportivosRepositoryPort datosDeportivosRepository;
+    private final JugadorMapper jugadorMapper;
     private final CompeticionMapper competicionMapper;
 
+
+    @Override
+    public AlineacionResponse establecerAlineacionTitular(UUID idEquipo, AlineacionRequest request) {
+        Equipo equipo = equipoRepository.findById(idEquipo)
+                .orElseThrow(() -> new IllegalArgumentException("Equipo no encontrado con id: " + idEquipo));
+
+        Partido partido = partidoRepository.findById(request.idPartido())
+                .orElseThrow(() -> new IllegalArgumentException("Partido no encontrado con id: " + request.idPartido()));
+
+        if (!partido.getEquipoLocal().getIdEquipo().equals(idEquipo) &&
+                !partido.getEquipoVisitante().getIdEquipo().equals(idEquipo)) {
+            throw new IllegalArgumentException("El equipo no participa en este partido");
+        }
+
+        Alineacion alineacion = request.alineacion();
+        Map<String, UUID> mapaCampos = request.toMap();
+
+        List<JugadorPosicionNotificacionDTO> jugadoresConPosicion = equipo.asignarPosiciones(alineacion, mapaCampos);
+
+        List<Jugador> onceTitulares = jugadoresConPosicion.stream()
+                .map(JugadorPosicionNotificacionDTO::jugador)
+                .toList();
+
+        List<UUID> idsTitulares = onceTitulares.stream()
+                .map(Jugador::getIdPersonal)
+                .toList();
+
+        for (Jugador jugador : onceTitulares) {
+            datosDeportivosUseCase.promoverATitular(jugador.getIdPersonal());
+        }
+
+        for (Jugador jugador : equipo.getJugadoresActivos()) {
+            if (!idsTitulares.contains(jugador.getIdPersonal()) && !jugador.estaLesionado()) {
+                try {
+                    datosDeportivosUseCase.cambiarASuplente(jugador.getIdPersonal());
+                } catch (IllegalStateException ignored) {
+                }
+            }
+        }
+
+        List<EventosPartido> eventosTitulares = alineacionMapper.toEventosTitulares(partido, equipo, jugadoresConPosicion);
+
+        partido.getEventos().removeIf(e ->
+                e.getTipoEvento() == TipoEvento.TITULAR &&
+                        e.getEquipoFavorecido() != null &&
+                        e.getEquipoFavorecido().getIdEquipo().equals(equipo.getIdEquipo())
+        );
+
+        for (EventosPartido evento : eventosTitulares) {
+            partido.getEventos().add(evento);
+            eventosPartidoRepository.save(evento);
+        }
+
+        boolean esLocal = partido.getEquipoLocal().getIdEquipo().equals(idEquipo);
+        if (esLocal) {
+            partido.setAlineacionLocal(alineacion);
+        } else {
+            partido.setAlineacionVisitante(alineacion);
+        }
+        partidoRepository.save(partido);
+
+        for (JugadorPosicionNotificacionDTO dto : jugadoresConPosicion) {
+            if (dto.posicionCambiada() && dto.jugador().getDatosDeportivos() != null) {
+                datosDeportivosRepository.save(dto.jugador().getDatosDeportivos());
+            }
+        }
+
+        return alineacionMapper.toResponse(equipo, alineacion, jugadoresConPosicion);
+}
 
     @Override
     public Page<EquipoResponse> buscarEquipos(String texto, Pageable pageable) {
