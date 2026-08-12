@@ -5,10 +5,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import com.futbol.estadisticas.domain.model.enums.EstadoPartido;
+import com.futbol.estadisticas.domain.model.enums.*;
 
-import com.futbol.estadisticas.domain.model.enums.FaseTorneo;
-import com.futbol.estadisticas.domain.model.enums.JornadaPartido;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -65,13 +63,22 @@ public class PartidoJPAEntity {
     @JoinColumn(name = "id_equipo_local", nullable = false,
                 foreignKey = @ForeignKey(name = "fk_partido_local"))
     private EquipoJPAEntity equipoLocal;
- 
+
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "alineacion_local", length = 20)
+    private Alineacion alineacionLocal;
+
     // FK equipo visitante
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_equipo_visitante", nullable = false,
                 foreignKey = @ForeignKey(name = "fk_partido_visitante"))
     private EquipoJPAEntity equipoVisitante;
- 
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "alineacion_visitante", length = 20)
+    private Alineacion alineacionVisitante;
+
     // FK estadio
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_estadio",

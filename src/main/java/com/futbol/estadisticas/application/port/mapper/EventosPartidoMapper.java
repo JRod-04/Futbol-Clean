@@ -22,6 +22,7 @@ public class EventosPartidoMapper {
                 .descripcionCompleta(evento.getDescripcionCompleta())
                 .idPersonal(evento.getPersonal() != null ? evento.getPersonal().getIdPersonal() : null)
                 .nombreJugador(evento.getNombreJugador())
+                .idEquipoFavorecido(evento.getEquipoFavorecido() != null ? evento.getEquipoFavorecido().getIdEquipo() : null)
                 .nombreEquipoFavorecido(evento.getNombreEquipoFavorecido())
                 .estadoEvento(evento.getEstadoEvento())
                 .esGol(evento.esGol())

@@ -28,7 +28,7 @@ public record CrearContratoRequest(
         @NotNull(message = "El estado Contrato es obligatorio")
         EstadoContrato estado,
 
-        @NotNull(message = "La fecha de fin es obligatoria")
+        @NotNull(message = " La fecha de fin es obligatoria")
         LocalDateTime fechaFin,
  
         @NotNull(message = "El sueldo es obligatorio")

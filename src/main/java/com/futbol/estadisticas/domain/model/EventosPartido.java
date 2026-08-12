@@ -21,7 +21,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @Builder
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-public class EventosPartido {
+public class  EventosPartido {
 
     @EqualsAndHashCode.Include
     private UUID idEvento;
@@ -107,12 +107,19 @@ public class EventosPartido {
 
     //Verifica si el evento es un gol
     public boolean esGol() {
-        return tipoEvento == TipoEvento.GOL || 
-               tipoEvento == TipoEvento.AUTOGOL || 
-               tipoEvento == TipoEvento.PENALTI_ANOTADO;
+        return tipoEvento == TipoEvento.GOL;
     }
-    
+    public boolean esAutoGol() {
+        return tipoEvento == TipoEvento.AUTOGOL;
+    }
 
+    public boolean esGolDePenal() {
+        return tipoEvento == TipoEvento.PENALTI_ANOTADO;
+    }
+
+    public boolean esPenalFallado() {
+        return tipoEvento == TipoEvento.PENALTI_FALLADO;
+    }
     //Verifica si el evento es una tarjeta disciplinaria
     public boolean esTarjeta() {
         return tipoEvento == TipoEvento.AMARILLA || 

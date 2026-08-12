@@ -140,9 +140,7 @@ public enum EstadoPartido {
                 this == SEGUNDO_TIEMPO_PRORROGA ||
                 this == AGREGADO_PRORROGA_SEGUNDO;
     }
-    /**
-     * Obtiene el estado base (sin agregado)
-     */
+
     public EstadoPartido getEstadoBase() {
         return switch (this) {
             case AGREGADO_PRIMER_TIEMPO -> PRIMER_TIEMPO;

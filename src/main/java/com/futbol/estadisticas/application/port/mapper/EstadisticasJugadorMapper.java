@@ -20,51 +20,101 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Component
 public class EstadisticasJugadorMapper {
-    private final EventosPartidoMapper eventosPartidoMapper;
     private final EstadisticasCompeticionMapper estadisticaCompeticionMapper;
 
     public EstadisticasJugadorResponse toResponse(Jugador jugador, List<EventosPartido> eventos) {
+        if (eventos == null || eventos.isEmpty()) {
+            return buildEmptyResponse(jugador);
+        }
 
-        List<EventosPartido> goles = eventos.stream().filter(EventosPartido::esGol).toList();
-        List<EventosPartido> asistencias = eventos.stream()
-                .filter(e -> e.getTipoEvento() == TipoEvento.ASISTENCIA)
+        List<EventosPartido> eventosConCompeticion = eventos.stream()
+                .filter(e -> e.getPartido() != null)
+                .filter(e -> e.getPartido().getCompeticion() != null)
                 .toList();
-        List<EventosPartido> tarjetas = eventos.stream().filter(EventosPartido::esTarjeta).toList();
+
+        if (eventosConCompeticion.isEmpty()) {
+            return buildEmptyResponse(jugador);
+        }
+
+        Map<UUID, List<EventosPartido>> porCompeticion = eventosConCompeticion.stream()
+                .collect(Collectors.groupingBy(e -> e.getPartido().getCompeticion().getIdCompeticion()));
+
+        List<EstadisticasCompeticionDTO> porCompeticionDTO = porCompeticion.entrySet().stream()
+                .map(entry -> {
+                    List<EventosPartido> eventosDeLaCompeticion = entry.getValue();
+                    Competicion competicion = eventosDeLaCompeticion.get(0).getPartido().getCompeticion();
+                    return estadisticaCompeticionMapper.toDTO(competicion, eventosDeLaCompeticion);
+                })
+                .sorted(Comparator.comparing(EstadisticasCompeticionDTO::nombreCompeticion))
+                .toList();
+
+        // Calcular totales
+        int totalPartidos = porCompeticionDTO.stream()
+                .mapToInt(EstadisticasCompeticionDTO::partidosJugados)
+                .sum();
+
+        int totalMinutos = porCompeticionDTO.stream()
+                .mapToInt(EstadisticasCompeticionDTO::minutosJugados)
+                .sum();
+
+        int totalGoles = porCompeticionDTO.stream()
+                .mapToInt(EstadisticasCompeticionDTO::goles)
+                .sum();
+
+        int totalGolesPenal = porCompeticionDTO.stream()
+                .mapToInt(EstadisticasCompeticionDTO::golesPenal)
+                .sum();
+
+        int totalPenalesFallados = porCompeticionDTO.stream()
+                .mapToInt(EstadisticasCompeticionDTO::penalesFallados)
+                .sum();
+
+        int totalAutogoles = porCompeticionDTO.stream()
+                .mapToInt(EstadisticasCompeticionDTO::autogoles)
+                .sum();
+
+        int totalAsistencias = porCompeticionDTO.stream()
+                .mapToInt(EstadisticasCompeticionDTO::asistencias)
+                .sum();
+
+        int totalAmarillas = porCompeticionDTO.stream()
+                .mapToInt(EstadisticasCompeticionDTO::tarjetasAmarillas)
+                .sum();
+
+        int totalRojas = porCompeticionDTO.stream()
+                .mapToInt(EstadisticasCompeticionDTO::tarjetasRojas)
+                .sum();
 
         return EstadisticasJugadorResponse.builder()
                 .idJugador(jugador.getIdPersonal())
                 .nombreJugador(jugador.getNombreCompleto())
-                .totalGoles(goles.size())
-                .totalAsistencias(asistencias.size())
-                .totalTarjetasAmarillas(contarTipo(tarjetas, TipoEvento.AMARILLA))
-                .totalTarjetasRojas(contarTipo(tarjetas, TipoEvento.ROJA))
-                .porCompeticion(agruparPorCompeticion(eventos))
+                .totalPartidosJugados(totalPartidos)
+                .totalMinutosJugados(totalMinutos)
+                .totalGoles(totalGoles)
+                .totalGolesPenal(totalGolesPenal)
+                .totalPenalesFallados(totalPenalesFallados)
+                .totalAutogoles(totalAutogoles)
+                .totalAsistencias(totalAsistencias)
+                .totalTarjetasAmarillas(totalAmarillas)
+                .totalTarjetasRojas(totalRojas)
+                .porCompeticion(porCompeticionDTO)
                 .build();
     }
 
-    private List<EstadisticasCompeticionDTO> agruparPorCompeticion(List<EventosPartido> eventos) {
-        Map<UUID, List<EventosPartido>> porCompeticion = eventos.stream()
-                .filter(EventosPartido::esEstadisticable)
-                .filter(e -> obtenerCompeticion(e) != null)
-                .collect(Collectors.groupingBy(e -> obtenerCompeticion(e).getIdCompeticion()));
-
-        return porCompeticion.values().stream()
-                .map(eventosDeLaCompeticion ->
-                        estadisticaCompeticionMapper.toDTO(
-                                obtenerCompeticion(eventosDeLaCompeticion.get(0)),
-                                eventosDeLaCompeticion))
-                .sorted(Comparator.comparing(EstadisticasCompeticionDTO::nombreCompeticion))
-                .toList();
+    private EstadisticasJugadorResponse buildEmptyResponse(Jugador jugador) {
+        return EstadisticasJugadorResponse.builder()
+                .idJugador(jugador.getIdPersonal())
+                .nombreJugador(jugador.getNombreCompleto())
+                .totalPartidosJugados(0)
+                .totalMinutosJugados(0)
+                .totalGoles(0)
+                .totalGolesPenal(0)
+                .totalPenalesFallados(0)
+                .totalAutogoles(0)
+                .totalAsistencias(0)
+                .totalTarjetasAmarillas(0)
+                .totalTarjetasRojas(0)
+                .porCompeticion(List.of())
+                .build();
     }
-
-    private Competicion obtenerCompeticion(EventosPartido evento) {
-        Partido partido = evento.getPartido();
-        return partido != null ? partido.getCompeticion() : null;
-    }
-
-    private int contarTipo(List<EventosPartido> eventos, TipoEvento tipo) {
-        return (int) eventos.stream().filter(e -> e.getTipoEvento() == tipo).count();
-    }
-
-
 }

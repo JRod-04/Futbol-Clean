@@ -485,6 +485,17 @@ public class InfrastructureMapper {
     }
     // ──────────────────────────── COMPETICIÓN ────────────────────────────
 
+    private Competicion competiciontoDomainLigero(CompeticionJPAEntity e) {
+        if (e == null) return null;
+        return Competicion.builder()
+                .idCompeticion(e.getIdCompeticion())
+                .nombre(e.getNombre())
+                .fechaInicio(e.getFechaInicio())
+                .fechaFin(e.getFechaFin())
+                .partidos(new ArrayList<>())
+                .equipoGanador(e.getEquipoGanador() != null ? DatostoDomain(e.getEquipoGanador()) : null)
+                .build();
+    }
     public Competicion CompeticiontoDomain(CompeticionJPAEntity e) {
         if (e == null) return null;
 
@@ -554,10 +565,12 @@ public class InfrastructureMapper {
                 .golesLocal(e.getGolesLocal())
                 .golesVisitante(e.getGolesVisitante())
                 .equipoLocal(DatostoDomain(e.getEquipoLocal()))
+                .alineacionLocal(e.getAlineacionLocal())
                 .equipoVisitante(DatostoDomain(e.getEquipoVisitante()))
+                .alineacionVisitante(e.getAlineacionVisitante())
                 .estadio(EstadiotoDomain(e.getEstadio()))
                 .arbitro(ArbitrotoDomain(e.getArbitro()))
-                .competicion(CompeticiontoDomain(e.getCompeticion()))
+                .competicion(competiciontoDomainLigero(e.getCompeticion()))
                 .eventos(new ArrayList<>())
                 .build();
 
@@ -586,7 +599,9 @@ public class InfrastructureMapper {
                 .golesLocal(d.getGolesLocal())
                 .golesVisitante(d.getGolesVisitante())
                 .equipoLocal(local)
+                .alineacionLocal(d.getAlineacionLocal())
                 .equipoVisitante(visitante)
+                .alineacionVisitante(d.getAlineacionVisitante())
                 .estadio(estadio)
                 .arbitro(arbitro)
                 .competicion(competicion)
@@ -691,7 +706,7 @@ public class InfrastructureMapper {
                 .equipoVisitante(DatostoDomain(e.getEquipoVisitante()))
                 .estadio(EstadiotoDomain(e.getEstadio()))
                 .arbitro(ArbitrotoDomain(e.getArbitro()))
-                .competicion(null)
+                .competicion(competiciontoDomainLigero(e.getCompeticion()))
                 .eventos(new ArrayList<>())
                 .build();
     }

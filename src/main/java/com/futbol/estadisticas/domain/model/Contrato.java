@@ -176,28 +176,6 @@ public class Contrato {
             throw new IllegalArgumentException("El personal no puede ser nulo");
         }
 
-        // Validar que no tenga contrato vigente
-        Contrato vigente = personal.getContratoVigente();
-        if (vigente != null) {
-            throw new IllegalStateException(
-                    String.format("El personal ya tiene un contrato vigente con %s",
-                            vigente.getEquipo() != null ? vigente.getEquipo().getNombre() : "equipo desconocido")
-            );
-        }
-
-        if (this.tipoContrato == TipoContrato.PROFESIONAL) {
-            boolean tieneProfesional = personal.getContratos().stream()
-                    .filter(Contrato::estaVigente)
-                    .anyMatch(Contrato::esProfesional);
-
-            if (tieneProfesional) {
-                throw new IllegalStateException(
-                        "El personal ya tiene un contrato PROFESIONAL vigente. " +
-                                "No puede tener más de un contrato profesional."
-                );
-            }
-        }
-
         if (this.tipoContrato == TipoContrato.CONVOCATORIA) {
             boolean tieneConvocatoria = personal.getContratos().stream()
                     .filter(Contrato::estaVigente)

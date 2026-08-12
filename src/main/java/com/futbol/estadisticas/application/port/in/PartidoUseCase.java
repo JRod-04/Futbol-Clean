@@ -8,10 +8,7 @@ import java.util.UUID;
 import com.futbol.estadisticas.application.port.dto.request.CrearPartidoRequest;
 import com.futbol.estadisticas.application.port.dto.request.RealizarSustitucionRequest;
 import com.futbol.estadisticas.application.port.dto.request.RegistrarEventoRequest;
-import com.futbol.estadisticas.application.port.dto.response.EventoPartidoResponse;
-import com.futbol.estadisticas.application.port.dto.response.PartidoResponse;
-import com.futbol.estadisticas.application.port.dto.response.SustitucionResponse;
-import com.futbol.estadisticas.application.port.dto.response.TandaPenalesResponse;
+import com.futbol.estadisticas.application.port.dto.response.*;
 import com.futbol.estadisticas.domain.model.enums.EstadoPartido;
 import org.springframework.data.domain.Page;
 
@@ -27,6 +24,7 @@ public interface PartidoUseCase {
 
     TandaPenalesResponse obtenerTandaPenales(UUID idPartido);
 
+    PartidoConAlineacionResponse obtenerPartidoConAlineacion(UUID idPartido);
 
     List<PartidoResponse> obtenerPartidosPorCompeticion(UUID idCompeticion);
  
@@ -44,7 +42,7 @@ public interface PartidoUseCase {
 
     PartidoResponse finalizarTiempo(UUID idPartido, LocalTime minutoFin);
 
-    PartidoResponse finalizarPartido(UUID idPartido);
+    PartidoResponse finalizarPartido(UUID idPartido, LocalTime  minutoDeFinal);
 
     EventoPartidoResponse registrarEvento(UUID idPartido, RegistrarEventoRequest request);
 

@@ -6,8 +6,7 @@ import java.util.List;
 import java.util.UUID;
 
 import com.futbol.estadisticas.application.port.dto.request.RealizarSustitucionRequest;
-import com.futbol.estadisticas.application.port.dto.response.SustitucionResponse;
-import com.futbol.estadisticas.application.port.dto.response.TandaPenalesResponse;
+import com.futbol.estadisticas.application.port.dto.response.*;
 import org.springframework.data.domain.Page;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
@@ -16,8 +15,6 @@ import org.springframework.web.bind.annotation.*;
 
 import com.futbol.estadisticas.application.port.dto.request.CrearPartidoRequest;
 import com.futbol.estadisticas.application.port.dto.request.RegistrarEventoRequest;
-import com.futbol.estadisticas.application.port.dto.response.EventoPartidoResponse;
-import com.futbol.estadisticas.application.port.dto.response.PartidoResponse;
 import com.futbol.estadisticas.application.port.in.PartidoUseCase;
 import com.futbol.estadisticas.domain.model.enums.EstadoPartido;
 
@@ -87,19 +84,26 @@ public class PartidoController {
         return ResponseEntity.ok(partidoUseCase.obtenerPartidosPorCompeticion(idCompeticion));
     }
  
-    @GetMapping("/equipo/{idEquipo}")
+    @GetMapping("/por-equipo/{idEquipo}")
     public ResponseEntity<List<PartidoResponse>> porEquipo(@PathVariable UUID idEquipo) {
         return ResponseEntity.ok(partidoUseCase.obtenerPartidosPorEquipo(idEquipo));
     }
- 
+
+    @GetMapping("/{idPartido}/alineaciones")
+    public ResponseEntity<PartidoConAlineacionResponse> obtenerPartidoConAlineaciones(
+            @PathVariable UUID idPartido) {
+        return ResponseEntity.ok(partidoUseCase.obtenerPartidoConAlineacion(idPartido));
+    }
+
     @PatchMapping("/{id}/iniciar")
     public ResponseEntity<PartidoResponse> iniciar(@PathVariable UUID id) {
         return ResponseEntity.ok(partidoUseCase.iniciarPartido(id));
     }
  
     @PatchMapping("/{id}/finalizar")
-        public ResponseEntity<PartidoResponse> finalizar(@PathVariable UUID id) {
-            return ResponseEntity.ok(partidoUseCase.finalizarPartido(id));
+        public ResponseEntity<PartidoResponse> finalizar(@PathVariable UUID id,
+                                                         @RequestParam LocalTime minutoFinal) {
+            return ResponseEntity.ok(partidoUseCase.finalizarPartido(id, minutoFinal));
         }
 
         @PatchMapping("/{id}/estado")
@@ -109,7 +113,7 @@ public class PartidoController {
             return ResponseEntity.ok(partidoUseCase.cambiarEstadoPartido(id, nuevoEstado));
     }
 
-    @PatchMapping("/{id}/avanzar")
+    @PatchMapping("/{id}/reanudar")
     public ResponseEntity<PartidoResponse> avanzarPartido(@PathVariable UUID id) {
         return ResponseEntity.ok(partidoUseCase.avanzarPartido(id));
     }

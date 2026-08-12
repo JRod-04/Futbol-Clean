@@ -6,10 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import com.futbol.estadisticas.domain.model.enums.EstadoPartido;
-import com.futbol.estadisticas.domain.model.enums.FaseTorneo;
-import com.futbol.estadisticas.domain.model.enums.JornadaPartido;
-import com.futbol.estadisticas.domain.model.enums.TipoEvento;
+import com.futbol.estadisticas.domain.model.enums.*;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -32,8 +29,15 @@ public class Partido {
    
     private LocalDateTime fechaYHora;
     private EstadoPartido estado;
+
+
     private Equipo equipoLocal;
+    private Alineacion alineacionLocal;
+
+
     private Equipo equipoVisitante;
+    private Alineacion alineacionVisitante;
+
     private Estadio estadio;
     private Arbitro arbitro;
     private Competicion competicion;
@@ -100,7 +104,7 @@ public class Partido {
         EventosPartido eventoTitular = EventosPartido.builder()
                 .idEvento(UUID.randomUUID())
                 .minuto(LocalTime.of(0, 0))
-                .descripcion(jugador.getNombreCompleto() + " - Titular")
+                .descripcion(jugador.getDatosDeportivos().getPosicionActual().getAbreviatura())
                 .tipoEvento(TipoEvento.TITULAR)
                 .personal(jugador)
                 .equipoFavorecido(club)
@@ -117,15 +121,10 @@ public class Partido {
         }
 
         if (this.estado == EstadoPartido.PROGRAMADO) {
-            throw new IllegalStateException("No se puede avanzar un partido programado, use iniciarPartido()");
+            throw new IllegalStateException("No se puede avanzar un partido programado");
         }
 
         EstadoPartido siguiente = this.estado.getSiguienteEstado();
-
-        if (siguiente == EstadoPartido.FINALIZADO) {
-            this.finalizarPartido();
-            return;
-        }
 
         EstadoPartido estadoActual = this.estado;
 
@@ -180,7 +179,11 @@ public class Partido {
         }
     }
 
-    public void finalizarPartido() {
+    public void finalizarPartido(LocalTime minutoFinalizacion) {
+        if (minutoFinalizacion == null) {
+            throw new IllegalArgumentException("El minuto de finalización es obligatorio");
+        }
+
         if (this.estado == EstadoPartido.FINALIZADO ||
                 this.estado == EstadoPartido.CANCELADO ||
                 this.estado == EstadoPartido.SUSPENDIDO) {
@@ -189,36 +192,91 @@ public class Partido {
 
         EstadoPartido estadoActual = this.estado;
 
-        if (estadoActual == EstadoPartido.PENALTIS) {
-            this.estado = EstadoPartido.FINALIZADO;
-            EventosPartido eventoFin = EventosPartido.builder()
-                    .idEvento(UUID.randomUUID())
-                    .minuto(java.time.LocalTime.of(2, 00))
-                    .descripcion("Finalización del partido")
-                    .tipoEvento(TipoEvento.FIN_PARTIDO)
-                    .partido(this)
-                    .build();
-            eventoFin.setEstadoEvento(estadoActual);
-            this.eventos.add(eventoFin);
-            eventoFin.setPartido(this);
-            return;
+        if (!estadoActual.Finalizable()) {
+            throw new IllegalStateException(
+                    "El partido no se puede finalizar en estado: " + estadoActual.getDisplayName() +
+                            ". Solo se puede finalizar en SEGUNDO_TIEMPO, AGREGADO_SEGUNDO_TIEMPO, " +
+                            "SEGUNDO_TIEMPO_PRORROGA, AGREGADO_PRORROGA_SEGUNDO o PENALTIS"
+            );
         }
 
-        if (estadoActual.Finalizable()) {
+        validarMinutoFinalizacion(estadoActual, minutoFinalizacion);
 
-            this.estado = EstadoPartido.FINALIZADO;
-            EventosPartido eventoFin = EventosPartido.builder()
-                    .idEvento(UUID.randomUUID())
-                    .minuto(java.time.LocalTime.of(2, 0))
-                    .descripcion("Finalización del partido")
-                    .tipoEvento(TipoEvento.FIN_PARTIDO)
-                    .partido(this)
-                    .build();
-            eventoFin.setEstadoEvento(estadoActual);
-            this.eventos.add(eventoFin);
-            eventoFin.setPartido(this);
+        String descripcion = switch (estadoActual) {
+            case SEGUNDO_TIEMPO, AGREGADO_SEGUNDO_TIEMPO ->
+                    "Finalización del partido - Tiempo reglamentario";
+            case SEGUNDO_TIEMPO_PRORROGA, AGREGADO_PRORROGA_SEGUNDO ->
+                    "Finalización del partido - Después de Prórroga";
+            case PENALTIS ->
+                    "Finalización del partido - Penaltis";
+            default ->
+                    "Finalización del partido";
+        };
+
+        EventosPartido eventoFin = EventosPartido.builder()
+                .idEvento(UUID.randomUUID())
+                .minuto(minutoFinalizacion)
+                .descripcion(descripcion)
+                .tipoEvento(TipoEvento.FIN_PARTIDO)
+                .partido(this)
+                .build();
+        eventoFin.setEstadoEvento(estadoActual);
+        this.eventos.add(eventoFin);
+        eventoFin.setPartido(this);
+
+        this.estado = EstadoPartido.FINALIZADO;
+    }
+
+
+    private void validarMinutoFinalizacion(EstadoPartido estado, LocalTime minuto) {
+        int totalMinutos = minuto.getHour() * 60 + minuto.getMinute();
+
+        switch (estado) {
+            case SEGUNDO_TIEMPO:
+                if (totalMinutos != 90) {
+                    throw new IllegalStateException(
+                            "El segundo tiempo SIN agregado debe finalizar exactamente en el minuto 90"
+                    );
+                }
+                break;
+
+            case AGREGADO_SEGUNDO_TIEMPO:
+                if (totalMinutos < 90) {
+                    throw new IllegalStateException(
+                            "El partido con agregado no puede finalizar antes del minuto 90"
+                    );
+                }
+                break;
+
+            case SEGUNDO_TIEMPO_PRORROGA:
+                if (totalMinutos != 120) {
+                    throw new IllegalStateException(
+                            "El segundo tiempo de prórroga SIN agregado debe finalizar exactamente en el minuto 120"
+                    );
+                }
+                break;
+
+            case AGREGADO_PRORROGA_SEGUNDO:
+                if (totalMinutos < 120) {
+                    throw new IllegalStateException(
+                            "El tiempo agregado de la prórroga no puede finalizar antes del minuto 120"
+                    );
+                }
+                break;
+
+            case PENALTIS:
+                if (totalMinutos < 120) {
+                    throw new IllegalStateException(
+                            "Los penaltis no pueden finalizar antes del minuto 120"
+                    );
+                }
+                break;
+
+            default:
+                throw new IllegalStateException(
+                        "Estado no válido para finalizar: " + estado.getDisplayName()
+                );
         }
-
     }
 
     public void agregarEvento(EventosPartido evento) {
@@ -625,7 +683,7 @@ public class Partido {
             throw new IllegalArgumentException("El jugador entrante no puede ser el mismo que el saliente");
         }
         if (club == null) {
-            throw new IllegalArgumentException("El club no puede ser nulo");
+            throw new IllegalArgumentException("El equipo no puede ser nulo");
         }
 
         EventosPartido eventoSale = EventosPartido.builder()
@@ -660,6 +718,7 @@ public class Partido {
 
         return List.of(eventoSale, eventoEntra);
     }
+
 
 
 }
