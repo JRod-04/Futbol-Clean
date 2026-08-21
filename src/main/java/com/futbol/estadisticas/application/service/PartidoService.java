@@ -199,7 +199,8 @@ public class PartidoService implements PartidoUseCase {
                         String posicionAbreviatura = e.getDescripcion();
                         return JugadorPosicionResponse.builder()
                                 .idJugador(jugador.getIdPersonal())
-                                .nombreCompleto(jugador.getNombreCompleto())
+                                .nombre(jugador.getNombre())
+                                .apellido(jugador.getApellido())
                                 .posicionenPartido(posicionAbreviatura)
                                 .dorsal(jugador.getDatosDeportivos() != null ?
                                         jugador.getDatosDeportivos().getDorsal() : null)
@@ -223,11 +224,11 @@ public class PartidoService implements PartidoUseCase {
                     .filter(e -> e.getEquipoFavorecido().getIdEquipo().equals(partido.getEquipoVisitante().getIdEquipo()))
                     .map(e -> {
                         Jugador jugador = (Jugador) e.getPersonal();
-                        // ✅ La posición está en la descripción (abreviatura)
                         String posicionAbreviatura = e.getDescripcion(); // "GK", "LW", "CAM", etc.
                         return JugadorPosicionResponse.builder()
                                 .idJugador(jugador.getIdPersonal())
-                                .nombreCompleto(jugador.getNombreCompleto())
+                                .nombre(jugador.getNombre())
+                                .apellido(jugador.getApellido())
                                 .posicionenPartido(posicionAbreviatura)
                                 .dorsal(jugador.getDatosDeportivos() != null ?
                                         jugador.getDatosDeportivos().getDorsal() : null)

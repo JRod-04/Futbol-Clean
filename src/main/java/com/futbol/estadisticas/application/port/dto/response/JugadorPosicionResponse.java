@@ -7,7 +7,8 @@ import java.util.UUID;
 @Builder
 public record JugadorPosicionResponse(
         UUID idJugador,
-        String nombreCompleto,
+        String nombre,
+        String apellido,
         String posicionenPartido,
         Integer dorsal
 ){

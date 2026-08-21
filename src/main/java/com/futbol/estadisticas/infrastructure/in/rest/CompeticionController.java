@@ -75,6 +75,26 @@ public class CompeticionController {
         return ResponseEntity.ok(competicionUseCase.actualizarEquipoGanador(id, request.idEquipoGanador()));
     }
 
+    @PatchMapping("/{id}/iniciar")
+    public ResponseEntity<CompeticionResponse> iniciar(@PathVariable UUID id) {
+        return ResponseEntity.ok(competicionUseCase.iniciarCompeticion(id));
+    }
+
+    @PatchMapping("/{id}/finalizar")
+    public ResponseEntity<CompeticionResponse> finalizar(@PathVariable UUID id) {
+        return ResponseEntity.ok(competicionUseCase.finalizarCompeticion(id));
+    }
+
+    @PatchMapping("/{id}/suspender")
+    public ResponseEntity<CompeticionResponse> suspender(@PathVariable UUID id) {
+        return ResponseEntity.ok(competicionUseCase.suspenderCompeticion(id));
+    }
+
+    @PatchMapping("/{id}/reanudar")
+    public ResponseEntity<CompeticionResponse> reanudar(@PathVariable UUID id) {
+        return ResponseEntity.ok(competicionUseCase.reanudarCompeticion(id));
+    }
+    
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminar(@PathVariable UUID id) {
         competicionUseCase.eliminarCompeticion(id);

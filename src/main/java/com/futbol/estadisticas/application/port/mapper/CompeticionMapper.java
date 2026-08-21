@@ -4,6 +4,8 @@ package com.futbol.estadisticas.application.port.mapper;
 import java.util.List;
 import java.util.UUID;
 
+import com.futbol.estadisticas.domain.model.enums.EstadoCompeticion;
+import lombok.Builder;
 import org.springframework.stereotype.Component;
 
 import com.futbol.estadisticas.application.port.dto.request.CrearCompeticionRequest;
@@ -19,6 +21,7 @@ public class CompeticionMapper {
                 .nombre(request.nombre())
                 .fechaInicio(request.fechaInicio())
                 .fechaFin(request.fechaFin())
+                .estado(EstadoCompeticion.POR_INICIAR)
                 .build();
     }
 
@@ -33,6 +36,7 @@ public class CompeticionMapper {
                 competicion.getFechaInicio(),
                 competicion.getFechaFin(),
                 competicion.getEquipoGanador(),
+                competicion.getEstado(),
                 competicion.estaActiva(),
                 competicion.haFinalizado(),
                 competicion.noHaComenzado(),

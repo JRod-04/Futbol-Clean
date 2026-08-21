@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import com.futbol.estadisticas.domain.model.enums.EstadoCompeticion;
+import com.futbol.estadisticas.domain.model.enums.EstadoJugador;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -35,6 +37,10 @@ public class CompeticionJPAEntity {
     @ManyToOne
     @JoinColumn(name = "id_equipo_ganador")
     private EquipoJPAEntity equipoGanador;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "estado", length = 30)
+    private EstadoCompeticion estado;
 
     // Partidos de esta competición (relación inversa)
     @OneToMany(mappedBy = "competicion", fetch = FetchType.LAZY)

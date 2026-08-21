@@ -31,6 +31,14 @@ public interface CompeticionUseCase {
     List<PartidoResponse> obtenerPartidosPendientesPorCompeticion(UUID idCompeticion);
  
     Double obtenerPorcentajeAvance(UUID idCompeticion);
+
+    CompeticionResponse iniciarCompeticion(UUID idCompeticion);
+
+    CompeticionResponse finalizarCompeticion(UUID idCompeticion);
+
+    CompeticionResponse suspenderCompeticion(UUID idCompeticion);
+
+    CompeticionResponse reanudarCompeticion(UUID idCompeticion);
  
     void eliminarCompeticion(UUID idCompeticion);
 }

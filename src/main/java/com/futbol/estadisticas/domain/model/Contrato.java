@@ -280,12 +280,15 @@ public class Contrato {
         return this.tipoContrato == TipoContrato.AMATEUR;
     }
 
-    public void finalizar() {
+    public void finalizar(LocalDateTime fechaFin) {
         if (this.estado == EstadoContrato.FINALIZADO) {
             throw new IllegalStateException("El contrato ya está finalizado");
         }
+        if(this.fechaFin.isBefore(this.fechaInicio)){
+            throw new IllegalStateException("La fecha fin no puede ser antes que la fecha de inicio");
+        }
         this.estado = EstadoContrato.FINALIZADO;
-        this.fechaFin = LocalDateTime.now();
+        this.fechaFin = fechaFin;
     }
     
     public void renovar(int mesesAdicionales) {

@@ -10,6 +10,7 @@ import com.futbol.estadisticas.domain.model.Equipo;
 import com.futbol.estadisticas.domain.model.Contrato;
 import com.futbol.estadisticas.domain.model.PersonalDeportivo;
 import com.futbol.estadisticas.domain.model.enums.EstadoContrato;
+import com.futbol.estadisticas.domain.model.enums.TipoContrato;
 import com.futbol.estadisticas.domain.model.exception.PersonalNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -54,7 +55,10 @@ class ContratoServiceTest {
 
         request = new CrearContratoRequest(
                 ID_PERSONAL, ID_CLUB,
+                TipoContrato.PROFESIONAL,
+                 70000000.0,
                 LocalDateTime.now().minusMonths(1),
+                EstadoContrato.ACTIVO,
                 LocalDateTime.now().plusMonths(11),
                 250000.0
         );
@@ -71,8 +75,8 @@ class ContratoServiceTest {
 
         response = new ContratoResponse(
                 ID_CONTRATO, request.fechaInicio(), request.fechaFin(),
-                request.sueldo(), EstadoContrato.ACTIVO, true,
-                ID_PERSONAL, "Personal", ID_CLUB, "Club"
+                request.sueldo(),TipoContrato.PROFESIONAL, EstadoContrato.ACTIVO, true,
+                ID_PERSONAL, "Personal", ID_CLUB, "Club", 6700000.0
         );
     }
 
@@ -82,7 +86,7 @@ class ContratoServiceTest {
         when(personalRepository.findById(ID_PERSONAL)).thenReturn(Optional.of(personal));
         when(clubRepository.findById(ID_CLUB)).thenReturn(Optional.of(club));
         when(contratoRepository.findVigenteByPersonal(ID_PERSONAL)).thenReturn(Optional.empty());
-        when(contratoMapper.toEntity(any(), any(), any(), any(), any(), any())).thenReturn(contrato);
+        when(contratoMapper.toEntity(any(), any(), any(), any(), any(), any(), any(), any(), any())).thenReturn(contrato);
         when(contratoRepository.save(any(Contrato.class))).thenReturn(contrato);
         when(contratoMapper.toResponse(contrato)).thenReturn(response);
 
@@ -218,7 +222,7 @@ class ContratoServiceTest {
         when(contratoRepository.findById(ID_CONTRATO)).thenReturn(Optional.of(contrato));
         when(contratoRepository.save(any(Contrato.class))).thenReturn(contrato);
 
-        contratoService.finalizarContrato(ID_CONTRATO);
+        contratoService.finalizarContrato(ID_CONTRATO, LocalDateTime.now());
 
         verify(contratoRepository).save(contrato);
     }
@@ -228,7 +232,7 @@ class ContratoServiceTest {
     void testFinalizarContrato_NoExiste() {
         when(contratoRepository.findById(ID_CONTRATO)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> contratoService.finalizarContrato(ID_CONTRATO))
+        assertThatThrownBy(() -> contratoService.finalizarContrato(ID_CONTRATO, LocalDateTime.now()))
                 .isInstanceOf(IllegalArgumentException.class);
     }
 
@@ -238,7 +242,7 @@ class ContratoServiceTest {
         when(contratoRepository.findById(ID_CONTRATO)).thenReturn(Optional.of(contrato));
         when(contratoRepository.save(any(Contrato.class))).thenReturn(contrato);
 
-        contratoService.rescindirContrato(ID_CONTRATO);
+        contratoService.rescindirContrato(ID_CONTRATO, LocalDateTime.now());
 
         verify(contratoRepository).save(contrato);
     }
@@ -249,7 +253,7 @@ class ContratoServiceTest {
         contrato.setEstado(EstadoContrato.FINALIZADO);
         when(contratoRepository.findById(ID_CONTRATO)).thenReturn(Optional.of(contrato));
 
-        assertThatThrownBy(() -> contratoService.rescindirContrato(ID_CONTRATO))
+        assertThatThrownBy(() -> contratoService.rescindirContrato(ID_CONTRATO, LocalDateTime.now()))
                 .isInstanceOf(IllegalStateException.class);
     }
 }

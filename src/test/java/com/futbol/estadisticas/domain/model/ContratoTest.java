@@ -44,7 +44,7 @@ class ContratoTest {
     @DisplayName("finalizar: debe finalizar el contrato y establecer fechaFin")
     void testFinalizar() {
         LocalDateTime fechaAntes = LocalDateTime.now();
-        contrato.finalizar();
+        contrato.finalizar(LocalDateTime.now().minusMonths(6));
 
         assertThat(contrato.getEstado()).isEqualTo(EstadoContrato.FINALIZADO);
         assertThat(contrato.getFechaFin()).isAfterOrEqualTo(fechaAntes);
@@ -54,7 +54,7 @@ class ContratoTest {
     @DisplayName("finalizar: debe lanzar excepción cuando el contrato ya está finalizado")
     void testFinalizar_YaFinalizado() {
         contrato.setEstado(EstadoContrato.FINALIZADO);
-        assertThatThrownBy(() -> contrato.finalizar())
+        assertThatThrownBy(() -> contrato.finalizar(LocalDateTime.now()))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessage("El contrato ya está finalizado");
     }

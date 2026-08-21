@@ -8,6 +8,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import com.futbol.estadisticas.domain.model.enums.EstadoCompeticion;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -33,12 +34,12 @@ public class Competicion {
     private LocalDateTime fechaInicio;
     private LocalDateTime fechaFin;
     private Equipo equipoGanador;
+    private EstadoCompeticion estado;
 
      @Builder.Default
     private List<Partido> partidos = new ArrayList<>();
     
 
-    //Agrega un partido a la competición
     public void agregarPartido(Partido partido) {
         if (partido != null) {
             this.partidos.add(partido);
@@ -46,50 +47,26 @@ public class Competicion {
         }
     }
     
-    //Verifica si la competición está activa
     public boolean estaActiva() {
-        LocalDateTime ahora = LocalDateTime.now();
-        return fechaInicio != null && 
-               fechaFin != null &&
-               ahora.isAfter(fechaInicio) && 
-               ahora.isBefore(fechaFin);
+        return this.estado == EstadoCompeticion.EN_CURSO;
     }
     
-    //Verifica si la competición ha finalizado
     public boolean haFinalizado() {
-        return fechaFin != null && LocalDateTime.now().isAfter(fechaFin);
+        return this.estado == EstadoCompeticion.FINALIZADA;
     }
     
-    //Verifica si la competición aún no ha comenzado
     public boolean noHaComenzado() {
-        return fechaInicio != null && LocalDateTime.now().isBefore(fechaInicio);
+        return this.estado == EstadoCompeticion.POR_INICIAR;
+
     }
     
 
-    //Obtiene los partidos jugados (finalizados) de la competición
     public List<Partido> getPartidosJugados() {
         return partidos.stream()
             .filter(Partido::haFinalizado)
             .toList();
     }
-    
 
-    //Obtiene los partidos pendientes de la competición
-    public List<Partido> getPartidosPendientes() {
-        return partidos.stream()
-            .filter(p -> !p.haFinalizado() && !p.esFuturo())
-            .toList();
-    }
-    
-    //Obtiene los partidos futuros de la competición
-    public List<Partido> getPartidosFuturos() {
-        return partidos.stream()
-            .filter(Partido::esFuturo)
-            .toList();
-    }
-    
-    
-    //Obtiene el porcentaje de partidos jugados
     public double getPorcentajePartidosJugados() {
         if (partidos.isEmpty()) {
             return 0;
@@ -105,4 +82,36 @@ public class Competicion {
                 .distinct()
                 .collect(Collectors.toList());
     }
+
+    public void finalizarCompeticion() {
+        if (this.estado == EstadoCompeticion.FINALIZADA) {
+            throw new IllegalStateException("La competición ya está finalizada");
+        }
+        this.estado = EstadoCompeticion.FINALIZADA;
+    }
+
+    public void iniciarCompeticion() {
+        if (this.estado == EstadoCompeticion.FINALIZADA) {
+            throw new IllegalStateException("No se puede activar una competición finalizada");
+        }
+        this.estado = EstadoCompeticion.EN_CURSO;
+    }
+
+    public void suspender() {
+        if (this.estado == EstadoCompeticion.FINALIZADA) {
+            throw new IllegalStateException("No se puede suspender una competición finalizada");
+        }
+        this.estado = EstadoCompeticion.SUSPENDIDA;
+    }
+
+    public void reanudar() {
+        if (this.estado == EstadoCompeticion.FINALIZADA) {
+            throw new IllegalStateException("No se puede reanudar una competición finalizada");
+        }
+        this.estado = EstadoCompeticion.EN_CURSO;
+    }
+
+
+
+
 }

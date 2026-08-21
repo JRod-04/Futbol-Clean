@@ -14,7 +14,6 @@ public record CrearCompeticionRequest(
         LocalDateTime fechaInicio,
  
         @NotNull(message = "La fecha de fin es obligatoria")
-        @Future(message = "La fecha de fin debe ser futura")
         LocalDateTime fechaFin
 ) {
 
