@@ -492,6 +492,7 @@ public class InfrastructureMapper {
                 .nombre(e.getNombre())
                 .fechaInicio(e.getFechaInicio())
                 .fechaFin(e.getFechaFin())
+                .estado(e.getEstado())
                 .partidos(new ArrayList<>())
                 .equipoGanador(e.getEquipoGanador() != null ? DatostoDomain(e.getEquipoGanador()) : null)
                 .build();
@@ -504,6 +505,7 @@ public class InfrastructureMapper {
                 .nombre(e.getNombre())
                 .fechaInicio(e.getFechaInicio())
                 .fechaFin(e.getFechaFin())
+                .estado(e.getEstado())
                 .partidos(new ArrayList<>())
                 .build();
 
@@ -527,6 +529,7 @@ public class InfrastructureMapper {
                 .nombre(e.getNombre())
                 .fechaInicio(e.getFechaInicio())
                 .fechaFin(e.getFechaFin())
+                .estado(e.getEstado())
                 .equipoGanador(e.getEquipoGanador() != null ? DatostoDomain(e.getEquipoGanador()) : null)
                 .partidos(new ArrayList<>())
                 .build();
@@ -549,6 +552,7 @@ public class InfrastructureMapper {
                 .nombre(d.getNombre())
                 .fechaInicio(d.getFechaInicio())
                 .fechaFin(d.getFechaFin())
+                .estado(d.getEstado())
                 .build();
     }
 

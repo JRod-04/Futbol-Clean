@@ -195,7 +195,39 @@ public class CompeticionService implements CompeticionUseCase {
                 .orElseThrow(() -> new IllegalArgumentException(
                         "Competición no encontrada con id: " + idCompeticion));
     }
- 
+
+    @Override
+    @Transactional
+    public CompeticionResponse iniciarCompeticion(UUID id) {
+        Competicion competicion = getCompeticionOrThrow(id);
+        competicion.iniciarCompeticion();
+        return competicionMapper.toResponse(competicionRepository.save(competicion));
+    }
+
+    @Override
+    @Transactional
+    public CompeticionResponse finalizarCompeticion(UUID id) {
+        Competicion competicion = getCompeticionOrThrow(id);
+        competicion.finalizarCompeticion();
+        return competicionMapper.toResponse(competicionRepository.save(competicion));
+    }
+
+    @Override
+    @Transactional
+    public CompeticionResponse suspenderCompeticion(UUID id) {
+        Competicion competicion = getCompeticionOrThrow(id);
+        competicion.suspender();
+        return competicionMapper.toResponse(competicionRepository.save(competicion));
+    }
+
+    @Override
+    @Transactional
+    public CompeticionResponse reanudarCompeticion(UUID id) {
+        Competicion competicion = getCompeticionOrThrow(id);
+        competicion.reanudar();
+        return competicionMapper.toResponse(competicionRepository.save(competicion));
+    }
+
     @Override
     public void eliminarCompeticion(UUID idCompeticion) {
         Competicion competicion = competicionRepository.findById(idCompeticion)
@@ -204,4 +236,9 @@ public class CompeticionService implements CompeticionUseCase {
 
         competicionRepository.deleteById(idCompeticion);
     }
+    private Competicion getCompeticionOrThrow(UUID id) {
+        return competicionRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Competición no encontrada con id: " + id));
+    }
+
 }

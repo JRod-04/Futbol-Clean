@@ -1,5 +1,6 @@
 package com.futbol.estadisticas.application.port.dto.response;
 
+import com.futbol.estadisticas.domain.model.enums.FaseTorneo;
 import lombok.Builder;
 
 import java.util.List;
@@ -29,4 +30,15 @@ public class ClasificacionDTO {
             return golesFavor - golesContra;
         }
     }
+
+    public record ClasificacionGruposResponse(
+            UUID idCompeticion,
+            String nombreCompeticion,
+            List<GrupoClasificacion> grupos
+    ) {}
+
+    public record GrupoClasificacion(
+            FaseTorneo nombreGrupo,
+            List<EquipoClasificacion> tabla
+    ) {}
 }

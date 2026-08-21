@@ -39,7 +39,7 @@ public class TecnicoController {
         return ResponseEntity.ok(tecnicoUseCase.obtenerTecnicoPorId(id));
     }
  
-    @GetMapping("/club/{idEquipo}/actual")
+    @GetMapping("/{idEquipo}/actual")
     public ResponseEntity<TecnicoResponse> tecnicoActualDeEquipo(@PathVariable UUID idEquipo) {
         return ResponseEntity.ok(tecnicoUseCase.obtenerTecnicoActualDeEquipo(idEquipo));
     }

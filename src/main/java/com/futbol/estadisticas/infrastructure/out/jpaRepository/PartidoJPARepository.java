@@ -26,19 +26,23 @@ public interface PartidoJPARepository extends JpaRepository<PartidoJPAEntity, UU
     List<PartidoJPAEntity> findByCompeticionIdCompeticion(UUID idCompeticion);
  
 
-    List<PartidoJPAEntity> findByFechaYHoraBetween(LocalDateTime desde, LocalDateTime hasta);
- 
-    List<PartidoJPAEntity> findByArbitroIdArbitro(UUID idArbitro);
 
    @Query("""
            SELECT p FROM PartidoJPAEntity p
            WHERE p.competicion.idCompeticion = :idCompeticion
              AND p.estado IN (
+                 'PROGRAMADO',
                  'FINALIZADO',
                  'PRIMER_TIEMPO',
                  'SEGUNDO_TIEMPO',
                  'ENTRETIEMPO',
-                 'PRORROGA',
+                 'ESPERANDO_PRORROGA',
+                 'PRIMER_TIEMPO_PRORROGA',
+                 'AGREGADO_PRORROGA_PRIMER',
+                 'ENTRETIEMPO_PRORROGA',
+                 'SEGUNDO_TIEMPO_PRORROGA',
+                 'AGREGADO_PRORROGA_SEGUNDO',
+                 'ESPERANDO_PENALTIS',
                  'PENALTIS'
              )
            """)

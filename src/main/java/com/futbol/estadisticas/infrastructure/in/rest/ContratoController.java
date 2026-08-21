@@ -1,5 +1,6 @@
 package com.futbol.estadisticas.infrastructure.in.rest;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -63,14 +64,13 @@ public class ContratoController {
     }
  
     @PatchMapping("/{id}/finalizar")
-    public ResponseEntity<Void> finalizar(@PathVariable UUID id) {
-        contratoUseCase.finalizarContrato(id);
-        return ResponseEntity.accepted().build();
+    public ResponseEntity<ContratoResponse> finalizar(@PathVariable UUID id, @RequestParam LocalDateTime fechaFin) {
+        return ResponseEntity.ok(contratoUseCase.finalizarContrato(id, fechaFin));
     }
  
     @PatchMapping("/{id}/rescindir")
-    public ResponseEntity<Void> rescindir(@PathVariable UUID id) {
-        contratoUseCase.rescindirContrato(id);
+    public ResponseEntity<Void> rescindir(@PathVariable UUID id, LocalDateTime fechaRescindido) {
+        contratoUseCase.rescindirContrato(id, fechaRescindido);
         return ResponseEntity.noContent().build();
     }
 

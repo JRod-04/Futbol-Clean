@@ -1,10 +1,12 @@
 package com.futbol.estadisticas.application.port.in;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
 import com.futbol.estadisticas.application.port.dto.request.CrearContratoRequest;
 import com.futbol.estadisticas.application.port.dto.response.ContratoResponse;
+import org.springframework.cglib.core.Local;
 
 public interface ContratoUseCase {
     ContratoResponse crearContrato(CrearContratoRequest request);
@@ -21,9 +23,9 @@ public interface ContratoUseCase {
  
     ContratoResponse renovarContrato(UUID idContrato, int mesesAdicionales);
  
-    void finalizarContrato(UUID idContrato);
+    ContratoResponse finalizarContrato(UUID idContrato, LocalDateTime fechaFin);
  
-    void rescindirContrato(UUID idContrato);
+    void rescindirContrato(UUID idContrato, LocalDateTime fechaRescindido);
 
     void eliminarContrato( UUID idContrato);
 }

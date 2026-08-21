@@ -1,5 +1,6 @@
 package com.futbol.estadisticas.application.service;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -179,7 +180,7 @@ public class ContratoService implements ContratoUseCase {
     }
  
     @Override
-    public void finalizarContrato(UUID idContrato) {
+    public ContratoResponse finalizarContrato(UUID idContrato, LocalDateTime fechaFin) {
         Contrato contrato = contratoRepository.findById(idContrato)
                 .orElseThrow(() -> new IllegalArgumentException(
                         "Contrato no encontrado con id: " + idContrato));
@@ -188,7 +189,7 @@ public class ContratoService implements ContratoUseCase {
         PersonalDeportivo personal = contrato.getPersonal();
         Equipo club = contrato.getEquipo();
 
-        contrato.finalizar();
+        contrato.finalizar(fechaFin);
         contratoRepository.save(contrato);
 
         if (personal instanceof Tecnico && club != null) {
@@ -202,10 +203,11 @@ public class ContratoService implements ContratoUseCase {
                 tecnicoRepository.save((Tecnico) personal);
             }
         }
+        return contratoMapper.toResponse(contratoRepository.save(contrato));
     }
  
     @Override
-    public void rescindirContrato(UUID idContrato) {
+    public void rescindirContrato(UUID idContrato, LocalDateTime fechaRescindido) {
         Contrato contrato = contratoRepository.findById(idContrato)
                 .orElseThrow(() -> new IllegalArgumentException(
                         "Contrato no encontrado con id: " + idContrato));
@@ -218,6 +220,7 @@ public class ContratoService implements ContratoUseCase {
         Equipo club = contrato.getEquipo();
 
         contrato.setEstado(EstadoContrato.RESCINDIDO);
+        contrato.setFechaFin(fechaRescindido);
         contratoRepository.save(contrato);
 
         if (personal instanceof Tecnico && club != null) {

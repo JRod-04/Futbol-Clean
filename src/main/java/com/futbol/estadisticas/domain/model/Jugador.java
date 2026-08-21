@@ -74,13 +74,13 @@ public class Jugador extends PersonalDeportivo {
     }
 
 
-    //Indica si el jugador puede ser convocado: sin lesiones activas,
     public boolean estaDisponible() {
         boolean noLesionado = !estaLesionado();
         boolean estadoValido = datosDeportivos != null &&
-            datosDeportivos.getEstadoJugador() != EstadoJugador.SUSPENDIDO &&
-            datosDeportivos.getEstadoJugador() != EstadoJugador.RETIRADO &&
-            datosDeportivos.getEstadoJugador() != EstadoJugador.APARTADO;
+                datosDeportivos.getEstadoJugador() != EstadoJugador.TITULAR &&
+                datosDeportivos.getEstadoJugador() != EstadoJugador.SUSPENDIDO &&
+                datosDeportivos.getEstadoJugador() != EstadoJugador.RETIRADO &&
+                datosDeportivos.getEstadoJugador() != EstadoJugador.APARTADO;
         return noLesionado && estadoValido;
     }
 }
