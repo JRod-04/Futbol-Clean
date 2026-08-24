@@ -30,6 +30,9 @@ public enum TipoEvento {
     SUB_IN("Entra al campo", "IN"),
     SUB_OUT("Sale del campo", "OUT"),
     TITULAR("Jugador inicia el partido", "STP"),
+    CONVOCADO("Personal Convocado al partido", "BC"),
+    DT_PARTIDO("Tecnico que comanda el partido", "DT"),
+
 
     // Inicio y fin
     INICIO_PARTIDO("Inicio del partido", "I1P"),

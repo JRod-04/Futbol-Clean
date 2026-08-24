@@ -11,46 +11,16 @@ public enum EstadoJugador {
     APARTADO("Apartado", "Jugador separado del equipo", 3),
     LESIONADO("Lesionado", "Jugador con lesión", 4),
     SUSPENDIDO("Suspendido", "Jugador sancionado", 5),
-    RETIRADO("Retirado", "Jugador retirado del fútbol profesional", 6);
-    
+    RETIRADO("Retirado", "Jugador retirado del fútbol profesional", 6),
+    CEDIDO("Cedido", "Jugador cedido a otro equipo", 7),
+    NO_CONVOCADO("No Convocado", "Jugador no convocado por el entrenador", 8),
+    LIBRE("Libre", "Jugador sin contrato", 9),
+    EN_RECUPERACION("Retirado", "Jugador recuperándose de una lesión", 10),
+    DUDOSO("Retirado", "Jugador en duda de participar en convocatoria del entrenador", 11);
+
+
     private final String displayName;
     private final String descripcion;
     private final int orden;
-    
-    public boolean estaDisponible() {
-        return this == TITULAR || this == SUPLENTE;
-    }
-    
-    public boolean estaInactivo() {
-        return this == LESIONADO || this == SUSPENDIDO || this == RETIRADO || this == APARTADO;
-    }
-    
-    public boolean puedeSerConvocado() {
-        return this == TITULAR || this == SUPLENTE;
-    }
-    
-
-    public EstadoJugador getEstadoBase() {
-        if (this == LESIONADO || this == SUSPENDIDO || this == APARTADO) {
-            return SUPLENTE; 
-        }
-        return this;
-    }
-    
-    public boolean puedeTransicionarA(EstadoJugador nuevoEstado) {
-        if (this == RETIRADO) {
-            return false;
-        }
-        
-        if (this == SUSPENDIDO && nuevoEstado != SUPLENTE && nuevoEstado != TITULAR) {
-            return false;
-        }
-        
-        if (this == LESIONADO && nuevoEstado != SUPLENTE && nuevoEstado != TITULAR) {
-            return false;
-        }
-        
-        return true;
-    }
 
 }

@@ -1,9 +1,7 @@
 package com.futbol.estadisticas.domain.model;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 import com.futbol.estadisticas.domain.model.enums.EstadoJugador;
 import com.futbol.estadisticas.domain.model.enums.PosicionJugador;
@@ -32,7 +30,7 @@ public class DatosDeportivos {
     private Integer dorsal;
     private Jugador jugador;
      @Builder.Default
-    private List<PosicionJugador> posiciones = new ArrayList<>();
+    private Deque<PosicionJugador> posiciones = new ArrayDeque<>();
 
 
 
@@ -67,23 +65,24 @@ public class DatosDeportivos {
         if (nuevaPosicion == null) {
             throw new IllegalArgumentException("La posición no puede ser nula");
         }
-        if (!posiciones.contains(nuevaPosicion)) {
-            posiciones.add(nuevaPosicion);
-        }
+        posiciones.removeFirstOccurrence(nuevaPosicion);
+        posiciones.addFirst(nuevaPosicion);
         this.fechaActualizacion = LocalDate.now();
     }
+
+
     public void eliminarPosicion(PosicionJugador posicionAEliminar) {
         if (posicionAEliminar == null) {
             throw new IllegalArgumentException("La posición a eliminar no puede ser nula");
         }
-        if (!this.posiciones.remove(posicionAEliminar)) {
+        if (!this.posiciones.removeAll(Collections.singleton(posicionAEliminar))) {
             throw new IllegalArgumentException("La posición " + posicionAEliminar + " no está en la lista del jugador");
         }
         this.fechaActualizacion = LocalDate.now();
     }
 
     public PosicionJugador getPosicionActual() {
-        return posiciones.isEmpty() ? null : posiciones.getLast();
+        return posiciones.isEmpty() ? null : posiciones.getFirst();
     }
 
     // ── PARA DORSAL ──
@@ -136,6 +135,9 @@ public class DatosDeportivos {
     public void promoverATitular() {
         if (this.estadoJugador == EstadoJugador.RETIRADO) {
             throw new IllegalStateException("Un jugador retirado no puede ser titular");
+        }
+        if (this.estadoJugador == EstadoJugador.LESIONADO) {
+            throw new IllegalStateException("El jugador" + this.jugador.getNombreCompleto() + " no puede ser titular, está lesionado");
         }
         this.estadoJugador = EstadoJugador.TITULAR;
         this.fechaActualizacion = LocalDate.now();

@@ -194,18 +194,25 @@ public class Equipo {
                 throw new IllegalArgumentException("Jugador con ID " + idJugador + " no pertenece al equipo");
             }
 
-            PosicionJugador posicionActual = jugador.getDatosDeportivos() != null
-                    ? jugador.getDatosDeportivos().getPosicionActual()
-                    : null;
+            if (jugador.getDatosDeportivos() == null) {
+                throw new IllegalStateException(
+                        "El jugador " + jugador.getNombre() + " " + jugador.getApellido() +
+                                " no tiene DatosDeportivos."
+                );
+            }
 
-            boolean posicionCambiada = posicionActual != posicion;
-
-            if (posicionCambiada && jugador.getDatosDeportivos() != null) {
-                jugador.getDatosDeportivos().agregarPosicion(posicion);
+            if (jugador.getDatosDeportivos().getJugador() == null) {
                 jugador.getDatosDeportivos().setJugador(jugador);
             }
 
-            jugadoresConPosicion.add(new JugadorPosicionNotificacionDTO(jugador, posicionActual, posicion, posicionCambiada));
+            PosicionJugador posicionActual = jugador.getDatosDeportivos().getPosicionActual();
+            boolean posicionCambiada = posicionActual != posicion;
+
+            if (posicionCambiada) {
+                jugador.getDatosDeportivos().agregarPosicion(posicion);
+            }
+
+            jugadoresConPosicion.add(new JugadorPosicionNotificacionDTO(jugador, posicion, posicionCambiada));
         }
 
         return jugadoresConPosicion;

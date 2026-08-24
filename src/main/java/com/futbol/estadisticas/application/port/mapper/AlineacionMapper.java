@@ -42,25 +42,6 @@ public class AlineacionMapper {
                 .build();
     }
 
-    public List<EventosPartido> toEventosTitulares(Partido partido, Equipo equipo,
-                                                   List<JugadorPosicionNotificacionDTO> jugadoresConPosicion) {
-        List<EventosPartido> eventos = new ArrayList<>();
-
-        for (JugadorPosicionNotificacionDTO dto : jugadoresConPosicion) {
-            EventosPartido eventoTitular = EventosPartido.builder()
-                    .idEvento(UUID.randomUUID())
-                    .partido(partido)
-                    .minuto(LocalTime.of(0, 0))
-                    .descripcion(dto.posicionNueva().getAbreviatura())
-                    .tipoEvento(TipoEvento.TITULAR)
-                    .personal(dto.jugador())
-                    .equipoFavorecido(equipo)
-                    .build();
-            eventos.add(eventoTitular);
-        }
-
-        return eventos;
-    }
 
     public PartidoConAlineacionResponse toPartidoWithAlineacion(Partido partido,
                                                                 AlineacionResponse alineacionLocal,

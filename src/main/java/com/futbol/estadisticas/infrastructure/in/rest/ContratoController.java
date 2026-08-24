@@ -69,9 +69,9 @@ public class ContratoController {
     }
  
     @PatchMapping("/{id}/rescindir")
-    public ResponseEntity<Void> rescindir(@PathVariable UUID id, LocalDateTime fechaRescindido) {
+    public ResponseEntity<ContratoResponse> rescindir(@PathVariable UUID id, @RequestParam LocalDateTime fechaRescindido) {
         contratoUseCase.rescindirContrato(id, fechaRescindido);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(contratoUseCase.rescindirContrato(id, fechaRescindido));
     }
 
     @DeleteMapping("/{id}")

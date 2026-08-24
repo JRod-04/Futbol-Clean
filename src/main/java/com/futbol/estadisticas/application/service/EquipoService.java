@@ -1,10 +1,7 @@
 package com.futbol.estadisticas.application.service;
 
 import java.time.LocalTime;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 import com.futbol.estadisticas.application.port.dto.request.AlineacionRequest;
 import com.futbol.estadisticas.application.port.dto.response.*;
@@ -16,6 +13,7 @@ import com.futbol.estadisticas.domain.model.*;
 import com.futbol.estadisticas.domain.model.enums.Alineacion;
 import com.futbol.estadisticas.domain.model.enums.PosicionJugador;
 import com.futbol.estadisticas.domain.model.enums.TipoEvento;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -70,31 +68,48 @@ public class EquipoService implements EquipoUseCase {
                 .map(Jugador::getIdPersonal)
                 .toList();
 
-        for (Jugador jugador : onceTitulares) {
-            datosDeportivosUseCase.promoverATitular(jugador.getIdPersonal());
+        Map<UUID, DatosDeportivos> datosDeportivosMap = new HashMap<>();
+
+        for (JugadorPosicionNotificacionDTO dto : jugadoresConPosicion) {
+            Jugador jugador = dto.jugador();
+            if (jugador.getDatosDeportivos() != null) {
+                DatosDeportivos datos = jugador.getDatosDeportivos();
+                datos.promoverATitular();
+                datosDeportivosMap.put(datos.getIdHistorialDeportivo(), datos);
+            }
         }
 
         for (Jugador jugador : equipo.getJugadoresActivos()) {
             if (!idsTitulares.contains(jugador.getIdPersonal()) && !jugador.estaLesionado()) {
                 try {
-                    datosDeportivosUseCase.cambiarASuplente(jugador.getIdPersonal());
+                    DatosDeportivos datos = jugador.getDatosDeportivos();
+                    if (datos != null) {
+                        datos.cambiarASuplente();
+                        datosDeportivosMap.put(datos.getIdHistorialDeportivo(), datos);
+                    }
                 } catch (IllegalStateException ignored) {
                 }
             }
         }
 
-        List<EventosPartido> eventosTitulares = alineacionMapper.toEventosTitulares(partido, equipo, jugadoresConPosicion);
+        List<DatosDeportivos> datosDeportivosActualizados = new ArrayList<>(datosDeportivosMap.values());
+
+        if (!datosDeportivosActualizados.isEmpty()) {
+            for (DatosDeportivos datos : datosDeportivosActualizados) {
+                try {
+                    if (datos.getJugador() != null) {
+                        datosDeportivosRepository.save(datos);
+                    }
+                } catch (DuplicateKeyException ignored) {
+                }
+            }
+        }
 
         partido.getEventos().removeIf(e ->
                 e.getTipoEvento() == TipoEvento.TITULAR &&
                         e.getEquipoFavorecido() != null &&
                         e.getEquipoFavorecido().getIdEquipo().equals(equipo.getIdEquipo())
         );
-
-        for (EventosPartido evento : eventosTitulares) {
-            partido.getEventos().add(evento);
-            eventosPartidoRepository.save(evento);
-        }
 
         boolean esLocal = partido.getEquipoLocal().getIdEquipo().equals(idEquipo);
         if (esLocal) {
@@ -103,12 +118,6 @@ public class EquipoService implements EquipoUseCase {
             partido.setAlineacionVisitante(alineacion);
         }
         partidoRepository.save(partido);
-
-        for (JugadorPosicionNotificacionDTO dto : jugadoresConPosicion) {
-            if (dto.posicionCambiada() && dto.jugador().getDatosDeportivos() != null) {
-                datosDeportivosRepository.save(dto.jugador().getDatosDeportivos());
-            }
-        }
 
         return alineacionMapper.toResponse(equipo, alineacion, jugadoresConPosicion);
 }

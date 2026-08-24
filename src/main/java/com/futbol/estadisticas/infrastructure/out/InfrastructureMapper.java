@@ -1,9 +1,12 @@
 package com.futbol.estadisticas.infrastructure.out;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.futbol.estadisticas.domain.model.enums.PosicionJugador;
 import com.futbol.estadisticas.infrastructure.out.jpaEntity.*;
 import com.futbol.estadisticas.infrastructure.out.jpaRepository.EquipoJPARepository;
 import com.futbol.estadisticas.infrastructure.out.jpaRepository.PersonalDeportivoJPARepository;
@@ -81,17 +84,48 @@ public class InfrastructureMapper {
 
     // ──────────────────────────── DATOS DEPORTIVOS ────────────────────────────
 
-    public DatosDeportivos DatostoDomain(DatosDeportivosJPAEntity entity) {
+    private DatosDeportivos DatostoDomainSinJugador(DatosDeportivosJPAEntity entity) {
         if (entity == null) return null;
+
+        Deque<PosicionJugador> posicionesDeque = new ArrayDeque<>();
+        if (entity.getPosiciones() != null && !entity.getPosiciones().isEmpty()) {
+            entity.getPosiciones().forEach(posicionesDeque::addFirst);
+        }
 
         return DatosDeportivos.builder()
                 .idHistorialDeportivo(entity.getIdHistorialDeportivo())
                 .fechaActualizacion(entity.getFechaActualizacion())
                 .estadoJugador(entity.getEstadoJugador())
                 .valorMercado(entity.getValorMercado())
-                .posiciones(entity.getPosiciones() != null ? entity.getPosiciones() : new ArrayList<>())
+                .posiciones(posicionesDeque)
                 .dorsal(entity.getDorsal())
                 .build();
+    }
+
+    public DatosDeportivos DatostoDomain(DatosDeportivosJPAEntity entity) {
+        if (entity == null) return null;
+
+        DatosDeportivos datos = DatostoDomainSinJugador(entity);
+
+        if (entity.getJugador() != null) {
+            Jugador jugador = Jugador.builder()
+                    .idPersonal(entity.getJugador().getIdPersonal())
+                    .nombre(entity.getJugador().getNombre())
+                    .apellido(entity.getJugador().getApellido())
+                    .fechaNacimiento(entity.getJugador().getFechaNacimiento())
+                    .nacionalidad(entity.getJugador().getNacionalidad())
+                    .tipoPersonal(entity.getJugador().getTipoPersonal())
+                    .pieHabil(entity.getJugador().getPieHabil())
+                    .altura(entity.getJugador().getAltura())
+                    .peso(entity.getJugador().getPeso())
+                    .fechaActualizacion(entity.getJugador().getFechaActualizacion())
+                    .contratos(new ArrayList<>())
+                    .build();
+
+            datos.setJugador(jugador);
+        }
+
+        return datos;
     }
 
     // ── DATOS DEPORTIVOS: DOMAIN → JPA ──
@@ -99,12 +133,24 @@ public class InfrastructureMapper {
     public DatosDeportivosJPAEntity toJpa(DatosDeportivos domain, JugadorJPAEntity jugadorJPA) {
         if (domain == null) return null;
 
+        if (jugadorJPA == null && domain.getJugador() != null) {
+            jugadorJPA = toJpaBasico(domain.getJugador());
+        }
+
+        if (jugadorJPA == null) {
+            throw new IllegalArgumentException("El jugador es obligatorio para guardar DatosDeportivos");
+        }
+        List<PosicionJugador> posicionesList = new ArrayList<>();
+        if (domain.getPosiciones() != null && !domain.getPosiciones().isEmpty()) {
+            posicionesList = new ArrayList<>(domain.getPosiciones().reversed());
+        }
+
         DatosDeportivosJPAEntity entity = DatosDeportivosJPAEntity.builder()
                 .idHistorialDeportivo(domain.getIdHistorialDeportivo())
                 .fechaActualizacion(domain.getFechaActualizacion())
                 .estadoJugador(domain.getEstadoJugador())
                 .valorMercado(domain.getValorMercado())
-                .posiciones(domain.getPosiciones() != null ? domain.getPosiciones() : new ArrayList<>())
+                .posiciones(posicionesList)
                 .dorsal(domain.getDorsal())
                 .jugador(jugadorJPA)
                 .build();
@@ -146,6 +192,23 @@ public class InfrastructureMapper {
 
     // ──────────────────────────── JUGADOR: JPA → DOMAIN ────────────────────────────
 
+    public JugadorJPAEntity toJpaBasico(Jugador d) {
+        if (d == null) return null;
+
+        return JugadorJPAEntity.builder()
+                .idPersonal(d.getIdPersonal())
+                .nombre(d.getNombre())
+                .apellido(d.getApellido())
+                .fechaNacimiento(d.getFechaNacimiento())
+                .nacionalidad(d.getNacionalidad())
+                .tipoPersonal(d.getTipoPersonal())
+                .pieHabil(d.getPieHabil())
+                .altura(d.getAltura())
+                .peso(d.getPeso())
+                .fechaActualizacion(d.getFechaActualizacion())
+                .build();
+    }
+
     public Jugador toJugadorBasico(JugadorJPAEntity entity) {
         if (entity == null) return null;
         return Jugador.builder()
@@ -180,7 +243,11 @@ public class InfrastructureMapper {
                 .build();
 
         if (entity.getDatosDeportivos() != null) {
-            jugador.setDatosDeportivos(DatostoDomain(entity.getDatosDeportivos()));
+            DatosDeportivos datos = DatostoDomain(entity.getDatosDeportivos());
+            jugador.setDatosDeportivos(datos);
+            if (datos != null && datos.getJugador() == null) {
+                datos.setJugador(jugador);
+            }
         }
 
         if (entity.getLesiones() != null && !entity.getLesiones().isEmpty()) {
@@ -208,6 +275,8 @@ public class InfrastructureMapper {
     public JugadorJPAEntity toJpa(Jugador d) {
         if (d == null) return null;
 
+        JugadorJPAEntity entity = toJpaBasico(d);
+
         JugadorJPAEntity.JugadorJPAEntityBuilder builder = JugadorJPAEntity.builder()
                 .idPersonal(d.getIdPersonal())
                 .nombre(d.getNombre())
@@ -220,12 +289,12 @@ public class InfrastructureMapper {
                 .peso(d.getPeso())
                 .fechaActualizacion(d.getFechaActualizacion());
 
-        JugadorJPAEntity entity = builder.build();
 
         if (d.getDatosDeportivos() != null) {
             DatosDeportivosJPAEntity datosJPA = toJpa(d.getDatosDeportivos(), entity);
             entity.setDatosDeportivos(datosJPA);
         }
+
 
         if (d.getLesiones() != null && !d.getLesiones().isEmpty()) {
             java.util.List<LesionJPAEntity> lesionesJPA = d.getLesiones().stream()

@@ -114,6 +114,7 @@ public class PersonalDeportivo {
               Contrato vigente = getContratoVigente();
               return vigente != null ? vigente.getEquipo() : null;
           }
+
   }
 
 

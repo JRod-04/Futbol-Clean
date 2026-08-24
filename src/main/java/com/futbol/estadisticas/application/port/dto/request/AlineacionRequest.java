@@ -26,29 +26,31 @@ public record AlineacionRequest(
         UUID lateralDerecho,
         UUID centralIzquierdo,
         UUID centralDerecho,
-        UUID central,
+        UUID defensaCentral,
 
         // Carrileros
         UUID carrileroIzquierdo,
         UUID carrileroDerecho,
 
-        // Mediocentros
-        UUID mediocentroDefensivo,
-        UUID mediocentroDefensivoIzquierdo,
-        UUID mediocentroDefensivoDerecho,
-        UUID mediocentroIzquierdo,
-        UUID mediocentroDerecho,
-        UUID mediocentro,
+        // MedioCampistas
+        UUID centroCampistaDefensivo,
+        UUID centroCampistaDefensivoIzquierdo,
+        UUID centroCampistaDefensivoDerecho,
+        UUID centroCampistaIzquierdo,
+        UUID centroCampistaDerecho,
+        UUID centroCampista,
+        UUID medioCentroIzquierdo,
+        UUID medioCentroDerecho,
 
         // Ofensivos
-        UUID mediocentroOfensivo,
-        UUID mediocentroOfensivoIzquierdo,
-        UUID mediocentroOfensivoDerecho,
+        UUID centroCampistaOfensivo,
+        UUID centroCampistaOfensivoIzquierdo,
+        UUID centroCampistaOfensivoDerecho,
 
         // Delanteros
         UUID extremoIzquierdo,
         UUID extremoDerecho,
-        UUID delantero,
+        UUID delanteroCentro,
         UUID delanteroIzquierdo,
         UUID delanteroDerecho
 ){
@@ -59,21 +61,23 @@ public record AlineacionRequest(
         mapa.put("lateralDerecho", lateralDerecho);
         mapa.put("centralIzquierdo", centralIzquierdo);
         mapa.put("centralDerecho", centralDerecho);
-        mapa.put("central", central);
+        mapa.put("defensaCentral", defensaCentral);
         mapa.put("carrileroIzquierdo", carrileroIzquierdo);
         mapa.put("carrileroDerecho", carrileroDerecho);
-        mapa.put("mediocentroDefensivo", mediocentroDefensivo);
-        mapa.put("mediocentroDefensivoIzquierdo", mediocentroDefensivoIzquierdo);
-        mapa.put("mediocentroDefensivoDerecho", mediocentroDefensivoDerecho);
-        mapa.put("mediocentroIzquierdo", mediocentroIzquierdo);
-        mapa.put("mediocentroDerecho", mediocentroDerecho);
-        mapa.put("mediocentro", mediocentro);
-        mapa.put("mediocentroOfensivo", mediocentroOfensivo);
-        mapa.put("mediocentroOfensivoIzquierdo", mediocentroOfensivoIzquierdo);
-        mapa.put("mediocentroOfensivoDerecho", mediocentroOfensivoDerecho);
+        mapa.put("centroCampistaDefensivo", centroCampistaDefensivo);
+        mapa.put("centroCampistaDefensivoIzquierdo", centroCampistaDefensivoIzquierdo);
+        mapa.put("centroCampistaDefensivoDerecho", centroCampistaDefensivoDerecho);
+        mapa.put("medioCentroIzquierdo", medioCentroIzquierdo);
+        mapa.put("medioCentroDerecho", medioCentroDerecho);
+        mapa.put("centroCampistaIzquierdo", centroCampistaIzquierdo);
+        mapa.put("centroCampistaDerecho", centroCampistaDerecho);
+        mapa.put("centroCampista", centroCampista);
+        mapa.put("centroCampistaOfensivo", centroCampistaOfensivo);
+        mapa.put("centroCampistaOfensivoIzquierdo", centroCampistaOfensivoIzquierdo);
+        mapa.put("centroCampistaOfensivoDerecho", centroCampistaOfensivoDerecho);
         mapa.put("extremoIzquierdo", extremoIzquierdo);
         mapa.put("extremoDerecho", extremoDerecho);
-        mapa.put("delantero", delantero);
+        mapa.put("delanteroCentro", delanteroCentro);
         mapa.put("delanteroIzquierdo", delanteroIzquierdo);
         mapa.put("delanteroDerecho", delanteroDerecho);
         return mapa;

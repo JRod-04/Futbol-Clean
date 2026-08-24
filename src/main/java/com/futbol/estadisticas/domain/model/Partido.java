@@ -70,6 +70,7 @@ public class Partido {
         agregarEvento(eventoInicio);
 
         registrarEventosTitulares();
+        registrarEventosBanquillo();
     }
 
     private void validarAlineacionesCompletas() {
@@ -112,6 +113,63 @@ public class Partido {
                 .build();
         agregarEvento(eventoTitular);
     }
+
+    private void registrarEventosBanquillo() {
+        List<Jugador> convocadosLocal = equipoLocal.getJugadoresDisponibles();
+        List<Jugador> convocadosVisitante = equipoVisitante.getJugadoresDisponibles();
+        Tecnico tecnicoLocal = equipoLocal.getTecnicoActual();
+        Tecnico tecnicoVisitante = equipoVisitante.getTecnicoActual();
+
+
+        convocadosLocal.forEach(jugador -> agregarEventoBanquilloJugador(jugador, equipoLocal));
+        convocadosVisitante.forEach(jugador -> agregarEventoBanquilloJugador(jugador, equipoVisitante));
+        agregarEventoBanquilloTecnico(tecnicoLocal, equipoLocal);
+        agregarEventoBanquilloTecnico(tecnicoVisitante, equipoVisitante);
+    }
+
+    private void agregarEventoBanquilloJugador(Jugador jugador, Equipo club) {
+        EventosPartido eventoConvocado = EventosPartido.builder()
+                .idEvento(UUID.randomUUID())
+                .minuto(LocalTime.of(0, 0))
+                .descripcion(jugador.getNombreCompleto() + " Convocado")
+                .tipoEvento(TipoEvento.CONVOCADO)
+                .personal(jugador)
+                .equipoFavorecido(club)
+                .partido(this)
+                .build();
+        agregarEvento(eventoConvocado);
+
+    }
+    private void agregarEventoBanquilloTecnico(Tecnico tecnico, Equipo club) {
+        EventosPartido eventoConvocado = EventosPartido.builder()
+                .idEvento(UUID.randomUUID())
+                .minuto(LocalTime.of(0, 0))
+                .descripcion(tecnico.getNombreCompleto() + " DT")
+                .tipoEvento(TipoEvento.DT_PARTIDO)
+                .personal(tecnico)
+                .equipoFavorecido(club)
+                .partido(this)
+                .build();
+        agregarEvento(eventoConvocado);
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     public void reanudarPartido() {
         if (this.estado == EstadoPartido.FINALIZADO ||
@@ -319,7 +377,8 @@ public class Partido {
 
         boolean requierePersonalEnCampo = evento.getPersonal() != null &&
                 evento.getTipoEvento() != TipoEvento.TITULAR &&
-                evento.getTipoEvento() != TipoEvento.SUB_IN;
+                evento.getTipoEvento() != TipoEvento.SUB_IN &&
+                evento.getTipoEvento() != TipoEvento.CONVOCADO;
 
         if (requierePersonalEnCampo && !estaEnCampo(evento.getPersonal())) {
             throw new IllegalStateException(
