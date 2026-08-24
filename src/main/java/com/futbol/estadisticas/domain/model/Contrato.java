@@ -1,5 +1,6 @@
 package com.futbol.estadisticas.domain.model;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Period;
 import java.util.List;
@@ -7,6 +8,7 @@ import java.util.UUID;
 
 import com.futbol.estadisticas.domain.model.enums.EstadoContrato;
 
+import com.futbol.estadisticas.domain.model.enums.EstadoJugador;
 import com.futbol.estadisticas.domain.model.enums.TipoContrato;
 import com.futbol.estadisticas.domain.model.enums.TipoEquipo;
 import lombok.AllArgsConstructor;
@@ -268,9 +270,7 @@ public class Contrato {
         return this.tipoContrato == TipoContrato.CONVOCATORIA;
     }
 
-    public boolean esCesion() {
-        return this.tipoContrato == TipoContrato.CESION;
-    }
+    public boolean esCesion() {return this.tipoContrato == TipoContrato.CESION;}
 
     public boolean esJuvenil() {
         return this.tipoContrato == TipoContrato.JUVENIL;
@@ -289,6 +289,14 @@ public class Contrato {
         }
         this.estado = EstadoContrato.FINALIZADO;
         this.fechaFin = fechaFin;
+
+        if(this.personal instanceof Jugador jugador){
+            DatosDeportivos datosJugador = jugador.getDatosDeportivos();
+            if (datosJugador != null) {
+                    datosJugador.setEstadoJugador(EstadoJugador.LIBRE);
+                    datosJugador.setFechaActualizacion(LocalDate.now());
+            }
+        }
     }
     
     public void renovar(int mesesAdicionales) {
@@ -302,11 +310,20 @@ public class Contrato {
     }
 
 
-        public void rescindir() {
+        public void rescindir(LocalDateTime fechaFin) {
         if (this.estado == EstadoContrato.FINALIZADO) {
             throw new IllegalStateException("No se puede Rescindir un contrato Finalizado");
         }
+
         this.estado = EstadoContrato.RESCINDIDO;
         this.fechaFin = LocalDateTime.now();
+
+        if(this.personal instanceof Jugador jugador){
+                DatosDeportivos datosJugador = jugador.getDatosDeportivos();
+            if (datosJugador != null) {
+                datosJugador.setEstadoJugador(EstadoJugador.LIBRE);
+                datosJugador.setFechaActualizacion(LocalDate.now());
+            }
+            }
    }
 }

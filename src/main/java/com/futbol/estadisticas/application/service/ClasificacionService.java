@@ -3,8 +3,12 @@ package com.futbol.estadisticas.application.service;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import com.futbol.estadisticas.domain.model.Equipo;
+import com.futbol.estadisticas.application.port.dto.response.LideresEstadisticos.*;
+import com.futbol.estadisticas.application.port.dto.response.RankingEstadisticasDTO;
+import com.futbol.estadisticas.application.port.mapper.LideresEstadisticosMapper;
+import com.futbol.estadisticas.domain.model.*;
 import com.futbol.estadisticas.domain.model.enums.FaseTorneo;
+import com.futbol.estadisticas.domain.model.enums.PosicionJugador;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -12,9 +16,6 @@ import com.futbol.estadisticas.application.port.dto.response.ClasificacionDTO.*;
 import com.futbol.estadisticas.application.port.in.ClasificacionUseCase;
 import com.futbol.estadisticas.application.port.out.CompeticionRepositoryPort;
 import com.futbol.estadisticas.application.port.out.PartidoRepositoryPort;
-import com.futbol.estadisticas.domain.model.Competicion;
-import com.futbol.estadisticas.domain.model.EventosPartido;
-import com.futbol.estadisticas.domain.model.Partido;
 import com.futbol.estadisticas.domain.model.enums.EstadoPartido;
 import com.futbol.estadisticas.domain.model.enums.TipoEvento;
 
@@ -24,8 +25,10 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class ClasificacionService implements ClasificacionUseCase {
+
     private final PartidoRepositoryPort partidoRepository;
     private final CompeticionRepositoryPort competicionRepository;
+    private final LideresEstadisticosMapper lideresEstadisticosMapper;
 
 
 
@@ -77,6 +80,32 @@ public class ClasificacionService implements ClasificacionUseCase {
             return procesarTablaUnica(competicion, partidos, clubesParticipantes);
         }
     }
+
+    @Override
+    public LideresEstadisticosResponse obtenerLideresEstadisticos(UUID idCompeticion, int limit) {
+        Competicion competicion = competicionRepository.findById(idCompeticion)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Competición no encontrada con id: " + idCompeticion));
+
+        List<Partido> partidos = partidoRepository.findByCompeticion(idCompeticion);
+
+        if (partidos.isEmpty()) {
+            return LideresEstadisticosResponse.builder()
+                    .idCompeticion(idCompeticion)
+                    .nombreCompeticion(competicion.getNombre())
+                    .estadisticas(List.of())
+                    .build();
+        }
+
+        Map<UUID, RankingEstadisticasDTO> statsPorJugador = calcularEstadisticas(partidos);
+
+        return lideresEstadisticosMapper.toResponse(
+                idCompeticion,
+                competicion.getNombre(),
+                statsPorJugador,
+                limit
+        );    }
+
 
     private boolean esFaseGrupo(FaseTorneo fase) {
         return fase != null && FASES_GRUPO.contains(fase);
@@ -330,4 +359,206 @@ public class ClasificacionService implements ClasificacionUseCase {
                 .thenComparing(EquipoClasificacion::partidosJugados)
                 .thenComparing(EquipoClasificacion::nombreEquipo);
     }
+
+
+
+    // ============================================================
+    // CALCULAR ESTADÍSTICAS POR JUGADOR
+    // ============================================================
+
+    private Map<UUID, RankingEstadisticasDTO> calcularEstadisticas(List<Partido> partidos) {
+        Map<UUID, RankingEstadisticasDTO> statsMap = new HashMap<>();
+
+        for (Partido partido : partidos) {
+            if (!partido.haFinalizado()) continue;
+
+            // Agrupar eventos por jugador
+            Map<UUID, List<EventosPartido>> eventosPorJugador = partido.getEventos().stream()
+                    .filter(e -> e.getPersonal() != null && e.getPersonal() instanceof Jugador)
+                    .collect(Collectors.groupingBy(e -> e.getPersonal().getIdPersonal()));
+
+            for (Map.Entry<UUID, List<EventosPartido>> entry : eventosPorJugador.entrySet()) {
+                UUID idJugador = entry.getKey();
+                List<EventosPartido> eventos = entry.getValue();
+                Jugador jugador = (Jugador) eventos.get(0).getPersonal();
+
+                RankingEstadisticasDTO stats = statsMap.computeIfAbsent(idJugador,
+                        k -> crearStatsBase(jugador));
+
+                // Procesar eventos
+                for (EventosPartido evento : eventos) {
+                    stats = procesarEvento(stats, evento);
+                }
+
+                // Calcular minutos jugados
+                int minutos = calcularMinutosJugados(partido, eventos);
+                stats = stats.withMinutosJugados(stats.minutosJugados() + minutos);
+
+                // Verificar portería a cero (para porteros)
+                if (esPortero(jugador) && haMantenidoPorteriaCero(partido, jugador)) {
+                    stats = stats.withPorteriasCero(stats.porteriasCero() + 1);
+                }
+
+                statsMap.put(idJugador, stats);
+            }
+        }
+
+        return statsMap;
+    }
+
+    // ============================================================
+    // PROCESAR EVENTO INDIVIDUAL
+    // ============================================================
+
+    private RankingEstadisticasDTO procesarEvento(RankingEstadisticasDTO stats, EventosPartido evento) {
+        switch (evento.getTipoEvento()) {
+            case GOL:
+                return stats.withGoles(stats.goles() + 1);
+            case AUTOGOL:
+                return stats.withAutogoles(stats.autogoles() + 1);
+            case PENALTI_ANOTADO:
+                return stats
+                        .withGolesPenal(stats.golesPenal() + 1)
+                        .withPenalesAnotados(stats.penalesAnotados() + 1)
+                        .withGoles(stats.goles() + 1);
+            case PENALTI_FALLADO:
+                return stats.withPenalesFallados(stats.penalesFallados() + 1);
+            case PENALTI_CONCEDIDO:
+                return stats.withPenalesConseguidos(stats.penalesConseguidos() + 1);
+            case ASISTENCIA:
+                return stats.withAsistencias(stats.asistencias() + 1);
+            case AMARILLA:
+                return stats.withTarjetasAmarillas(stats.tarjetasAmarillas() + 1);
+            case ROJA:
+                return stats.withTarjetasRojas(stats.tarjetasRojas() + 1);
+            case TIRO_A_PUERTA:
+                return stats.withTirosAPuerta(stats.tirosAPuerta() + 1);
+            case TIRO_FUERA:
+                return stats.withTirosFuera(stats.tirosFuera() + 1);
+            case PARADA:
+                return stats.withParadas(stats.paradas() + 1);
+            default:
+                return stats;
+        }
+    }
+
+    // ============================================================
+    // CREAR STATS BASE
+    // ============================================================
+
+    private RankingEstadisticasDTO crearStatsBase(Jugador jugador) {
+        Equipo equipo = jugador.getEquipoActual();
+        String posicionEnCampo = obtenerPosicionEnCampo(jugador);
+
+        return RankingEstadisticasDTO.builder()
+                .idJugador(jugador.getIdPersonal())
+                .nombre(jugador.getNombre())
+                .apellido(jugador.getApellido())
+                .nombreCompleto(jugador.getNombreCompleto())
+                .dorsal(jugador.getDatosDeportivos() != null ?
+                        jugador.getDatosDeportivos().getDorsal() : null)
+                .nombreEquipo(equipo != null ? equipo.getNombre() : null)
+                .idEquipo(equipo != null ? equipo.getIdEquipo() : null)
+                .minutosJugados(0)
+                .partidosJugados(0)
+                .goles(0)
+                .golesPenal(0)
+                .autogoles(0)
+                .asistencias(0)
+                .tirosAPuerta(0)
+                .tirosFuera(0)
+                .penalesAnotados(0)
+                .penalesConseguidos(0)
+                .penalesFallados(0)
+                .tarjetasAmarillas(0)
+                .tarjetasRojas(0)
+                .paradas(0)
+                .porteriasCero(0)
+                .build();
+    }
+
+    // ============================================================
+    // OBTENER POSICIÓN EN EL CAMPO
+    // ============================================================
+
+    private String obtenerPosicionEnCampo(Jugador jugador) {
+        if (jugador.getDatosDeportivos() == null) {
+            return "Sin posición";
+        }
+        PosicionJugador posicion = jugador.getDatosDeportivos().getPosicionActual();
+        return posicion != null ? posicion.getDisplayName() : "Sin posición";
+    }
+
+    // ============================================================
+    // VERIFICAR SI ES PORTERO
+    // ============================================================
+
+    private boolean esPortero(Jugador jugador) {
+        return jugador.getDatosDeportivos() != null &&
+                jugador.getDatosDeportivos().getPosiciones() != null &&
+                jugador.getDatosDeportivos().getPosiciones().contains(PosicionJugador.PORTERO);
+    }
+
+    // ============================================================
+    // VERIFICAR PORTERÍA A CERO
+    // ============================================================
+
+    private boolean haMantenidoPorteriaCero(Partido partido, Jugador portero) {
+        UUID idEquipo = portero.getEquipoActual().getIdEquipo();
+        boolean equipoLocal = partido.getEquipoLocal().getIdEquipo().equals(idEquipo);
+
+        if (equipoLocal) {
+            return partido.getGolesVisitante() == 0;
+        } else {
+            return partido.getGolesLocal() == 0;
+        }
+    }
+
+    // ============================================================
+    // CALCULAR MINUTOS JUGADOS
+    // ============================================================
+
+    private int calcularMinutosJugados(Partido partido, List<EventosPartido> eventos) {
+        EventosPartido entrada = eventos.stream()
+                .filter(e -> e.getTipoEvento() == TipoEvento.TITULAR ||
+                        e.getTipoEvento() == TipoEvento.SUB_IN)
+                .findFirst()
+                .orElse(null);
+
+        if (entrada == null || entrada.getMinuto() == null) {
+            return 0;
+        }
+
+        int minutoEntrada = entrada.getMinuto().getHour() * 60 + entrada.getMinuto().getMinute();
+
+        EventosPartido salida = eventos.stream()
+                .filter(e -> e.getTipoEvento() == TipoEvento.SUB_OUT)
+                .findFirst()
+                .orElse(null);
+
+        if (salida != null && salida.getMinuto() != null) {
+            int minutoSalida = salida.getMinuto().getHour() * 60 + salida.getMinuto().getMinute();
+            return Math.max(0, minutoSalida - minutoEntrada);
+        }
+
+        // Buscar fin del partido
+        EventosPartido finPartido = partido.getEventos().stream()
+                .filter(e -> e.getTipoEvento() == TipoEvento.FIN_PARTIDO)
+                .findFirst()
+                .orElse(null);
+
+        if (finPartido != null && finPartido.getMinuto() != null) {
+            int minutoFin = finPartido.getMinuto().getHour() * 60 + finPartido.getMinuto().getMinute();
+            return Math.max(0, minutoFin - minutoEntrada);
+        }
+
+        return Math.max(0, 90 - minutoEntrada);
+    }
+
+
+
+
+
+
+
 }

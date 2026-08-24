@@ -1,5 +1,6 @@
 package com.futbol.estadisticas.application.service;
 
+import java.util.Deque;
 import java.util.List;
 import java.util.UUID;
 
@@ -72,7 +73,7 @@ public class DatosDeportivosService implements DatosDeportivosUseCase {
 
     @Override
     @Transactional(readOnly = true)
-    public List<PosicionJugador> obtenerPosiciones(UUID idJugador) {
+    public Deque<PosicionJugador> obtenerPosiciones(UUID idJugador) {
         Jugador jugador = findJugadorOrThrow(idJugador);
         DatosDeportivos datos = findDatosOrThrow(idJugador);
         return datos.getPosiciones();

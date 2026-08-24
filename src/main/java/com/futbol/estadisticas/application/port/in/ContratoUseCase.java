@@ -25,7 +25,7 @@ public interface ContratoUseCase {
  
     ContratoResponse finalizarContrato(UUID idContrato, LocalDateTime fechaFin);
  
-    void rescindirContrato(UUID idContrato, LocalDateTime fechaRescindido);
+    ContratoResponse rescindirContrato(UUID idContrato, LocalDateTime fechaRescindido);
 
     void eliminarContrato( UUID idContrato);
 }

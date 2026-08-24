@@ -3,6 +3,7 @@ package com.futbol.estadisticas.infrastructure.out.jpaRepositoryAdapter;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Component;
 
@@ -16,6 +17,7 @@ import com.futbol.estadisticas.infrastructure.out.jpaRepository.DatosDeportivosJ
 import com.futbol.estadisticas.infrastructure.out.jpaRepository.JugadorJPARepository;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.transaction.annotation.Transactional;
 
 @Component
 @RequiredArgsConstructor
@@ -41,6 +43,40 @@ public class DatosDeportivosRepositoryAdapter implements DatosDeportivosReposito
         }
 
         return mapper.DatostoDomain(repository.save(entity));
+    }
+
+    @Override
+    @Transactional
+    public List<DatosDeportivos> saveAll(List<DatosDeportivos> datosDeportivosLista) {
+        if (datosDeportivosLista == null || datosDeportivosLista.isEmpty()) {
+            return List.of();
+        }
+
+        List<DatosDeportivosJPAEntity> entities = datosDeportivosLista.stream()
+                .map(datos -> {
+                    JugadorJPAEntity jugadorJPA = null;
+                    if (datos.getJugador() != null) {
+                        jugadorJPA = jugadorRepo.findById(datos.getJugador().getIdPersonal())
+                                .orElseGet(() -> {
+                                    return mapper.toJpaBasico(datos.getJugador());
+                                });
+                    }
+
+                    DatosDeportivosJPAEntity entity = mapper.toJpa(datos, jugadorJPA);
+
+                    if (jugadorJPA != null && jugadorJPA.getDatosDeportivos() != entity) {
+                        jugadorJPA.setDatosDeportivos(entity);
+                    }
+
+                    return entity;
+                })
+                .collect(Collectors.toList());
+
+        List<DatosDeportivosJPAEntity> savedEntities = repository.saveAll(entities);
+
+        return savedEntities.stream()
+                .map(mapper::DatostoDomain)
+                .collect(Collectors.toList());
     }
 
     @Override

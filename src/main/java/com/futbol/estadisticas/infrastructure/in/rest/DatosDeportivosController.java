@@ -1,5 +1,6 @@
 package com.futbol.estadisticas.infrastructure.in.rest;
 
+import java.util.Deque;
 import java.util.List;
 import java.util.UUID;
 
@@ -37,7 +38,7 @@ public class DatosDeportivosController {
     }
 
     @GetMapping("/posiciones")
-    public ResponseEntity<List<PosicionJugador>> obtenerPosiciones(
+    public ResponseEntity<Deque<PosicionJugador>> obtenerPosiciones(
             @PathVariable UUID idJugador) {
         return ResponseEntity.ok(
                 datosDeportivosUseCase.obtenerPosiciones(idJugador));

@@ -23,13 +23,13 @@ public enum Alineacion {
                             PosicionJugador.LATERAL_DERECHO
                     ),
                     List.of(
-                            PosicionJugador.MEDIOCENTRO,
-                            PosicionJugador.MEDIOCENTRO,
-                            PosicionJugador.MEDIOCENTRO
+                            PosicionJugador.MEDIOCAMPISTA_IZQUIERDO,
+                            PosicionJugador.CENTROCAMPISTA,
+                            PosicionJugador.MEDIOCAMPISTA_DERECHO
                     ),
                     List.of(
                             PosicionJugador.EXTREMO_IZQUIERDO,
-                            PosicionJugador.DELANTERO,
+                            PosicionJugador.DELANTERO_CENTRO,
                             PosicionJugador.EXTREMO_DERECHO
                     )
             )),
@@ -45,16 +45,16 @@ public enum Alineacion {
                             PosicionJugador.LATERAL_DERECHO
                     ),
                     List.of(
-                            PosicionJugador.MEDIOCENTRO_DEFENSIVO_IZQUIERDO,
-                            PosicionJugador.MEDIOCENTRO_DEFENSIVO_DERECHO
+                            PosicionJugador.MEDIOCAMPISTA_DEFENSIVO_IZQUIERDO,
+                            PosicionJugador.MEDIOCAMPISTA_DEFENSIVO_DERECHO
                     ),
                     List.of(
                             PosicionJugador.EXTREMO_IZQUIERDO,
-                            PosicionJugador.MEDIOCENTRO_OFENSIVO,
+                            PosicionJugador.MEDIOCAMPISTA_OFENSIVO,
                             PosicionJugador.EXTREMO_DERECHO
                     ),
                     List.of(
-                            PosicionJugador.DELANTERO
+                            PosicionJugador.DELANTERO_CENTRO
                     )
             )),
 
@@ -69,14 +69,14 @@ public enum Alineacion {
                             PosicionJugador.LATERAL_DERECHO
                     ),
                     List.of(
+                            PosicionJugador.MEDIOCAMPISTA_IZQUIERDO,
                             PosicionJugador.MEDIOCENTRO_IZQUIERDO,
-                            PosicionJugador.MEDIOCENTRO,
-                            PosicionJugador.MEDIOCENTRO,
-                            PosicionJugador.MEDIOCENTRO_DERECHO
+                            PosicionJugador.MEDIOCENTRO_DERECHO,
+                            PosicionJugador.MEDIOCAMPISTA_DERECHO
                     ),
                     List.of(
-                            PosicionJugador.DELANTERO,
-                            PosicionJugador.DELANTERO
+                            PosicionJugador.DELANTERO_IZQUIERDO,
+                            PosicionJugador.DELANTERO_DERECHO
                     )
             )),
 
@@ -86,19 +86,19 @@ public enum Alineacion {
                     List.of(PosicionJugador.PORTERO),
                     List.of(
                             PosicionJugador.CENTRAL_IZQUIERDO,
-                            PosicionJugador.CENTRAL,
+                            PosicionJugador.DEFENSA_CENTRAL,
                             PosicionJugador.CENTRAL_DERECHO
                     ),
                     List.of(
                             PosicionJugador.CARRILERO_IZQUIERDO,
-                            PosicionJugador.MEDIOCENTRO_DEFENSIVO_IZQUIERDO,
-                            PosicionJugador.MEDIOCENTRO,
-                            PosicionJugador.MEDIOCENTRO_DEFENSIVO_DERECHO,
+                            PosicionJugador.MEDIOCENTRO_IZQUIERDO,
+                            PosicionJugador.CENTROCAMPISTA,
+                            PosicionJugador.MEDIOCENTRO_DERECHO,
                             PosicionJugador.CARRILERO_DERECHO
                     ),
                     List.of(
-                            PosicionJugador.DELANTERO,
-                            PosicionJugador.DELANTERO
+                            PosicionJugador.DELANTERO_IZQUIERDO,
+                            PosicionJugador.DELANTERO_DERECHO
                     )
             )),
 
@@ -108,22 +108,44 @@ public enum Alineacion {
                     List.of(PosicionJugador.PORTERO),
                     List.of(
                             PosicionJugador.CENTRAL_IZQUIERDO,
-                            PosicionJugador.CENTRAL,
+                            PosicionJugador.DEFENSA_CENTRAL,
                             PosicionJugador.CENTRAL_DERECHO
                     ),
                     List.of(
                             PosicionJugador.CARRILERO_IZQUIERDO,
-                            PosicionJugador.MEDIOCENTRO,
-                            PosicionJugador.MEDIOCENTRO,
+                            PosicionJugador.MEDIOCENTRO_IZQUIERDO,
+                            PosicionJugador.MEDIOCENTRO_DERECHO,
                             PosicionJugador.CARRILERO_DERECHO
                     ),
                     List.of(
                             PosicionJugador.EXTREMO_IZQUIERDO,
-                            PosicionJugador.DELANTERO,
+                            PosicionJugador.DELANTERO_CENTRO,
                             PosicionJugador.EXTREMO_DERECHO
                     )
-            ));
+            )),
 
+
+    ALINEACION_4141("4-1-4-1",
+                           "Buen control del campo. Posesión y ataque masivo",
+                   List.of(
+                           List.of(PosicionJugador.PORTERO),
+                    List.of(
+    PosicionJugador.LATERAL_IZQUIERDO,
+    PosicionJugador.CENTRAL_IZQUIERDO,
+    PosicionJugador.CENTRAL_DERECHO,
+    PosicionJugador.LATERAL_DERECHO
+                    ),
+                           List.of(PosicionJugador.MEDIOCAMPISTA_DEFENSIVO),
+                            List.of(
+    PosicionJugador.MEDIOCAMPISTA_IZQUIERDO,
+    PosicionJugador.MEDIOCENTRO_IZQUIERDO,
+    PosicionJugador.MEDIOCENTRO_DERECHO,
+    PosicionJugador.MEDIOCAMPISTA_DERECHO
+                    ),
+                            List.of(
+    PosicionJugador.DELANTERO_CENTRO
+                    )
+                           ));
 
     private final String nombre;
     private final String descripcion;

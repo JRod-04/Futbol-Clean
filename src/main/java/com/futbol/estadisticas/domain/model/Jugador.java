@@ -77,7 +77,6 @@ public class Jugador extends PersonalDeportivo {
     public boolean estaDisponible() {
         boolean noLesionado = !estaLesionado();
         boolean estadoValido = datosDeportivos != null &&
-                datosDeportivos.getEstadoJugador() != EstadoJugador.TITULAR &&
                 datosDeportivos.getEstadoJugador() != EstadoJugador.SUSPENDIDO &&
                 datosDeportivos.getEstadoJugador() != EstadoJugador.RETIRADO &&
                 datosDeportivos.getEstadoJugador() != EstadoJugador.APARTADO;

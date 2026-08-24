@@ -5,7 +5,6 @@ import com.futbol.estadisticas.domain.model.enums.PosicionJugador;
 
 public record JugadorPosicionNotificacionDTO(
         Jugador jugador,
-        PosicionJugador posicionActual,
         PosicionJugador posicionNueva,
         boolean posicionCambiada
 ) {}

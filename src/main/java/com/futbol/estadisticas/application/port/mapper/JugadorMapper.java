@@ -1,9 +1,9 @@
 package com.futbol.estadisticas.application.port.mapper;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.UUID;
+import java.util.*;
 
+import com.futbol.estadisticas.domain.model.enums.PosicionJugador;
 import org.springframework.stereotype.Component;
 
 import com.futbol.estadisticas.application.port.dto.request.CrearJugadorRequest;
@@ -18,13 +18,15 @@ import com.futbol.estadisticas.domain.model.enums.TipoPersonal;
 public class JugadorMapper {
       public Jugador toEntity(CrearJugadorRequest request) {
         UUID idPersonal = UUID.randomUUID();
- 
+
+          Deque<PosicionJugador> posiciones = new ArrayDeque<>();
+          if (request.posiciones() != null && !request.posiciones().isEmpty()) {
+              request.posiciones().forEach(posiciones::addFirst);
+          }
 
         DatosDeportivos datosDeportivos = DatosDeportivos.builder()
                 .idHistorialDeportivo(UUID.randomUUID())
-                .posiciones(request.posiciones() != null
-                        ? request.posiciones()
-                        : new ArrayList<>())
+                .posiciones(posiciones)
                 .estadoJugador(EstadoJugador.SUPLENTE)
                 .valorMercado(request.valorMercado())
                 .dorsal(request.dorsal())
@@ -55,7 +57,12 @@ public class JugadorMapper {
         long lesionesActivas = jugador.getLesiones().stream()
                 .filter(l -> l.esActiva())
                 .count();
- 
+
+        List<PosicionJugador> posicionesList = new ArrayList<>();
+        if (datos != null && datos.getPosiciones() != null) {
+            posicionesList = new ArrayList<>(datos.getPosiciones());
+        }
+
         return new JugadorResponse(
                 jugador.getIdPersonal(),
                 jugador.getNombre(),
@@ -67,7 +74,7 @@ public class JugadorMapper {
                 jugador.getPieHabil(),
                 jugador.getAltura(),
                 jugador.getPeso(),
-                datos != null ? datos.getPosiciones() : new ArrayList<>(),
+                posicionesList,
                 datos != null ? datos.getDorsal() : null,
                 datos != null ? datos.getEstadoJugador() : null,
                 datos != null ? datos.getValorMercado() : null,

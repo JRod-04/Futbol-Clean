@@ -11,6 +11,8 @@ import com.futbol.estadisticas.domain.model.enums.EstadoJugador;
 public interface DatosDeportivosRepositoryPort {
 
     DatosDeportivos save(DatosDeportivos datosDeportivos);
+
+    List<DatosDeportivos> saveAll(List<DatosDeportivos> datosDeportivosLista);
  
     Optional<DatosDeportivos> findById(UUID idHistorialDeportivo);
  

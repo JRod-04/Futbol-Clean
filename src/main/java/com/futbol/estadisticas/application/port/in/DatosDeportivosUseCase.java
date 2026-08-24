@@ -1,5 +1,6 @@
 package com.futbol.estadisticas.application.port.in;
 
+import java.util.Deque;
 import java.util.List;
 import java.util.UUID;
 
@@ -16,7 +17,7 @@ public interface DatosDeportivosUseCase {
 
     DatosDeportivosResponse eliminarPosicion(UUID idJugador, PosicionJugador posicionAEliminar);
 
-    List<PosicionJugador> obtenerPosiciones(UUID idJugador);
+    Deque<PosicionJugador> obtenerPosiciones(UUID idJugador);
 
     DatosDeportivosResponse promoverATitular(UUID idJugador);
  
