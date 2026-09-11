@@ -21,7 +21,7 @@ public interface ContratoUseCase {
  
     List<ContratoResponse> obtenerContratosVigentesPorEquipo(UUID idEquipo);
  
-    ContratoResponse renovarContrato(UUID idContrato, int mesesAdicionales);
+    ContratoResponse renovarContrato(UUID idContrato, LocalDateTime nuevaFechaFin);
  
     ContratoResponse finalizarContrato(UUID idContrato, LocalDateTime fechaFin);
  

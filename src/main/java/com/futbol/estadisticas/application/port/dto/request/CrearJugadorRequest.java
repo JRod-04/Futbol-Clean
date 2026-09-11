@@ -18,7 +18,6 @@ public record CrearJugadorRequest(
         @NotBlank(message = "El nombre es obligatorio")
         String nombre,
  
-        @NotBlank(message = "El apellido es obligatorio")
         String apellido,
  
         @NotNull(message = "La fecha de nacimiento es obligatoria")

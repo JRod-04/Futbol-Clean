@@ -48,8 +48,5 @@ public enum TipoEquipo {
     public boolean esCategoriaInferior() {
         return this == SELECCION_JUVENIL;
     }
-    @Override
-    public String toString() {
-        return getDisplayName();
-    }
+
 }

@@ -22,11 +22,13 @@ public record PartidoResponse(
         EstadoPartido finalizadoEn,
 
         UUID idEquipoLocal,
+        String nombreCortoLocal,
         String nombreEquipoLocal,
         Alineacion alineacionLocal,
 
 
         UUID idEquipoVisitante,
+        String nombreCortoVisitante,
         String nombreEquipoVisitante,
         Alineacion alineacionVisitante,
 

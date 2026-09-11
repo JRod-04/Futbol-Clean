@@ -8,6 +8,8 @@ import java.util.UUID;
 import com.futbol.estadisticas.application.port.dto.request.RealizarSustitucionRequest;
 import com.futbol.estadisticas.application.port.dto.response.*;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -29,7 +31,14 @@ import lombok.RequiredArgsConstructor;
 public class PartidoController {
 
     private final PartidoUseCase partidoUseCase;
- 
+
+
+    @GetMapping
+    public ResponseEntity<Page<PartidoResponse>> listarTodos(
+            @PageableDefault(size = 10) Pageable pageable) {
+        return ResponseEntity.ok(partidoUseCase.listarTodos(pageable));
+    }
+
     @PostMapping
     public ResponseEntity<PartidoResponse> programar(
             @Valid @RequestBody CrearPartidoRequest request) {

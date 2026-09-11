@@ -56,4 +56,22 @@ public interface PartidoJPARepository extends JpaRepository<PartidoJPAEntity, UU
             "WHERE DATE(p.fechaYHora) = :fecha " +
             "ORDER BY p.fechaYHora ASC")
     Page<PartidoJPAEntity> findByFecha(@Param("fecha") LocalDate fecha, Pageable pageable);
+
+    @Query("""
+        SELECT DISTINCT p FROM PartidoJPAEntity p
+        JOIN p.eventos e
+        WHERE e.personal.idPersonal = :idJugador
+        AND e.tipoEvento IN ('TITULAR', 'SUB_IN')
+        ORDER BY p.fechaYHora DESC
+    """)
+    List<PartidoJPAEntity> findPartidosByJugador(@Param("idJugador") UUID idJugador);
+
+    @Query("""
+    SELECT DISTINCT p FROM PartidoJPAEntity p
+    JOIN p.eventos e
+    WHERE e.personal.idPersonal = :idTecnico
+    AND e.tipoEvento = 'DT_PARTIDO'
+    ORDER BY p.fechaYHora DESC
+""")
+    List<PartidoJPAEntity> findPartidosByTecnico(@Param("idTecnico") UUID idTecnico);
 }

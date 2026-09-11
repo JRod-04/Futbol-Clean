@@ -9,7 +9,9 @@ import com.futbol.estadisticas.application.port.dto.response.EstadisticasPartido
 import com.futbol.estadisticas.application.port.mapper.EstadisticasJugadorMapper;
 import com.futbol.estadisticas.application.port.mapper.EstadisticasPartidoMapper;
 import com.futbol.estadisticas.application.port.out.EventosPartidoRepositoryPort;
+import com.futbol.estadisticas.application.port.out.PartidoRepositoryPort;
 import com.futbol.estadisticas.domain.model.EventosPartido;
+import com.futbol.estadisticas.domain.model.Partido;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -35,6 +37,7 @@ public class JugadorService implements JugadoresUseCase {
 
     private final EventosPartidoRepositoryPort eventosRepository;
     private final EstadisticasJugadorMapper estadisticasMapper;
+    private final PartidoRepositoryPort partidoRepository;
     private final JugadorRepositoryPort jugadorRepository;
     private final JugadorMapper         jugadorMapper;
     private final EstadisticasPartidoMapper partidoConEstadisticasJugadorMapper;
@@ -89,15 +92,19 @@ public class JugadorService implements JugadoresUseCase {
             throw new PersonalNotFoundException("Jugador no encontrado con id: " + idJugador);
         }
 
-        List<EventosPartido> eventos = eventosRepository.findByPersonal(idJugador);
+        List<Partido> partidos = partidoRepository.findPartidosByJugador(idJugador);
+
+        List<EventosPartido> eventos = eventosRepository.findByPersonalConCompeticion(idJugador);
 
         Map<UUID, List<EventosPartido>> eventosPorPartido = eventos.stream()
                 .filter(e -> e.getPartido() != null)
                 .collect(Collectors.groupingBy(e -> e.getPartido().getIdPartido()));
 
-        return eventosPorPartido.values().stream()
-                .map(eventosDelPartido -> partidoConEstadisticasJugadorMapper.toResponse(
-                        eventosDelPartido.get(0).getPartido(), eventosDelPartido))
+        return partidos.stream()
+                .map(partido -> {
+                    List<EventosPartido> eventosDelPartido = eventosPorPartido.getOrDefault(partido.getIdPartido(), List.of());
+                    return partidoConEstadisticasJugadorMapper.toResponse(partido, eventosDelPartido);
+                })
                 .sorted(Comparator.comparing(
                         r -> r.partido().fechaYHora(),
                         Comparator.nullsLast(Comparator.reverseOrder())))
@@ -115,10 +122,9 @@ public class JugadorService implements JugadoresUseCase {
  
     @Override
     @Transactional(readOnly = true)
-    public List<JugadorResponse> obtenerTodosLosJugadores() {
-        return jugadorRepository.findAll().stream()
-                .map(jugadorMapper::toResponse)
-                .toList();
+    public Page<JugadorResponse> obtenerTodosLosJugadores(Pageable pageable) {
+        return jugadorRepository.findAll(pageable)
+                .map(jugadorMapper::toResponse);
     }
  
     @Override

@@ -27,7 +27,7 @@ public class JugadorMapper {
         DatosDeportivos datosDeportivos = DatosDeportivos.builder()
                 .idHistorialDeportivo(UUID.randomUUID())
                 .posiciones(posiciones)
-                .estadoJugador(EstadoJugador.SUPLENTE)
+                .estadoJugador(EstadoJugador.LIBRE)
                 .valorMercado(request.valorMercado())
                 .dorsal(request.dorsal())
                 .fechaActualizacion(LocalDate.now())
@@ -81,6 +81,7 @@ public class JugadorMapper {
                 datos != null ? datos.getValorMercadoEnMillones() : 0.0,
                 club != null ? club.getNombre() : null,
                 club != null ? club.getIdEquipo() : null,
+                club != null ? club.getNombreCorto(): null,
                 jugador.estaDisponible(),
                 (int) lesionesActivas
         );

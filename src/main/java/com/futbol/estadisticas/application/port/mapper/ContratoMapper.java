@@ -45,6 +45,7 @@ public class ContratoMapper {
                 personal != null ? personal.getNombreCompleto() : null,
                 equipo != null ? equipo.getIdEquipo() : null,
                 equipo != null ? equipo.getNombre() : null,
+                equipo != null ? equipo.getNombreCorto() : null,
                 contrato.getCostoFichaje()
                 );
     }

@@ -19,5 +19,4 @@ public record CrearArbitroRequest(
         @NotNull(message = "La fecha de nacimiento es obligatoria")
         @Past(message = "La fecha de nacimiento debe ser en el pasado")
         LocalDate fechaNacimiento) {
-
 }

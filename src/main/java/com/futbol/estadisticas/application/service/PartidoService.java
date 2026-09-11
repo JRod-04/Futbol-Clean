@@ -159,6 +159,11 @@ public class PartidoService implements PartidoUseCase {
     }
 
     @Override
+    public Page<PartidoResponse> listarTodos(Pageable pageable) {
+        return partidoRepository.findAll(pageable).map(partidoMapper::toResponse);
+    }
+
+    @Override
     @Transactional(readOnly = true)
     public PartidoResponse obtenerPartidoPorId(UUID idPartido) {
         return findPartidoOrThrow(idPartido, partidoMapper);
@@ -216,7 +221,6 @@ public class PartidoService implements PartidoUseCase {
                     .build();
         }
 
-        // 3. Procesar titulares visitantes
         AlineacionResponse alineacionVisitante = null;
         if (partido.getAlineacionVisitante() != null) {
             List<JugadorPosicionResponse> titularesVisitante = eventosTitulares.stream()
@@ -244,7 +248,6 @@ public class PartidoService implements PartidoUseCase {
                     .build();
         }
 
-        // 4. Construir respuesta final
         return alineacionMapper.toPartidoWithAlineacion(
                 partido,
                 alineacionLocal,

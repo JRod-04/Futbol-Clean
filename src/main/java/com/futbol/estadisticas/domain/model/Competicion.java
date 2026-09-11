@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.futbol.estadisticas.domain.model.enums.EstadoCompeticion;
+import com.futbol.estadisticas.domain.model.enums.Temporada;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -31,6 +32,7 @@ public class Competicion {
 
     
     private String nombre;
+    private Temporada temporada;
     private LocalDateTime fechaInicio;
     private LocalDateTime fechaFin;
     private Equipo equipoGanador;

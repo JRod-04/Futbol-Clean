@@ -11,6 +11,7 @@ import com.futbol.estadisticas.application.port.dto.request.RegistrarEventoReque
 import com.futbol.estadisticas.application.port.dto.response.*;
 import com.futbol.estadisticas.domain.model.enums.EstadoPartido;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 public interface PartidoUseCase {
     
@@ -19,6 +20,8 @@ public interface PartidoUseCase {
     List<PartidoResponse> programarPartidosBatch(List<CrearPartidoRequest> requests);
 
     Page<PartidoResponse> obtenerPartidosPorFecha(LocalDate fecha, int page, int size);
+
+    Page<PartidoResponse> listarTodos(Pageable pageable);
 
     PartidoResponse obtenerPartidoPorId(UUID idPartido);
 

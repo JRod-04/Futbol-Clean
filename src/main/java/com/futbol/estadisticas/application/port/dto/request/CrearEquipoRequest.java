@@ -16,7 +16,6 @@ public record CrearEquipoRequest(
         @Size(max = 10, message = "El nombre corto no puede superar 10 caracteres")
         String nombreCorto,
 
-        @NotBlank(message = "El país es obligatorio")
         Nacion paisEquipo,
 
         @Past(message = "La fecha de fundación debe ser en el pasado")

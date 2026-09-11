@@ -20,7 +20,7 @@ public interface JugadorRepositoryPort {
 
     Optional<Jugador> findById(UUID idPersonal);
  
-    List<Jugador> findAll();
+    Page<Jugador> findAll(Pageable pageable);
  
     List<Jugador> findByEquipo(UUID idEquipo);
  

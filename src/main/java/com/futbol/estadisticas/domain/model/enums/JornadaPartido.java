@@ -51,9 +51,6 @@ public enum JornadaPartido {
 
         private final String displayName;
 
-        @Override
-        public String toString() {
-                return getDisplayName();
-        }
+
     }
 

@@ -122,7 +122,6 @@ public class ClasificacionService implements ClasificacionUseCase {
 
         List<GrupoClasificacion> grupos = new ArrayList<>();
 
-        // ORDENAR los grupos alfabéticamente (A, B, C, ...)
         List<FaseTorneo> gruposOrdenados = new ArrayList<>(partidosPorGrupo.keySet());
         gruposOrdenados.sort(Comparator.comparing(FaseTorneo::name));
 
@@ -138,7 +137,7 @@ public class ClasificacionService implements ClasificacionUseCase {
             for (Equipo club : equiposGrupo) {
                 mapa.put(club.getIdEquipo(), new Object[]{
                         club.getNombre(),
-                        0, 0, 0, 0, 0, 0, 0
+                        0, 0, 0, 0, 0, 0, 0,club.getNombreCorto()
                 });
             }
 
@@ -147,12 +146,14 @@ public class ClasificacionService implements ClasificacionUseCase {
                 procesarPartido(partido,
                         partido.getEquipoLocal().getIdEquipo(),
                         partido.getEquipoLocal().getNombre(),
+                        partido.getEquipoLocal().getNombreCorto(),
                         partido.getGolesLocal(),
                         partido.getGolesVisitante(),
                         mapa);
                 procesarPartido(partido,
                         partido.getEquipoVisitante().getIdEquipo(),
                         partido.getEquipoVisitante().getNombre(),
+                        partido.getEquipoVisitante().getNombreCorto(),
                         partido.getGolesVisitante(),
                         partido.getGolesLocal(),
                         mapa);
@@ -166,6 +167,7 @@ public class ClasificacionService implements ClasificacionUseCase {
                         return new EquipoClasificacion(
                                 entryEquipo.getKey(),
                                 (String) stats[0],
+                                (String) stats[8],
                                 (int) stats[1],
                                 (int) stats[2],
                                 (int) stats[3],
@@ -216,6 +218,7 @@ public class ClasificacionService implements ClasificacionUseCase {
             procesarPartido(partido,
                     partido.getEquipoLocal().getIdEquipo(),
                     partido.getEquipoLocal().getNombre(),
+                    partido.getEquipoLocal().getNombreCorto(),
                     partido.getGolesLocal(),
                     partido.getGolesVisitante(),
                     mapa);
@@ -223,6 +226,7 @@ public class ClasificacionService implements ClasificacionUseCase {
             procesarPartido(partido,
                     partido.getEquipoVisitante().getIdEquipo(),
                     partido.getEquipoVisitante().getNombre(),
+                    partido.getEquipoVisitante().getNombreCorto(),
                     partido.getGolesVisitante(),
                     partido.getGolesLocal(),
                     mapa);
@@ -236,6 +240,7 @@ public class ClasificacionService implements ClasificacionUseCase {
                     return new EquipoClasificacion(
                             entry.getKey(),
                             (String) stats[0],
+                            (String) stats[8],
                             (int) stats[1],
                             (int) stats[2],
                             (int) stats[3],
@@ -256,16 +261,14 @@ public class ClasificacionService implements ClasificacionUseCase {
         );
     }
 
-    // ============================================================
-    // PROCESAR PARTIDO
-    // ============================================================
-    private void procesarPartido(Partido partido, UUID idClub, String nombreClub,
+
+    private void procesarPartido(Partido partido, UUID idClub, String nombreClub, String nombreCortoClub,
                                  int golesFavor, int golesContra,
                                  Map<UUID, Object[]> mapa) {
 
         Object[] stats = mapa.computeIfAbsent(idClub, k -> new Object[]{
                 nombreClub,
-                0, 0, 0, 0, 0, 0, 0
+                0, 0, 0, 0, 0, 0, 0, nombreCortoClub
         });
 
         stats[1] = (int) stats[1] + 1;
@@ -337,9 +340,7 @@ public class ClasificacionService implements ClasificacionUseCase {
         }
     }
 
-    // ============================================================
-    // UTILIDADES
-    // ============================================================
+
     private EstadoPartido obtenerEstadoFinalizacion(Partido partido) {
         if (partido == null || partido.getEventos() == null) {
             return null;

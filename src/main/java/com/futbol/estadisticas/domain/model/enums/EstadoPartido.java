@@ -138,7 +138,8 @@ public enum EstadoPartido {
                 this == SEGUNDO_TIEMPO ||
                 this == AGREGADO_SEGUNDO_TIEMPO ||
                 this == SEGUNDO_TIEMPO_PRORROGA ||
-                this == AGREGADO_PRORROGA_SEGUNDO;
+                this == AGREGADO_PRORROGA_SEGUNDO ||
+                this == PENALTIS;
     }
 
     public EstadoPartido getEstadoBase() {

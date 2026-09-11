@@ -20,6 +20,7 @@ public record TecnicoResponse(
         String alineacionFavorita,
         String equipoActual,
         UUID idEquipoActual
+
 ) {
 
 }

@@ -3,7 +3,6 @@ package com.futbol.estadisticas.application.port.mapper;
 import com.futbol.estadisticas.application.port.dto.response.EstadisticasPartidoJugadorResponse;
 import com.futbol.estadisticas.application.port.dto.response.PartidoResponse;
 import com.futbol.estadisticas.domain.model.EventosPartido;
-import com.futbol.estadisticas.domain.model.Jugador;
 import com.futbol.estadisticas.domain.model.Partido;
 import com.futbol.estadisticas.domain.model.enums.TipoEvento;
 import lombok.RequiredArgsConstructor;

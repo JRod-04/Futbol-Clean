@@ -79,6 +79,7 @@ public class Equipo {
             .collect(Collectors.toList());
     }
 
+
     public double getValorPlantillaTotal() {
         return getJugadoresActivos().stream()
             .mapToDouble(j -> {

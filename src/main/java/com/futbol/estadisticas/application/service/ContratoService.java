@@ -194,11 +194,11 @@ public class ContratoService implements ContratoUseCase {
     }
  
     @Override
-    public ContratoResponse renovarContrato(UUID idContrato, int mesesAdicionales) {
+    public ContratoResponse renovarContrato(UUID idContrato, LocalDateTime nuevaFechaFin) {
         Contrato contrato = contratoRepository.findById(idContrato)
                 .orElseThrow(() -> new IllegalArgumentException(
                         "Contrato no encontrado con id: " + idContrato));
-        contrato.renovar(mesesAdicionales);
+        contrato.renovar(nuevaFechaFin);
         return contratoMapper.toResponse(contratoRepository.save(contrato));
     }
  

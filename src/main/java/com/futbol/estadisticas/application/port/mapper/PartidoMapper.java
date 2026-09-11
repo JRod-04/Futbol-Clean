@@ -26,9 +26,12 @@ public class PartidoMapper {
                 partido.getEstado() != null ? partido.getEstado().getDisplayName() : null,
                 finalizadoEn,
                 local != null ? local.getIdEquipo() : null,
+                local != null ? local.getNombreCorto() : null,
+
                 local != null ? local.getNombre() : null,
                 partido.getAlineacionLocal(),
                 visitante != null ? visitante.getIdEquipo() : null,
+                visitante != null ? visitante.getNombreCorto() : null,
                 visitante != null ? visitante.getNombre() : null,
                 partido.getAlineacionVisitante(),
                 partido.getGolesLocal(),

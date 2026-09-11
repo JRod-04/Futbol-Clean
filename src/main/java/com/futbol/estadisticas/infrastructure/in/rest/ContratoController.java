@@ -59,8 +59,8 @@ public class ContratoController {
     @PatchMapping("/{id}/renovar")
     public ResponseEntity<ContratoResponse> renovar(
             @PathVariable UUID id,
-            @RequestParam int meses) {
-        return ResponseEntity.ok(contratoUseCase.renovarContrato(id, meses));
+            @RequestParam LocalDateTime nuevaFechaFin) {
+        return ResponseEntity.ok(contratoUseCase.renovarContrato(id, nuevaFechaFin));
     }
  
     @PatchMapping("/{id}/finalizar")

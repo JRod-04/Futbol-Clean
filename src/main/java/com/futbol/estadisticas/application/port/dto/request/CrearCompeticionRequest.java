@@ -2,6 +2,7 @@ package com.futbol.estadisticas.application.port.dto.request;
 
 import java.time.LocalDateTime;
 
+import com.futbol.estadisticas.domain.model.enums.Temporada;
 import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -9,7 +10,10 @@ import jakarta.validation.constraints.NotNull;
 public record CrearCompeticionRequest(
         @NotBlank(message = "El nombre es obligatorio")
         String nombre,
- 
+
+        @NotNull(message = "La temporada es obligaotria")
+        Temporada temporada,
+
         @NotNull(message = "La fecha de inicio es obligatoria")
         LocalDateTime fechaInicio,
  
