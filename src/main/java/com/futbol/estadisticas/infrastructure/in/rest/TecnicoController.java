@@ -3,6 +3,8 @@ package com.futbol.estadisticas.infrastructure.in.rest;
 import java.util.List;
 import java.util.UUID;
 
+import com.futbol.estadisticas.application.port.dto.response.PartidoResponse;
+import com.futbol.estadisticas.application.port.dto.response.TecnicoResponseEstadisticas;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -38,7 +40,19 @@ public class TecnicoController {
     public ResponseEntity<TecnicoResponse> obtenerPorId(@PathVariable UUID id) {
         return ResponseEntity.ok(tecnicoUseCase.obtenerTecnicoPorId(id));
     }
- 
+
+    @GetMapping("/{id}/estadisticas")
+    public ResponseEntity<TecnicoResponseEstadisticas> getTecnico(@PathVariable UUID id) {
+        TecnicoResponseEstadisticas response = tecnicoUseCase.obtenerTecnicoConEstadisticas(id);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/{id}/partidos")
+    public ResponseEntity<List<PartidoResponse>> getPartidosTecnico(@PathVariable UUID id) {
+        List<PartidoResponse> partidos = tecnicoUseCase.obtenerPartidosPorTecnico(id);
+        return ResponseEntity.ok(partidos);
+    }
+
     @GetMapping("/{idEquipo}/actual")
     public ResponseEntity<TecnicoResponse> tecnicoActualDeEquipo(@PathVariable UUID idEquipo) {
         return ResponseEntity.ok(tecnicoUseCase.obtenerTecnicoActualDeEquipo(idEquipo));

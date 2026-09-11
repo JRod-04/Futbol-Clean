@@ -7,6 +7,7 @@ import java.util.UUID;
 
 import com.futbol.estadisticas.domain.model.enums.EstadoCompeticion;
 import com.futbol.estadisticas.domain.model.enums.EstadoJugador;
+import com.futbol.estadisticas.domain.model.enums.Temporada;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -27,7 +28,11 @@ public class CompeticionJPAEntity {
  
     @Column(name = "nombre", nullable = false, length = 150)
     private String nombre;
- 
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "temporada", length = 30)
+    private Temporada temporada;
+
     @Column(name = "fecha_inicio", nullable = false)
     private LocalDateTime fechaInicio;
  
@@ -42,7 +47,6 @@ public class CompeticionJPAEntity {
     @Column(name = "estado", length = 30)
     private EstadoCompeticion estado;
 
-    // Partidos de esta competición (relación inversa)
     @OneToMany(mappedBy = "competicion", fetch = FetchType.LAZY)
     @Builder.Default
     private List<PartidoJPAEntity> partidos = new ArrayList<>();

@@ -63,7 +63,7 @@ public class BusquedaController {
 
     // ──────────────── CLUBES ────────────────
 
-    @GetMapping("/clubes")
+    @GetMapping("/equipos")
     public ResponseEntity<Page<EquipoResponse>> buscarClubes(
             @RequestParam(required = false) String q,
             @RequestParam(defaultValue = "0") int page,
@@ -115,7 +115,7 @@ public class BusquedaController {
         Map<String, Page<?>> resultados = new HashMap<>();
         resultados.put("jugadores", jugadorUseCase.buscarJugadores(texto, pageable));
         resultados.put("tecnicos", tecnicoUseCase.buscarTecnicos(texto, pageable));
-        resultados.put("clubes", equipoUseCase.buscarEquipos(texto, pageable));
+        resultados.put("equipos", equipoUseCase.buscarEquipos(texto, pageable));
         resultados.put("competiciones", competicionUseCase.buscarCompeticiones(texto, pageable));
 
         return ResponseEntity.ok(resultados);

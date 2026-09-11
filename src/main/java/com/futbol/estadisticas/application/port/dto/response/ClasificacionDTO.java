@@ -17,6 +17,7 @@ public class ClasificacionDTO {
     public record EquipoClasificacion(
             UUID idEquipo,
             String nombreEquipo,
+            String nombreCortoEquipo,
             int partidosJugados,
             int ganados,
             int empatados,

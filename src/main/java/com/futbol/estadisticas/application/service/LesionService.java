@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -114,7 +116,8 @@ public class LesionService implements LesionUseCase {
     public LesionResponse curarLesion(UUID idLesion) {
         Lesion lesion = findLesionOrThrow(idLesion);
         lesion.curar();
- 
+
+        Pageable pageable = PageRequest.of(0, 20);
         Lesion curada = lesionRepository.save(lesion);
  
         if (curada.getIdLesion() != null) {
@@ -122,7 +125,7 @@ public class LesionService implements LesionUseCase {
                     .findAny()
                     .ifPresentOrElse(
                             l -> { /* aún hay lesiones activas, no cambiar estado */ },
-                            () -> jugadorRepository.findAll().stream()
+                            () -> jugadorRepository.findAll(pageable).stream()
                                     .filter(j -> j.getLesiones().contains(curada))
                                     .findFirst()
                                     .ifPresent(j -> {

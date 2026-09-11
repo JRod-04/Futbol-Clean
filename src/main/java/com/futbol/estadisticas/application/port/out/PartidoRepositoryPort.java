@@ -15,9 +15,17 @@ public interface PartidoRepositoryPort {
 
     List<Partido> saveAll(List<Partido> partidos);
 
+
     Optional<Partido> findById(UUID idPartido);
 
     Page<Partido> findByFecha(LocalDate fecha, Pageable pageable);
+
+    Page<Partido> findAll( Pageable pageable);
+
+    List<Partido> findPartidosByJugador(UUID idJugador);
+
+    List<Partido> findPartidosBytecnico(UUID idTecnico);
+
 
     List<Partido> findAll();
  

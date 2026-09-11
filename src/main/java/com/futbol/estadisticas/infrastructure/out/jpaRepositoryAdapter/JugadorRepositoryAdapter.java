@@ -46,7 +46,6 @@ public class JugadorRepositoryAdapter implements JugadorRepositoryPort {
     public Jugador save(Jugador jugador) {
         JugadorJPAEntity entity = mapper.toJpa(jugador);
         
-        // Establecer relaciones bidireccionales
         if (entity.getDatosDeportivos() != null) {
             entity.getDatosDeportivos().setJugador(entity);
         }
@@ -55,7 +54,7 @@ public class JugadorRepositoryAdapter implements JugadorRepositoryPort {
             entity.getLesiones().forEach(lesion -> lesion.setJugador(entity));
         }
         
-        return mapper.JugadortoDomain(repository.save(entity));
+        return mapper.JugadortoDomain(repository.saveAndFlush(entity));
     }
 
     @Override
@@ -64,8 +63,8 @@ public class JugadorRepositoryAdapter implements JugadorRepositoryPort {
     }
 
     @Override
-    public List<Jugador> findAll() {
-        return repository.findAll().stream().map(mapper::JugadortoDomain).toList();
+    public Page<Jugador> findAll(Pageable pageable) {
+        return repository.findAll(pageable).map(mapper::JugadortoDomain);
     }
 
     @Override

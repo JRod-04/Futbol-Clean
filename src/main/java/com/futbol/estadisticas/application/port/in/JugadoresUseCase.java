@@ -27,7 +27,7 @@ public interface JugadoresUseCase {
 
     JugadorResponse obtenerJugadorPorId(UUID idJugador);
  
-    List<JugadorResponse> obtenerTodosLosJugadores();
+    Page<JugadorResponse> obtenerTodosLosJugadores(Pageable pageable);
  
     List<JugadorResponse> obtenerJugadoresPorEquipo(UUID idEquipo);
  

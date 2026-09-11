@@ -23,6 +23,8 @@ public record ContratoResponse(
  
         UUID idEquipo,
         String nombreEquipo,
+        String nombreCortoEquipo,
+
         Double costoFichaje
 ) {
 

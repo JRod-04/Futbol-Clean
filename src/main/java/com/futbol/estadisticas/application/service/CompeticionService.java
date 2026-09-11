@@ -94,7 +94,7 @@ public class CompeticionService implements CompeticionUseCase {
     @Override
     @Transactional(readOnly = true)
     public List<CompeticionResponse> obtenerTodasLasCompeticiones() {
-        List<Competicion> competiciones = competicionRepository.findActivas();
+        List<Competicion> competiciones = competicionRepository.findAll();
 
         for (Competicion competicion : competiciones) {
             List<Partido> partidos = partidoRepository.findByCompeticion(competicion.getIdCompeticion());

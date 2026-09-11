@@ -26,7 +26,7 @@ public class Partido {
 
     @EqualsAndHashCode.Include
     private UUID idPartido;
-   
+
     private LocalDateTime fechaYHora;
     private EstadoPartido estado;
 
@@ -131,7 +131,7 @@ public class Partido {
         EventosPartido eventoConvocado = EventosPartido.builder()
                 .idEvento(UUID.randomUUID())
                 .minuto(LocalTime.of(0, 0))
-                .descripcion(jugador.getNombreCompleto() + " Convocado")
+                .descripcion(jugador.getDatosDeportivos().getEstadoJugador().toString())
                 .tipoEvento(TipoEvento.CONVOCADO)
                 .personal(jugador)
                 .equipoFavorecido(club)
@@ -252,9 +252,7 @@ public class Partido {
 
         if (!estadoActual.Finalizable()) {
             throw new IllegalStateException(
-                    "El partido no se puede finalizar en estado: " + estadoActual.getDisplayName() +
-                            ". Solo se puede finalizar en SEGUNDO_TIEMPO, AGREGADO_SEGUNDO_TIEMPO, " +
-                            "SEGUNDO_TIEMPO_PRORROGA, AGREGADO_PRORROGA_SEGUNDO o PENALTIS"
+                    "El partido no se puede finalizar en estado: " + estadoActual.getDisplayName()
             );
         }
 

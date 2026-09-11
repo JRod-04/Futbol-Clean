@@ -31,6 +31,7 @@ public record JugadorResponse(
         Double valorMercadoEnMillones,
         String equipoActual,
         UUID idEquipoActual,
+        String nombreCortoEquipoActual,
         boolean disponible,
         int lesionesActivas
 ) {

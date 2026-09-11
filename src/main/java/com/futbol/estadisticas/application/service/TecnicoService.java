@@ -3,6 +3,11 @@ package com.futbol.estadisticas.application.service;
 import java.util.List;
 import java.util.UUID;
 
+import com.futbol.estadisticas.application.port.dto.response.PartidoResponse;
+import com.futbol.estadisticas.application.port.dto.response.TecnicoResponseEstadisticas;
+import com.futbol.estadisticas.application.port.mapper.PartidoMapper;
+import com.futbol.estadisticas.application.port.out.PartidoRepositoryPort;
+import com.futbol.estadisticas.domain.model.Partido;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -27,8 +32,9 @@ import lombok.RequiredArgsConstructor;
 public class TecnicoService implements TecnicoUseCase{
     
     private final TecnicoRepositoryPort tecnicoRepository;
-    private final EquipoRepositoryPort clubRepository;
     private final TecnicoMapper         tecnicoMapper;
+    private final PartidoMapper          partidoMapper;
+    private final PartidoRepositoryPort partidoRepository;
 
     @Override
     public Page<TecnicoResponse> buscarTecnicos(String texto, Pageable pageable) {
@@ -53,7 +59,29 @@ public class TecnicoService implements TecnicoUseCase{
                 .orElseThrow(() -> new PersonalNotFoundException(
                         "Técnico no encontrado con id: " + idTecnico));
     }
- 
+
+    @Override
+    public List<PartidoResponse> obtenerPartidosPorTecnico(UUID idTecnico) {
+        if (!tecnicoRepository.existsById(idTecnico)) {
+            throw new PersonalNotFoundException("Técnico no encontrado con id: " + idTecnico);
+        }
+        List<Partido> partidos = partidoRepository.findPartidosBytecnico(idTecnico);
+        return partidos.stream()
+                .map(partidoMapper::toResponse)
+                .toList();
+    }
+
+    @Override
+    public TecnicoResponseEstadisticas obtenerTecnicoConEstadisticas(UUID idTecnico) {
+        Tecnico tecnico = tecnicoRepository.findById(idTecnico)
+                .orElseThrow(() -> new RuntimeException("Técnico no encontrado"));
+
+        List<Partido> partidosDirigidos = partidoRepository.findPartidosBytecnico(idTecnico);
+
+        return tecnicoMapper.toResponseConEstadisticas(tecnico, partidosDirigidos);
+    }
+
+
     @Override
     @Transactional(readOnly = true)
     public List<TecnicoResponse> obtenerTodosTecnicos() {

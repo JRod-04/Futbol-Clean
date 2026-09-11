@@ -299,28 +299,31 @@ public class Contrato {
         }
     }
     
-    public void renovar(int mesesAdicionales) {
-        if (mesesAdicionales <= 0) {
-            throw new IllegalArgumentException("Los meses deben ser positivos");
+    public void renovar(LocalDateTime nuevaFechaFin) {
+        if (nuevaFechaFin.isBefore(this.fechaInicio) ) {
+            throw new IllegalArgumentException("La nueva fecha fin no debe ser antes que la fecha de inicio");
+        }
+        if (nuevaFechaFin.isBefore(LocalDateTime.now()) ) {
+            throw new IllegalArgumentException("La nueva fecha fin no debe ser en el pasado");
         }
         if (this.estado != EstadoContrato.ACTIVO) {
             throw new IllegalStateException("No se puede renovar un contrato no activo");
         }
-        this.fechaFin = this.fechaFin.plusMonths(mesesAdicionales);
+        this.fechaFin = nuevaFechaFin;
     }
 
 
-        public void rescindir(LocalDateTime fechaFin) {
+        public void rescindir(LocalDateTime fechaRescindido) {
         if (this.estado == EstadoContrato.FINALIZADO) {
             throw new IllegalStateException("No se puede Rescindir un contrato Finalizado");
         }
 
         this.estado = EstadoContrato.RESCINDIDO;
-        this.fechaFin = LocalDateTime.now();
+        this.fechaFin = fechaRescindido;
 
         if(this.personal instanceof Jugador jugador){
                 DatosDeportivos datosJugador = jugador.getDatosDeportivos();
-            if (datosJugador != null) {
+            if (datosJugador != null && personal.getContratos().isEmpty()) {
                 datosJugador.setEstadoJugador(EstadoJugador.LIBRE);
                 datosJugador.setFechaActualizacion(LocalDate.now());
             }

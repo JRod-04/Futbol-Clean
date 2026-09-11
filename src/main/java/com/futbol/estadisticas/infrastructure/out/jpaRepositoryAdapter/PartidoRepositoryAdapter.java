@@ -77,6 +77,25 @@ public class PartidoRepositoryAdapter implements PartidoRepositoryPort {
     }
 
     @Override
+    public Page<Partido> findAll(Pageable pageable) {
+        return repository.findAll(pageable).map(mapper::PartidotoDomain);
+    }
+
+    @Override
+    public List<Partido> findPartidosByJugador(UUID idJugador) {
+        return repository.findPartidosByJugador(idJugador).stream()
+                .map(mapper::PartidotoDomain)
+                .toList();
+    }
+
+    @Override
+    public List<Partido> findPartidosBytecnico(UUID idTecnico) {
+        return repository.findPartidosByTecnico(idTecnico).stream()
+                .map(mapper::PartidotoDomain)
+                .toList();
+    }
+
+    @Override
     public List<Partido> findAll() {
         return repository.findAll().stream().map(mapper::PartidotoDomain).toList();
     }

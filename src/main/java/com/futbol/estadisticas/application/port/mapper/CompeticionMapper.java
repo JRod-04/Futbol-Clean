@@ -19,6 +19,7 @@ public class CompeticionMapper {
         return Competicion.builder()
                 .idCompeticion(UUID.randomUUID())
                 .nombre(request.nombre())
+                .temporada(request.temporada())
                 .fechaInicio(request.fechaInicio())
                 .fechaFin(request.fechaFin())
                 .estado(EstadoCompeticion.POR_INICIAR)
@@ -33,6 +34,7 @@ public class CompeticionMapper {
         return new CompeticionResponse(
                 competicion.getIdCompeticion(),
                 competicion.getNombre(),
+                competicion.getNombre()+" "+competicion.getTemporada(),
                 competicion.getFechaInicio(),
                 competicion.getFechaFin(),
                 competicion.getEquipoGanador(),

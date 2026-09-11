@@ -5,6 +5,9 @@ import java.util.UUID;
 
 import com.futbol.estadisticas.application.port.dto.response.EstadisticasJugadorResponse;
 import com.futbol.estadisticas.application.port.dto.response.EstadisticasPartidoJugadorResponse;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -53,8 +56,9 @@ public class JugadorController {
     }
 
     @GetMapping
-    public ResponseEntity<List<JugadorResponse>> listarTodos() {
-        return ResponseEntity.ok(jugadoresUseCase.obtenerTodosLosJugadores());
+    public ResponseEntity<Page<JugadorResponse>> listarTodos(
+            @PageableDefault(size = 10) Pageable pageable) {
+        return ResponseEntity.ok(jugadoresUseCase.obtenerTodosLosJugadores(pageable));
     }
  
     @GetMapping("/{id}")

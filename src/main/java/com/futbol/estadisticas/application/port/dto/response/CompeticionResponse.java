@@ -12,6 +12,7 @@ public record CompeticionResponse(
     
         UUID idCompeticion,
         String nombre,
+        String nombreCompleto,
         LocalDateTime fechaInicio,
         LocalDateTime fechaFin,
         Equipo equipoGanador,
