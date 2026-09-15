@@ -1,6 +1,7 @@
 package com.futbol.estadisticas.infrastructure.out.jpaRepository;
 
 import com.futbol.estadisticas.PostgresTestContainerConfig;
+import com.futbol.estadisticas.domain.model.Jugador;
 import com.futbol.estadisticas.domain.model.Lesion;
 import com.futbol.estadisticas.domain.model.enums.Gravedad;
 import com.futbol.estadisticas.domain.model.enums.JuegoPies;
@@ -23,6 +24,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+
 
 @SpringBootTest
 @Transactional
@@ -101,8 +103,7 @@ class LesionJPARepositoryTest extends PostgresTestContainerConfig {
 
         jugadorRepository.saveAll(List.of(jugador1, jugador2, jugador3));
 
-        // Crear lesiones con fechas relativas al día de hoy
-        // Lesión 1: Activa (fechaInicio = hace 2 meses, fechaFin = en 2 meses)
+
         LesionJPAEntity lesion1 = LesionJPAEntity.builder()
                 .idLesion(ID_LESION_1)
                 .jugador(jugador1)
@@ -113,7 +114,6 @@ class LesionJPARepositoryTest extends PostgresTestContainerConfig {
                 .curada(false)
                 .build();
 
-        // Lesión 2: Ya curada (fechaInicio = hace 4 meses, fechaFin = hace 1 mes)
         LesionJPAEntity lesion2 = LesionJPAEntity.builder()
                 .idLesion(ID_LESION_2)
                 .jugador(jugador2)
@@ -124,7 +124,6 @@ class LesionJPARepositoryTest extends PostgresTestContainerConfig {
                 .curada(true)
                 .build();
 
-        // Lesión 3: Activa sin fecha fin (fechaInicio = hace 1 mes, fechaFin = null)
         LesionJPAEntity lesion3 = LesionJPAEntity.builder()
                 .idLesion(ID_LESION_3)
                 .jugador(jugador2)
@@ -151,19 +150,16 @@ class LesionJPARepositoryTest extends PostgresTestContainerConfig {
     @Test
     @DisplayName("findByJugador: debe buscar lesiones por jugador")
     void testFindByJugador() {
-        // Jugador 2 tiene 2 lesiones
         List<Lesion> lesiones = adapter.findByJugador(ID_JUGADOR_2);
         assertThat(lesiones).hasSize(2);
         assertThat(lesiones)
                 .extracting(Lesion::getNombreLesion)
                 .containsExactlyInAnyOrder("Sobrecarga muscular en el cuádriceps", "Fractura de tobillo");
         
-        // Jugador 1 tiene 1 lesión
         List<Lesion> lesionesJugador1 = adapter.findByJugador(ID_JUGADOR_1);
         assertThat(lesionesJugador1).hasSize(1);
         assertThat(lesionesJugador1.get(0).getNombreLesion()).isEqualTo("Rotura de ligamento cruzado anterior");
         
-        // Jugador 3 no tiene lesiones
         List<Lesion> lesionesJugador3 = adapter.findByJugador(ID_JUGADOR_3);
         assertThat(lesionesJugador3).isEmpty();
     }
@@ -171,20 +167,17 @@ class LesionJPARepositoryTest extends PostgresTestContainerConfig {
     @Test
     @DisplayName("findActivasByJugador: debe buscar lesiones activas de un jugador")
     void testFindActivasByJugador() {
-        // Jugador 2 tiene 1 lesión activa (Fractura de tobillo)
         List<Lesion> lesionesActivas = adapter.findActivasByJugador(ID_JUGADOR_2);
         assertThat(lesionesActivas).hasSize(1);
         assertThat(lesionesActivas.get(0).getNombreLesion()).isEqualTo("Fractura de tobillo");
         assertThat(lesionesActivas.get(0).isCurada()).isFalse();
         assertThat(lesionesActivas.get(0).getFechaFin()).isNull();
         
-        // Jugador 1 tiene 1 lesión activa (Rotura de ligamento)
         List<Lesion> lesionesActivasJugador1 = adapter.findActivasByJugador(ID_JUGADOR_1);
         assertThat(lesionesActivasJugador1).hasSize(1);
         assertThat(lesionesActivasJugador1.get(0).getNombreLesion()).isEqualTo("Rotura de ligamento cruzado anterior");
         assertThat(lesionesActivasJugador1.get(0).isCurada()).isFalse();
         
-        // Jugador 3 no tiene lesiones
         List<Lesion> lesionesActivasJugador3 = adapter.findActivasByJugador(ID_JUGADOR_3);
         assertThat(lesionesActivasJugador3).isEmpty();
     }
@@ -192,17 +185,14 @@ class LesionJPARepositoryTest extends PostgresTestContainerConfig {
     @Test
     @DisplayName("findByGravedad: debe buscar lesiones por gravedad")
     void testFindByGravedad() {
-        // Buscar lesiones GRAVE
         List<Lesion> graves = adapter.findByGravedad(Gravedad.GRAVE);
         assertThat(graves).hasSize(1);
         assertThat(graves.get(0).getNombreLesion()).isEqualTo("Rotura de ligamento cruzado anterior");
 
-        // Buscar lesiones LEVE
         List<Lesion> leves = adapter.findByGravedad(Gravedad.LEVE);
         assertThat(leves).hasSize(1);
         assertThat(leves.get(0).getNombreLesion()).isEqualTo("Sobrecarga muscular en el cuádriceps");
 
-        // Buscar lesiones MODERADA
         List<Lesion> moderadas = adapter.findByGravedad(Gravedad.MODERADA);
         assertThat(moderadas).hasSize(1);
         assertThat(moderadas.get(0).getNombreLesion()).isEqualTo("Fractura de tobillo");
@@ -212,7 +202,6 @@ class LesionJPARepositoryTest extends PostgresTestContainerConfig {
     @DisplayName("findActivas: debe buscar todas las lesiones activas")
     void testFindActivas() {
         List<Lesion> activas = adapter.findActivas();
-        // lesion1 está activa (fechaFin en futuro), lesion2 está curada, lesion3 está activa (fechaFin null)
         assertThat(activas).hasSize(2);
         assertThat(activas)
                 .extracting(Lesion::getNombreLesion)
@@ -236,21 +225,16 @@ class LesionJPARepositoryTest extends PostgresTestContainerConfig {
     @Test
     @DisplayName("deleteById: debe eliminar una lesión")
     void testDeleteById() {
-        // Verificar que existe
         assertThat(adapter.existsById(ID_LESION_3)).isTrue();
         
-        // Eliminar
         adapter.deleteById(ID_LESION_3);
         
-        // Verificar que ya no existe
         assertThat(adapter.existsById(ID_LESION_3)).isFalse();
         
-        // Verificar que el jugador 2 ahora tiene solo 1 lesión
         List<Lesion> lesionesJugador2 = adapter.findByJugador(ID_JUGADOR_2);
         assertThat(lesionesJugador2).hasSize(1);
         assertThat(lesionesJugador2.get(0).getNombreLesion()).isEqualTo("Sobrecarga muscular en el cuádriceps");
         
-        // Verificar que las otras lesiones siguen existiendo
         assertThat(adapter.existsById(ID_LESION_1)).isTrue();
         assertThat(adapter.existsById(ID_LESION_2)).isTrue();
     }
@@ -258,10 +242,15 @@ class LesionJPARepositoryTest extends PostgresTestContainerConfig {
     @Test
     @DisplayName("save: debe guardar una nueva lesión para un jugador existente")
     void testSave() {
-        // Crear una nueva lesión para el jugador 3
         UUID nuevoId = UUID.randomUUID();
+
+        Jugador jugadorRef = Jugador.builder()
+                .idPersonal(ID_JUGADOR_3)
+                .build();
+
         Lesion nuevaLesion = Lesion.builder()
                 .idLesion(nuevoId)
+                .jugadorLesionado(jugadorRef)
                 .nombreLesion("Nueva lesión de prueba")
                 .gravedad(Gravedad.LEVE)
                 .fechaInicio(hoy)
@@ -274,39 +263,40 @@ class LesionJPARepositoryTest extends PostgresTestContainerConfig {
         assertThat(guardado.getIdLesion()).isEqualTo(nuevoId);
         assertThat(guardado.getNombreLesion()).isEqualTo("Nueva lesión de prueba");
 
-        // Verificar que existe por ID
         Optional<Lesion> encontrado = adapter.findById(nuevoId);
         assertThat(encontrado).isPresent();
         assertThat(encontrado.get().getNombreLesion()).isEqualTo("Nueva lesión de prueba");
     }
 
     @Test
-    @DisplayName("save: debe actualizar una lesión existente")
+    @DisplayName("save: debe actualizar una lesión existente conservando su jugador")
     void testUpdate() {
-        // Obtener la lesión existente
         Optional<Lesion> lesionOptional = adapter.findById(ID_LESION_1);
         assertThat(lesionOptional).isPresent();
-        
+
         Lesion lesion = lesionOptional.get();
         assertThat(lesion.getNombreLesion()).isEqualTo("Rotura de ligamento cruzado anterior");
         assertThat(lesion.isCurada()).isFalse();
-        
-        // Actualizar la lesión
+
+        Jugador jugadorRef = Jugador.builder()
+                .idPersonal(ID_JUGADOR_1)
+                .build();
+
         Lesion lesionActualizada = Lesion.builder()
                 .idLesion(lesion.getIdLesion())
+                .jugadorLesionado(jugadorRef)
                 .nombreLesion("Rotura de ligamento cruzado anterior - En recuperación")
                 .gravedad(lesion.getGravedad())
                 .fechaInicio(lesion.getFechaInicio())
                 .fechaFin(hoy.plusMonths(2))
                 .curada(false)
                 .build();
-        
+
         Lesion guardado = adapter.save(lesionActualizada);
         assertThat(guardado).isNotNull();
         assertThat(guardado.getIdLesion()).isEqualTo(ID_LESION_1);
         assertThat(guardado.getNombreLesion()).isEqualTo("Rotura de ligamento cruzado anterior - En recuperación");
-        
-        // Verificar en la BD
+
         Optional<Lesion> encontrado = adapter.findById(ID_LESION_1);
         assertThat(encontrado).isPresent();
         assertThat(encontrado.get().getNombreLesion()).isEqualTo("Rotura de ligamento cruzado anterior - En recuperación");
@@ -332,32 +322,11 @@ class LesionJPARepositoryTest extends PostgresTestContainerConfig {
     @Test
     @DisplayName("findActivas: debe retornar lista vacía cuando no hay lesiones activas")
     void testFindActivas_Vacio() {
-        // Primero eliminamos todas las lesiones
         repository.deleteAll();
         
         List<Lesion> activas = adapter.findActivas();
         assertThat(activas).isEmpty();
     }
 
-    @Test
-    @DisplayName("save: debe guardar una lesión sin jugador")
-    void testSaveSinJugador() {
-        UUID nuevoId = UUID.randomUUID();
-        Lesion nuevaLesion = Lesion.builder()
-                .idLesion(nuevoId)
-                .nombreLesion("Lesión sin jugador")
-                .gravedad(Gravedad.MODERADA)
-                .fechaInicio(hoy)
-                .curada(false)
-                .build();
 
-        Lesion guardado = adapter.save(nuevaLesion);
-        assertThat(guardado).isNotNull();
-        assertThat(guardado.getIdLesion()).isEqualTo(nuevoId);
-        
-        // Verificar que existe
-        Optional<Lesion> encontrado = adapter.findById(nuevoId);
-        assertThat(encontrado).isPresent();
-        assertThat(encontrado.get().getNombreLesion()).isEqualTo("Lesión sin jugador");
-    }
 }

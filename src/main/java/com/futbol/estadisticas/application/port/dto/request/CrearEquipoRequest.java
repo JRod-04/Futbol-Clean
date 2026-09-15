@@ -7,7 +7,9 @@ import com.futbol.estadisticas.domain.model.enums.TipoEquipo;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Past;
 import jakarta.validation.constraints.Size;
+import lombok.Builder;
 
+@Builder
 public record CrearEquipoRequest(
         @NotBlank(message = "El nombre es obligatorio")
         String nombre,

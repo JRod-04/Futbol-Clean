@@ -2,6 +2,8 @@ package com.futbol.estadisticas.infrastructure.out.jpaRepository;
 
 import com.futbol.estadisticas.PostgresTestContainerConfig;
 import com.futbol.estadisticas.domain.model.Equipo;
+import com.futbol.estadisticas.domain.model.enums.Nacion;
+import com.futbol.estadisticas.domain.model.enums.TipoEquipo;
 import com.futbol.estadisticas.infrastructure.out.jpaEntity.EquipoJPAEntity;
 import com.futbol.estadisticas.infrastructure.out.jpaRepositoryAdapter.EquipoRepositoryAdapter;
 
@@ -13,6 +15,9 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 
@@ -23,16 +28,18 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+
 @SpringBootTest
 @Transactional
 class EquipoJPARepositoryTest extends PostgresTestContainerConfig {
 
     @DynamicPropertySource
     static void properties(DynamicPropertyRegistry registry) {
-        registry.add("spring.datasource.url", POSTGRES::getJdbcUrl);
+        registry.add("spring.datasource.url",      POSTGRES::getJdbcUrl);
         registry.add("spring.datasource.username", POSTGRES::getUsername);
         registry.add("spring.datasource.password", POSTGRES::getPassword);
-        registry.add("spring.jpa.hibernate.ddl-auto", () -> "create-drop");
+        registry.add("spring.datasource.driver-class-name", () -> "org.postgresql.Driver");
+        registry.add("spring.jpa.hibernate.ddl-auto", () -> "create");
     }
 
     @Autowired
@@ -44,9 +51,9 @@ class EquipoJPARepositoryTest extends PostgresTestContainerConfig {
     @Autowired
     private EstadioJPARepository estadioRepository;
 
-    private static final UUID ID_CLUB_1 = UUID.fromString("44444444-5555-6666-7777-888888888888");
-    private static final UUID ID_CLUB_2 = UUID.fromString("55555555-6666-7777-8888-999999999999");
-    private static final UUID ID_CLUB_3 = UUID.fromString("66666666-7777-8888-9999-aaaaaaaaaaaa");
+    private static final UUID ID_CLUB_1   = UUID.fromString("44444444-5555-6666-7777-888888888888");
+    private static final UUID ID_CLUB_2   = UUID.fromString("55555555-6666-7777-8888-999999999999");
+    private static final UUID ID_CLUB_3   = UUID.fromString("66666666-7777-8888-9999-aaaaaaaaaaaa");
     private static final UUID ID_ESTADIO_1 = UUID.fromString("11111111-1111-1111-1111-111111111111");
     private static final UUID ID_ESTADIO_2 = UUID.fromString("22222222-2222-2222-2222-222222222222");
     private static final UUID ID_ESTADIO_3 = UUID.fromString("33333333-3333-3333-3333-333333333333");
@@ -55,8 +62,9 @@ class EquipoJPARepositoryTest extends PostgresTestContainerConfig {
     void setUp() {
         repository.deleteAll();
         estadioRepository.deleteAll();
+        repository.flush();
+        estadioRepository.flush();
 
-        // Crear 3 estadios diferentes (cada uno para un club diferente)
         EstadioJPAEntity estadio1 = EstadioJPAEntity.builder()
                 .idEstadio(ID_ESTADIO_1)
                 .nombre("Emirates Stadium")
@@ -82,14 +90,16 @@ class EquipoJPARepositoryTest extends PostgresTestContainerConfig {
                 .build();
 
         estadioRepository.saveAll(List.of(estadio1, estadio2, estadio3));
+        estadioRepository.flush();
 
-        // Cada club tiene su propio estadio (sin duplicados)
         EquipoJPAEntity club1 = EquipoJPAEntity.builder()
                 .idEquipo(ID_CLUB_1)
                 .nombre("Arsenal FC")
                 .nombreCorto("ARS")
                 .fechaFundacion(LocalDate.of(1886, 12, 1))
-                .estadio(estadio1)  // Estadio 1
+                .paisEquipo(Nacion.INGLATERRA)
+                .tipo(TipoEquipo.CLUB_PROFESIONAL)
+                .estadio(estadio1)
                 .build();
 
         EquipoJPAEntity club2 = EquipoJPAEntity.builder()
@@ -97,7 +107,9 @@ class EquipoJPARepositoryTest extends PostgresTestContainerConfig {
                 .nombre("Manchester City")
                 .nombreCorto("MCI")
                 .fechaFundacion(LocalDate.of(1880, 11, 1))
-                .estadio(estadio2)  // Estadio 2
+                .paisEquipo(Nacion.INGLATERRA)
+                .tipo(TipoEquipo.CLUB_PROFESIONAL)
+                .estadio(estadio2)
                 .build();
 
         EquipoJPAEntity club3 = EquipoJPAEntity.builder()
@@ -105,10 +117,13 @@ class EquipoJPARepositoryTest extends PostgresTestContainerConfig {
                 .nombre("Chelsea FC")
                 .nombreCorto("CHE")
                 .fechaFundacion(LocalDate.of(1905, 3, 10))
-                .estadio(estadio3)  // Estadio 3 (diferente)
+                .paisEquipo(Nacion.INGLATERRA)
+                .tipo(TipoEquipo.CLUB_PROFESIONAL)
+                .estadio(estadio3)
                 .build();
 
         repository.saveAll(List.of(club1, club2, club3));
+        repository.flush();
     }
 
     @Test
@@ -118,6 +133,12 @@ class EquipoJPARepositoryTest extends PostgresTestContainerConfig {
         assertThat(club).isPresent();
         assertThat(club.get().getNombre()).isEqualTo("Arsenal FC");
         assertThat(club.get().getNombreCorto()).isEqualTo("ARS");
+    }
+
+    @Test
+    @DisplayName("findById: debe devolver vacío si no existe")
+    void testFindByIdNoExiste() {
+        assertThat(adapter.findById(UUID.randomUUID())).isEmpty();
     }
 
     @Test
@@ -131,11 +152,24 @@ class EquipoJPARepositoryTest extends PostgresTestContainerConfig {
     }
 
     @Test
-    @DisplayName("findByNombre: debe buscar clubes por nombre")
-    void testFindByNombre() {
-        List<Equipo> resultados = adapter.findByNombre("City");
-        assertThat(resultados).hasSize(1);
-        assertThat(resultados.get(0).getNombre()).isEqualTo("Manchester City");
+    @DisplayName("buscarEquipoPorNombre: debe buscar clubes por nombre con paginación")
+    void testBuscarEquipoPorNombre() {
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Equipo> resultados = adapter.buscarEquipoPorNombre("City", pageable);
+
+        assertThat(resultados.getTotalElements()).isEqualTo(1);
+        assertThat(resultados.getContent())
+                .extracting(Equipo::getNombre)
+                .containsExactly("Manchester City");
+    }
+
+    @Test
+    @DisplayName("buscarEquipoPorNombre: texto vacío devuelve página vacía")
+    void testBuscarEquipoPorNombre_Vacio() {
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Equipo> resultados = adapter.buscarEquipoPorNombre("   ", pageable);
+
+        assertThat(resultados).isEmpty();
     }
 
     @Test
@@ -149,26 +183,16 @@ class EquipoJPARepositoryTest extends PostgresTestContainerConfig {
     @DisplayName("deleteById: debe eliminar un club")
     void testDeleteById() {
         assertThat(adapter.existsById(ID_CLUB_3)).isTrue();
+
         adapter.deleteById(ID_CLUB_3);
+
         assertThat(adapter.existsById(ID_CLUB_3)).isFalse();
         assertThat(adapter.findAll()).hasSize(2);
     }
 
     @Test
-    @DisplayName("save: debe guardar un nuevo club con un estadio")
+    @DisplayName("save: debe guardar un nuevo club")
     void testSave() {
-        // Crear un nuevo estadio para el nuevo club
-        UUID nuevoEstadioId = UUID.fromString("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
-        EstadioJPAEntity nuevoEstadio = EstadioJPAEntity.builder()
-                .idEstadio(nuevoEstadioId)
-                .nombre("Nuevo Estadio")
-                .direccion("Nueva Dirección")
-                .capacidad(50000)
-                .fechaFundacion(LocalDate.of(2000, 1, 1))
-                .build();
-        estadioRepository.save(nuevoEstadio);
-
-        // Crear el nuevo club con su estadio
         UUID nuevoId = UUID.randomUUID();
         Equipo nuevoClub = Equipo.builder()
                 .idEquipo(nuevoId)
@@ -178,12 +202,15 @@ class EquipoJPARepositoryTest extends PostgresTestContainerConfig {
                 .build();
 
         Equipo guardado = adapter.save(nuevoClub);
+
         assertThat(guardado).isNotNull();
         assertThat(guardado.getIdEquipo()).isEqualTo(nuevoId);
         assertThat(guardado.getNombre()).isEqualTo("Nuevo Club");
+        assertThat(guardado.getNombreCorto()).isEqualTo("NCL");
 
         Optional<Equipo> encontrado = adapter.findById(nuevoId);
         assertThat(encontrado).isPresent();
         assertThat(adapter.findAll()).hasSize(4);
     }
+
 }

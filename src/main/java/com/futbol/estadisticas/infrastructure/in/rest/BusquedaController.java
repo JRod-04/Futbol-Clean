@@ -31,7 +31,6 @@ public class BusquedaController {
     private final EquipoUseCase equipoUseCase;
     private final CompeticionUseCase competicionUseCase;
 
-    // ──────────────── JUGADORES ────────────────
 
     @GetMapping("/jugadores")
     public ResponseEntity<Page<JugadorResponse>> buscarJugadores(
@@ -46,7 +45,6 @@ public class BusquedaController {
         return ResponseEntity.ok(jugadorUseCase.buscarJugadores(q.trim(), PageRequest.of(page, size)));
     }
 
-    // ──────────────── TÉCNICOS ────────────────
 
     @GetMapping("/tecnicos")
     public ResponseEntity<Page<TecnicoResponse>> buscarTecnicos(
@@ -61,7 +59,6 @@ public class BusquedaController {
         return ResponseEntity.ok(tecnicoUseCase.buscarTecnicos(q.trim(), PageRequest.of(page, size)));
     }
 
-    // ──────────────── CLUBES ────────────────
 
     @GetMapping("/equipos")
     public ResponseEntity<Page<EquipoResponse>> buscarClubes(
@@ -76,7 +73,6 @@ public class BusquedaController {
         return ResponseEntity.ok(equipoUseCase.buscarEquipos(q.trim(), PageRequest.of(page, size)));
     }
 
-    // ──────────────── COMPETICIONES ────────────────
 
     @GetMapping("/competiciones")
     public ResponseEntity<Page<CompeticionResponse>> buscarCompeticiones(
@@ -91,7 +87,6 @@ public class BusquedaController {
         return ResponseEntity.ok(competicionUseCase.buscarCompeticiones(q.trim(), PageRequest.of(page, size)));
     }
 
-    // ──────────────── BÚSQUEDA GLOBAL ────────────────
 
     @GetMapping("/global")
     public ResponseEntity<Map<String, Page<?>>> busquedaGlobal(

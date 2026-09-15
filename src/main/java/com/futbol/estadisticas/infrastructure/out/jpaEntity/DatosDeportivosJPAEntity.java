@@ -61,8 +61,7 @@ public class DatosDeportivosJPAEntity {
     @Column(name = "dorsal")
     private Integer dorsal;
 
-   
-    // Dueño de la FK hacia jugadores
+
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_jugador", nullable = false, unique = true,
                 foreignKey = @ForeignKey(name = "fk_datos_deportivos_jugador"))

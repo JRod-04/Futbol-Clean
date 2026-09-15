@@ -20,6 +20,7 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+
 @SpringBootTest
 class EstadioJPARepositoryTest extends PostgresTestContainerConfig {
 
@@ -46,12 +47,9 @@ class EstadioJPARepositoryTest extends PostgresTestContainerConfig {
 
     @BeforeEach
     void setUp() {
-        // IMPORTANTE: Primero eliminar clubes que referencian a estadios
         clubRepository.deleteAll();
-        // Luego eliminar estadios
         repository.deleteAll();
 
-        // Crear estadios
         EstadioJPAEntity estadio1 = EstadioJPAEntity.builder()
                 .idEstadio(ID_ESTADIO_1)
                 .nombre("Emirates Stadium")

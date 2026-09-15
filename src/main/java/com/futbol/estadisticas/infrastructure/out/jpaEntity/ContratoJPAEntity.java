@@ -53,13 +53,11 @@ public class ContratoJPAEntity {
     @Column(name = "estado", nullable = false, length = 20)
     private EstadoContrato estado;
  
-    // FK al personal (dueño)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_personal", nullable = false,
                 foreignKey = @ForeignKey(name = "fk_contrato_personal"))
     private PersonalDeportivoJPAEntity personal;
  
-    // FK al club (dueño)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_equipo", nullable = false,
                 foreignKey = @ForeignKey(name = "fk_contrato_equipo"))

@@ -5,7 +5,9 @@ import java.time.LocalDate;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Past;
 import jakarta.validation.constraints.Positive;
+import lombok.Builder;
 
+@Builder
 public record CrearEstadioRequest(
         @NotBlank(message = "El nombre del estadio es obligatorio")
         String nombre,

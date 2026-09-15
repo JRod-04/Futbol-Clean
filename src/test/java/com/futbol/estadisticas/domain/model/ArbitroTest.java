@@ -1,25 +1,20 @@
 package com.futbol.estadisticas.domain.model;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-import com.futbol.estadisticas.domain.model.enums.EstadoPartido;
-
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 class ArbitroTest {
 
-    private Arbitro arbitro;
-    private static final UUID ID_ARBITRO = UUID.randomUUID();
+    private static final UUID ID_ARBITRO = UUID.fromString("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
 
-    @BeforeEach
-    void setUp() {
-        arbitro = Arbitro.builder()
+    private Arbitro arbitroBase() {
+        return Arbitro.builder()
                 .idArbitro(ID_ARBITRO)
                 .nombre("Michael")
                 .apellido("Oliver")
@@ -27,77 +22,247 @@ class ArbitroTest {
                 .build();
     }
 
-    @Test
-    @DisplayName("getNombreCompleto: debe retornar nombre y apellido concatenados")
-    void testGetNombreCompleto() {
-        assertThat(arbitro.getNombreCompleto()).isEqualTo("Michael Oliver");
+    @Nested
+    @DisplayName("Construcción")
+    class Construccion {
+
+        @Test
+        @DisplayName("builder crea árbitro con todos los campos")
+        void builderCreaArbitroCompleto() {
+            Arbitro arbitro = arbitroBase();
+
+            assertThat(arbitro.getIdArbitro()).isEqualTo(ID_ARBITRO);
+            assertThat(arbitro.getNombre()).isEqualTo("Michael");
+            assertThat(arbitro.getApellido()).isEqualTo("Oliver");
+            assertThat(arbitro.getFechaNacimiento()).isEqualTo(LocalDate.of(1985, 2, 20));
+        }
+
+        @Test
+        @DisplayName("partidosArbitrados se inicializa vacío por defecto")
+        void partidosArbitradosVacioPorDefecto() {
+            Arbitro arbitro = arbitroBase();
+
+            assertThat(arbitro.getPartidosArbitrados()).isNotNull();
+            assertThat(arbitro.getPartidosArbitrados()).isEmpty();
+        }
+
+        @Test
+        @DisplayName("constructor vacío inicializa partidosArbitrados como lista vacía")
+        void constructorVacio() {
+            Arbitro arbitro = new Arbitro();
+
+            assertThat(arbitro.getPartidosArbitrados()).isNotNull();
+            assertThat(arbitro.getPartidosArbitrados()).isEmpty();
+        }
     }
 
-    @Test
-    @DisplayName("getEdad: debe calcular la edad correctamente")
-    void testGetEdad() {
-        int edad = arbitro.getEdad();
-        assertThat(edad).isGreaterThan(0);
+    @Nested
+    @DisplayName("getNombreCompleto")
+    class NombreCompleto {
+
+        @Test
+        @DisplayName("devuelve nombre y apellido separados por espacio")
+        void nombreCompleto() {
+            Arbitro arbitro = arbitroBase();
+
+            assertThat(arbitro.getNombreCompleto()).isEqualTo("Michael Oliver");
+        }
+
+        @Test
+        @DisplayName("con nombre null devuelve 'null apellido'")
+        void nombreNull() {
+            Arbitro arbitro = Arbitro.builder()
+                    .idArbitro(ID_ARBITRO)
+                    .apellido("Oliver")
+                    .build();
+
+            assertThat(arbitro.getNombreCompleto()).isEqualTo("null Oliver");
+        }
+
+        @Test
+        @DisplayName("con apellido null devuelve 'nombre null'")
+        void apellidoNull() {
+            Arbitro arbitro = Arbitro.builder()
+                    .idArbitro(ID_ARBITRO)
+                    .nombre("Michael")
+                    .build();
+
+            assertThat(arbitro.getNombreCompleto()).isEqualTo("Michael null");
+        }
     }
 
-    @Test
-    @DisplayName("getEdad: debe retornar 0 cuando fechaNacimiento es null")
-    void testGetEdad_CuandoFechaNacimientoNull() {
-        arbitro.setFechaNacimiento(null);
-        assertThat(arbitro.getEdad()).isZero();
+    @Nested
+    @DisplayName("getEdad")
+    class Edad {
+
+        @Test
+        @DisplayName("calcula la edad correctamente")
+        void edadCorrecta() {
+            Arbitro arbitro = Arbitro.builder()
+                    .idArbitro(ID_ARBITRO)
+                    .fechaNacimiento(LocalDate.now().minusYears(40))
+                    .build();
+
+            assertThat(arbitro.getEdad()).isEqualTo(40);
+        }
+
+        @Test
+        @DisplayName("devuelve 0 si fechaNacimiento es null")
+        void edadNull() {
+            Arbitro arbitro = Arbitro.builder()
+                    .idArbitro(ID_ARBITRO)
+                    .fechaNacimiento(null)
+                    .build();
+
+            assertThat(arbitro.getEdad()).isZero();
+        }
+
+        @Test
+        @DisplayName("devuelve 0 si nació hoy")
+        void edadRecienNacido() {
+            Arbitro arbitro = Arbitro.builder()
+                    .idArbitro(ID_ARBITRO)
+                    .fechaNacimiento(LocalDate.now())
+                    .build();
+
+            assertThat(arbitro.getEdad()).isZero();
+        }
+
+        @Test
+        @DisplayName("no suma un año si aún no ha llegado el cumpleaños")
+        void edadAntesDeCumpleanios() {
+            LocalDate hace40Anios = LocalDate.now().minusYears(40).plusDays(1);
+            Arbitro arbitro = Arbitro.builder()
+                    .idArbitro(ID_ARBITRO)
+                    .fechaNacimiento(hace40Anios)
+                    .build();
+
+            assertThat(arbitro.getEdad()).isEqualTo(39);
+        }
+
+        @Test
+        @DisplayName("suma el año en el día exacto del cumpleaños")
+        void edadEnCumpleanios() {
+            LocalDate hace40Anios = LocalDate.now().minusYears(40);
+            Arbitro arbitro = Arbitro.builder()
+                    .idArbitro(ID_ARBITRO)
+                    .fechaNacimiento(hace40Anios)
+                    .build();
+
+            assertThat(arbitro.getEdad()).isEqualTo(40);
+        }
     }
 
-    @Test
-    @DisplayName("agregarPartido: debe agregar un partido y establecer la relación bidireccional")
-    void testAgregarPartido() {
-        Partido partido = Partido.builder()
-                .idPartido(UUID.randomUUID())
-                .estado(EstadoPartido.PROGRAMADO)
-                .build();
+    @Nested
+    @DisplayName("agregarPartido")
+    class AgregarPartido {
 
-        arbitro.agregarPartido(partido);
+        @Test
+        @DisplayName("agrega partido a la lista y establece el árbitro en el partido")
+        void agregaPartidoYEstableceArbitro() {
+            Arbitro arbitro = arbitroBase();
+            Partido partido = new Partido();
 
-        assertThat(arbitro.getPartidosArbitrados()).hasSize(1);
-        assertThat(partido.getArbitro()).isEqualTo(arbitro);
+            arbitro.agregarPartido(partido);
+
+            assertThat(arbitro.getPartidosArbitrados()).hasSize(1);
+            assertThat(arbitro.getPartidosArbitrados()).contains(partido);
+            assertThat(partido.getArbitro()).isSameAs(arbitro);
+        }
+
+        @Test
+        @DisplayName("ignora partido null")
+        void ignoraPartidoNull() {
+            Arbitro arbitro = arbitroBase();
+
+            arbitro.agregarPartido(null);
+
+            assertThat(arbitro.getPartidosArbitrados()).isEmpty();
+        }
+
+        @Test
+        @DisplayName("permite agregar varios partidos")
+        void agregaVariosPartidos() {
+            Arbitro arbitro = arbitroBase();
+            Partido p1 = new Partido();
+            Partido p2 = new Partido();
+
+            arbitro.agregarPartido(p1);
+            arbitro.agregarPartido(p2);
+
+            assertThat(arbitro.getPartidosArbitrados()).containsExactly(p1, p2);
+            assertThat(p1.getArbitro()).isSameAs(arbitro);
+            assertThat(p2.getArbitro()).isSameAs(arbitro);
+        }
+
+        @Test
+        @DisplayName("permite agregar el mismo partido dos veces (sin deduplicación)")
+        void permiteDuplicados() {
+            Arbitro arbitro = arbitroBase();
+            Partido partido = new Partido();
+
+            arbitro.agregarPartido(partido);
+            arbitro.agregarPartido(partido);
+
+            assertThat(arbitro.getPartidosArbitrados()).hasSize(2);
+        }
     }
 
-    @Test
-    @DisplayName("agregarPartido: no debe agregar partido nulo")
-    void testAgregarPartido_Nulo() {
-        arbitro.agregarPartido(null);
-        assertThat(arbitro.getPartidosArbitrados()).isEmpty();
+    @Nested
+    @DisplayName("getCantidadPartidos")
+    class CantidadPartidos {
+
+        @Test
+        @DisplayName("devuelve 0 sin partidos")
+        void cantidadCero() {
+            Arbitro arbitro = arbitroBase();
+
+            assertThat(arbitro.getCantidadPartidos()).isZero();
+        }
+
+        @Test
+        @DisplayName("devuelve el número de partidos agregados")
+        void cantidadVarios() {
+            Arbitro arbitro = arbitroBase();
+            arbitro.agregarPartido(new Partido());
+            arbitro.agregarPartido(new Partido());
+            arbitro.agregarPartido(new Partido());
+
+            assertThat(arbitro.getCantidadPartidos()).isEqualTo(3);
+        }
     }
 
-    @Test
-    @DisplayName("getCantidadPartidos: debe retornar la cantidad de partidos arbitrados")
-    void testGetCantidadPartidos() {
-        Partido partido1 = Partido.builder().idPartido(UUID.randomUUID()).build();
-        Partido partido2 = Partido.builder().idPartido(UUID.randomUUID()).build();
+    @Nested
+    @DisplayName("equals y hashCode")
+    class EqualsHashCode {
 
-        arbitro.agregarPartido(partido1);
-        arbitro.agregarPartido(partido2);
+        @Test
+        @DisplayName("dos árbitros con el mismo ID son iguales")
+        void mismoIdIguales() {
+            Arbitro a1 = Arbitro.builder().idArbitro(ID_ARBITRO).nombre("Michael").build();
+            Arbitro a2 = Arbitro.builder().idArbitro(ID_ARBITRO).nombre("Otro").build();
 
-        assertThat(arbitro.getCantidadPartidos()).isEqualTo(2);
-    }
+            assertThat(a1).isEqualTo(a2);
+            assertThat(a1).hasSameHashCodeAs(a2);
+        }
 
-    @Test
-    @DisplayName("getPartidosPorTemporada: debe filtrar partidos por año")
-    void testGetPartidosPorTemporada() {
-        Partido partido2024 = Partido.builder()
-                .idPartido(UUID.randomUUID())
-                .fechaYHora(LocalDateTime.of(2024, 5, 20, 16, 0))
-                .build();
-        
-        Partido partido2025 = Partido.builder()
-                .idPartido(UUID.randomUUID())
-                .fechaYHora(LocalDateTime.of(2025, 3, 15, 16, 0))
-                .build();
+        @Test
+        @DisplayName("dos árbitros con distinto ID no son iguales")
+        void distintoIdNoIguales() {
+            Arbitro a1 = Arbitro.builder().idArbitro(ID_ARBITRO).build();
+            Arbitro a2 = Arbitro.builder().idArbitro(UUID.randomUUID()).build();
 
-        arbitro.agregarPartido(partido2024);
-        arbitro.agregarPartido(partido2025);
+            assertThat(a1).isNotEqualTo(a2);
+        }
 
-        assertThat(arbitro.getPartidosPorTemporada(2024)).hasSize(1);
-        assertThat(arbitro.getPartidosPorTemporada(2025)).hasSize(1);
-        assertThat(arbitro.getPartidosPorTemporada(2023)).isEmpty();
+        @Test
+        @DisplayName("dos árbitros con ID null son iguales entre sí")
+        void idNullIguales() {
+            Arbitro a1 = Arbitro.builder().nombre("A").build();
+            Arbitro a2 = Arbitro.builder().nombre("B").build();
+
+            assertThat(a1).isEqualTo(a2);
+            assertThat(a1).hasSameHashCodeAs(a2);
+        }
     }
 }

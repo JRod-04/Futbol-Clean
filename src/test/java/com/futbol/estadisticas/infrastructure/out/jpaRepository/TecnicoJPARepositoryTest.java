@@ -25,6 +25,8 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+
+
 @SpringBootTest
 @Transactional
 class TecnicoJPARepositoryTest extends PostgresTestContainerConfig {
@@ -229,7 +231,6 @@ class TecnicoJPARepositoryTest extends PostgresTestContainerConfig {
     @Test
     @DisplayName("deleteById: debe eliminar un técnico")
     void testDeleteById() {
-        // Primero desasociar el técnico del club
         EquipoJPAEntity club = clubRepository.findById(ID_CLUB_3).orElseThrow();
         club.setTecnicoActual(null);
         clubRepository.save(club);

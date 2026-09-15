@@ -13,7 +13,9 @@ import com.futbol.estadisticas.domain.model.*;
 import com.futbol.estadisticas.domain.model.enums.Alineacion;
 import com.futbol.estadisticas.domain.model.enums.PosicionJugador;
 import com.futbol.estadisticas.domain.model.enums.TipoEvento;
+import com.futbol.estadisticas.domain.model.exception.ResourceNotFoundException;
 import org.springframework.dao.DuplicateKeyException;
+import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -45,10 +47,10 @@ public class EquipoService implements EquipoUseCase {
     @Override
     public AlineacionResponse establecerAlineacionTitular(UUID idEquipo, AlineacionRequest request) {
         Equipo equipo = equipoRepository.findById(idEquipo)
-                .orElseThrow(() -> new IllegalArgumentException("Equipo no encontrado con id: " + idEquipo));
+                .orElseThrow(() -> new ResourceNotFoundException("No se encontró el ábitro del equipo con id: " + idEquipo));
 
         Partido partido = partidoRepository.findById(request.idPartido())
-                .orElseThrow(() -> new IllegalArgumentException("Partido no encontrado con id: " + request.idPartido()));
+                .orElseThrow(() -> new ResourceNotFoundException("Partido no encontrado con id: " + request.idPartido()));
 
         if (!partido.getEquipoLocal().getIdEquipo().equals(idEquipo) &&
                 !partido.getEquipoVisitante().getIdEquipo().equals(idEquipo)) {
@@ -140,7 +142,7 @@ public class EquipoService implements EquipoUseCase {
     @Override
     public List<CompeticionResponse> obtenerCompeticionesPorEquipo(UUID idEquipo) {
         if (!equipoRepository.existsById(idEquipo)) {
-            throw new IllegalArgumentException("Club no encontrado con id: " + idEquipo);
+            throw new ResourceNotFoundException("Club no encontrado con id: " + idEquipo);
         }
 
         List<Competicion> competiciones = equipoRepository.findCompeticionesByEquipo(idEquipo);
@@ -155,8 +157,8 @@ public class EquipoService implements EquipoUseCase {
     public EquipoResponse obtenerEquipoPorId(UUID idEquipo) {
         return equipoRepository.findById(idEquipo)
                 .map(equipoMapper::toResponse)
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "Club no encontrado con id: " + idEquipo));
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Equipo no encontrado con id: " + idEquipo));
     }
  
     @Override
@@ -171,8 +173,8 @@ public class EquipoService implements EquipoUseCase {
     @Transactional(readOnly = true)
     public List<JugadorResponse> obtenerJugadoresActivosDeEquipo(UUID idEquipo) {
         Equipo club = equipoRepository.findByIdWithContratos(idEquipo)
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "Club no encontrado con id: " + idEquipo));
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Equipo no encontrado con id: " + idEquipo));
         return club.getJugadoresActivos().stream()
                 .map(jugadorMapper::toResponse)
                 .toList();
@@ -181,8 +183,8 @@ public class EquipoService implements EquipoUseCase {
     @Override
     public List<JugadorResponse> obtenerTitulares(UUID idEquipo) {
         Equipo club = equipoRepository.findByIdWithContratos(idEquipo)
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "Club no encontrado con id: " + idEquipo));
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Equipo no encontrado con id: " + idEquipo));
         return club.getJugadoresTitulares().stream()
                 .map(jugadorMapper::toResponse)
                 .toList();
@@ -192,8 +194,8 @@ public class EquipoService implements EquipoUseCase {
     @Transactional(readOnly = true)
     public List<JugadorResponse> obtenerJugadoresDisponiblesDeEquipo(UUID idEquipo) {
         Equipo club = equipoRepository.findByIdWithContratos(idEquipo)
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "Club no encontrado con id: " + idEquipo));
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Equipo no encontrado con id: " + idEquipo));
         return club.getJugadoresDisponibles().stream()
                 .map(jugadorMapper::toResponse)
                 .toList();
@@ -203,15 +205,15 @@ public class EquipoService implements EquipoUseCase {
     @Transactional(readOnly = true)
     public Double obtenerValorPlantilla(UUID idEquipo) {
         Equipo club = equipoRepository.findById(idEquipo)
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "Club no encontrado con id: " + idEquipo));
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Equipo no encontrado con id: " + idEquipo));
         return club.getValorPlantillaTotal();
     }
  
     @Override
     public void eliminarEquipo(UUID idEquipo) {
         if (!equipoRepository.existsById(idEquipo)) {
-            throw new IllegalArgumentException("Club no encontrado con id: " + idEquipo);
+            throw new ResourceNotFoundException("Equipo no encontrado con id: " + idEquipo);
         }
         equipoRepository.deleteById(idEquipo);
     }

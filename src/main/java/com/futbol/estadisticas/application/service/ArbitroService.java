@@ -3,6 +3,7 @@ package com.futbol.estadisticas.application.service;
 import java.util.List;
 import java.util.UUID;
 
+import com.futbol.estadisticas.domain.model.exception.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -12,7 +13,6 @@ import com.futbol.estadisticas.application.port.in.ArbitroUseCase;
 import com.futbol.estadisticas.application.port.mapper.ArbitroMapper;
 import com.futbol.estadisticas.application.port.out.ArbitroRepositoryPort;
 import com.futbol.estadisticas.domain.model.Arbitro;
-import com.futbol.estadisticas.domain.model.exception.PersonalNotFoundException;
 
 import lombok.RequiredArgsConstructor;
 
@@ -35,7 +35,7 @@ private final ArbitroRepositoryPort arbitroRepository;
     public ArbitroResponse obtenerArbitroPorId(UUID idArbitro) {
         return arbitroRepository.findById(idArbitro)
                 .map(arbitroMapper::toResponse)
-                .orElseThrow(() -> new PersonalNotFoundException(
+                .orElseThrow(() -> new ResourceNotFoundException(
                         "Árbitro no encontrado con id: " + idArbitro));
     }
  
@@ -58,7 +58,7 @@ private final ArbitroRepositoryPort arbitroRepository;
     @Override
     public void eliminarArbitro(UUID idArbitro) {
         if (!arbitroRepository.existsById(idArbitro)) {
-            throw new PersonalNotFoundException("Árbitro no encontrado con id: " + idArbitro);
+            throw new ResourceNotFoundException("Árbitro no encontrado con id: " + idArbitro);
         }
         arbitroRepository.deleteById(idArbitro);
     }

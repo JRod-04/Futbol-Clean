@@ -268,7 +268,6 @@ class EstadioServiceTest {
     @Test
     @DisplayName("actualizarEstadio: debe actualizar solo los campos proporcionados")
     void testActualizarEstadio_Parcial() {
-        // Actualizar solo nombre
         ActualizarEstadioRequest requestSoloNombre = new ActualizarEstadioRequest(
                 "Nuevo Nombre",
                 null,

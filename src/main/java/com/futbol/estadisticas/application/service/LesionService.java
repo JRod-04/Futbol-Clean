@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import com.futbol.estadisticas.domain.model.exception.ResourceNotFoundException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -20,7 +21,6 @@ import com.futbol.estadisticas.domain.model.Jugador;
 import com.futbol.estadisticas.domain.model.Lesion;
 import com.futbol.estadisticas.domain.model.enums.EstadoJugador;
 import com.futbol.estadisticas.domain.model.enums.Gravedad;
-import com.futbol.estadisticas.domain.model.exception.PersonalNotFoundException;
 
 import lombok.RequiredArgsConstructor;
 
@@ -144,7 +144,7 @@ public class LesionService implements LesionUseCase {
  
     private Jugador findJugadorOrThrow(UUID idJugador) {
         return jugadorRepository.findById(idJugador)
-                .orElseThrow(() -> new PersonalNotFoundException(
+                .orElseThrow(() -> new ResourceNotFoundException(
                         "Jugador no encontrado con id: " + idJugador));
     }
  

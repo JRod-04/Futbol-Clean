@@ -43,19 +43,16 @@ public class EventosPartidoJPAEntity {
     @Column(name = "tipo_evento", length = 40)
     private TipoEvento tipoEvento;
 
-    // FK partido
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_partido", nullable = false,
                 foreignKey = @ForeignKey(name = "fk_evento_partido"))
     private PartidoJPAEntity partido;
  
-    // FK personal (opcional — hay eventos sin jugador, ej. inicio de partido)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_personal",
                 foreignKey = @ForeignKey(name = "fk_evento_personal"))
     private PersonalDeportivoJPAEntity personal;
  
-    // FK equipo favorecido (opcional)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_equipo_favorecido",
                 foreignKey = @ForeignKey(name = "fk_evento_equipo"))

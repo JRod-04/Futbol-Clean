@@ -13,10 +13,9 @@ public class DockerDebugTest {
 
     @Test
     void debugDocker() throws Exception {
-        System.out.println("🔍 DIAGNÓSTICO DIRECTO SIN TESTCONTAINERS");
+        System.out.println("DIAGNÓSTICO DIRECTO SIN TESTCONTAINERS");
         System.out.println("==========================================");
 
-        // Probar los tres pipes directamente con docker-java, sin pasar por Testcontainers
         String[] pipes = {
             "npipe:////./pipe/docker_cli",
             "npipe:////./pipe/docker_engine",
@@ -40,14 +39,14 @@ public class DockerDebugTest {
                 DockerClient client = DockerClientImpl.getInstance(config, httpClient);
                 var info = client.infoCmd().exec();
 
-                System.out.println("  ✅ CONECTADO");
-                System.out.println("  OS: "      + info.getOperatingSystem());
-                System.out.println("  Versión: " + info.getServerVersion());
-                System.out.println("  Nombre: "  + info.getName());
+                System.out.println("CONECTADO");
+                System.out.println("OS: "      + info.getOperatingSystem());
+                System.out.println("Versión: " + info.getServerVersion());
+                System.out.println("Nombre: "  + info.getName());
                 client.close();
 
             } catch (Exception e) {
-                System.out.println("  ❌ " + e.getClass().getSimpleName() + ": " + e.getMessage());
+                System.out.println(" ERROR:" + e.getClass().getSimpleName() + ": " + e.getMessage());
             }
         }
     }

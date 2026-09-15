@@ -15,6 +15,7 @@ import com.futbol.estadisticas.application.port.mapper.TandaPenalesMapper;
 import com.futbol.estadisticas.application.port.out.*;
 import com.futbol.estadisticas.domain.model.*;
 import com.futbol.estadisticas.domain.model.enums.TipoEvento;
+import com.futbol.estadisticas.domain.model.exception.ResourceNotFoundException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -27,7 +28,6 @@ import com.futbol.estadisticas.application.port.in.PartidoUseCase;
 import com.futbol.estadisticas.application.port.mapper.EventosPartidoMapper;
 import com.futbol.estadisticas.application.port.mapper.PartidoMapper;
 import com.futbol.estadisticas.domain.model.enums.EstadoPartido;
-import com.futbol.estadisticas.domain.model.exception.PersonalNotFoundException;
 
 import lombok.RequiredArgsConstructor;
 
@@ -297,7 +297,7 @@ public class PartidoService implements PartidoUseCase {
 
     private Jugador findJugadorOrThrow(UUID idJugador) {
         return jugadorRepository.findById(idJugador)
-                .orElseThrow(() -> new PersonalNotFoundException(
+                .orElseThrow(() -> new ResourceNotFoundException(
                         "Jugador no encontrado con id: " + idJugador));
     }
 
@@ -364,7 +364,7 @@ public class PartidoService implements PartidoUseCase {
         PersonalDeportivo personal = null;
         if (request.idPersonal() != null) {
             personal = personalRepository.findById(request.idPersonal())
-                    .orElseThrow(() -> new PersonalNotFoundException(
+                    .orElseThrow(() -> new ResourceNotFoundException(
                             "Personal no encontrado con id: " + request.idPersonal()));
         }
 
@@ -406,7 +406,7 @@ public class PartidoService implements PartidoUseCase {
             PersonalDeportivo personal = null;
             if (request.idPersonal() != null) {
                 personal = personalRepository.findById(request.idPersonal())
-                        .orElseThrow(() -> new PersonalNotFoundException("Personal no encontrado"));
+                        .orElseThrow(() -> new ResourceNotFoundException("Personal no encontrado"));
             }
 
             Equipo equipoFavorecido = null;

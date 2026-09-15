@@ -12,24 +12,29 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+
 @SpringBootTest
+@Transactional
 class ContratoJPARepositoryTest extends PostgresTestContainerConfig {
 
     @DynamicPropertySource
     static void properties(DynamicPropertyRegistry registry) {
-        registry.add("spring.datasource.url", POSTGRES::getJdbcUrl);
+        registry.add("spring.datasource.url",      POSTGRES::getJdbcUrl);
         registry.add("spring.datasource.username", POSTGRES::getUsername);
         registry.add("spring.datasource.password", POSTGRES::getPassword);
-        registry.add("spring.jpa.hibernate.ddl-auto", () -> "create-drop");
+        registry.add("spring.datasource.driver-class-name", () -> "org.postgresql.Driver");
+        registry.add("spring.jpa.hibernate.ddl-auto", () -> "create");
     }
 
     @Autowired
@@ -44,35 +49,33 @@ class ContratoJPARepositoryTest extends PostgresTestContainerConfig {
     @Autowired
     private EstadioJPARepository estadioRepository;
 
-    // IDs fijos para las pruebas
     private static final UUID ID_JUGADOR_1 = UUID.fromString("11111111-1111-1111-1111-111111111111");
     private static final UUID ID_JUGADOR_2 = UUID.fromString("22222222-2222-2222-2222-222222222222");
-    private static final UUID ID_CLUB_1 = UUID.fromString("33333333-3333-3333-3333-333333333333");
-    private static final UUID ID_CLUB_2 = UUID.fromString("44444444-4444-4444-4444-444444444444");
+    private static final UUID ID_CLUB_1    = UUID.fromString("33333333-3333-3333-3333-333333333333");
+    private static final UUID ID_CLUB_2    = UUID.fromString("44444444-4444-4444-4444-444444444444");
     private static final UUID ID_ESTADIO_1 = UUID.fromString("55555555-5555-5555-5555-555555555555");
     private static final UUID ID_ESTADIO_2 = UUID.fromString("66666666-6666-6666-6666-666666666666");
 
-    private static final UUID ID_CONTRATO_ACTIVO = UUID.fromString("77777777-7777-7777-7777-777777777777");
+    private static final UUID ID_CONTRATO_ACTIVO     = UUID.fromString("77777777-7777-7777-7777-777777777777");
     private static final UUID ID_CONTRATO_FINALIZADO = UUID.fromString("88888888-8888-8888-8888-888888888888");
-    private static final UUID ID_CONTRATO_FUTURO = UUID.fromString("99999999-9999-9999-9999-999999999999");
+    private static final UUID ID_CONTRATO_FUTURO     = UUID.fromString("99999999-9999-9999-9999-999999999999");
 
-    private UUID idJugador1;
-    private UUID idJugador2;
-    private UUID idClub1;
-    private UUID idClub2;
+    private static final LocalDateTime NOW =
+            LocalDateTime.now().truncatedTo(ChronoUnit.MICROS);
+
     private UUID idContratoActivo;
     private UUID idContratoFinalizado;
     private UUID idContratoFuturo;
 
     @BeforeEach
     void setUp() {
-        // Limpiar la base de datos antes de cada prueba
+        // Orden correcto por FKs: contratos -> jugadores -> equipos -> estadios
         contratoRepository.deleteAll();
         jugadorRepository.deleteAll();
         clubRepository.deleteAll();
         estadioRepository.deleteAll();
 
-        // 1. Crear estadios
+        // 1. Estadios
         EstadioJPAEntity estadio1 = EstadioJPAEntity.builder()
                 .idEstadio(ID_ESTADIO_1)
                 .nombre("Estadio 1")
@@ -91,7 +94,7 @@ class ContratoJPARepositoryTest extends PostgresTestContainerConfig {
 
         estadioRepository.saveAll(List.of(estadio1, estadio2));
 
-        // 2. Crear clubes
+        // 2. Clubes
         EquipoJPAEntity club1 = EquipoJPAEntity.builder()
                 .idEquipo(ID_CLUB_1)
                 .nombre("Club 1")
@@ -110,7 +113,7 @@ class ContratoJPARepositoryTest extends PostgresTestContainerConfig {
 
         clubRepository.saveAll(List.of(club1, club2));
 
-        // 3. Crear jugadores
+        // 3. Jugadores
         JugadorJPAEntity jugador1 = JugadorJPAEntity.builder()
                 .idPersonal(ID_JUGADOR_1)
                 .nombre("Jugador")
@@ -137,50 +140,43 @@ class ContratoJPARepositoryTest extends PostgresTestContainerConfig {
 
         jugadorRepository.saveAll(List.of(jugador1, jugador2));
 
-        // 4. Crear contratos
-        // Contrato activo (vigente)
+        // 4. Contratos
         ContratoJPAEntity contratoActivo = ContratoJPAEntity.builder()
                 .idContrato(ID_CONTRATO_ACTIVO)
                 .personal(jugador1)
                 .equipo(club1)
-                .fechaInicio(LocalDateTime.now().minusMonths(6))
-                .fechaFin(LocalDateTime.now().plusMonths(6))
+                .fechaInicio(NOW.minusMonths(6))
+                .fechaFin(NOW.plusMonths(6))
                 .sueldo(100000.0)
                 .estado(EstadoContrato.ACTIVO)
                 .build();
 
-        // Contrato finalizado (no vigente)
         ContratoJPAEntity contratoFinalizado = ContratoJPAEntity.builder()
                 .idContrato(ID_CONTRATO_FINALIZADO)
                 .personal(jugador1)
                 .equipo(club2)
-                .fechaInicio(LocalDateTime.now().minusMonths(12))
-                .fechaFin(LocalDateTime.now().minusMonths(1))
+                .fechaInicio(NOW.minusMonths(12))
+                .fechaFin(NOW.minusMonths(1))
                 .sueldo(80000.0)
                 .estado(EstadoContrato.FINALIZADO)
                 .build();
 
-        // Contrato futuro (aún no vigente)
         ContratoJPAEntity contratoFuturo = ContratoJPAEntity.builder()
                 .idContrato(ID_CONTRATO_FUTURO)
                 .personal(jugador2)
                 .equipo(club1)
-                .fechaInicio(LocalDateTime.now().plusMonths(1))
-                .fechaFin(LocalDateTime.now().plusMonths(13))
+                .fechaInicio(NOW.plusMonths(1))
+                .fechaFin(NOW.plusMonths(13))
                 .sueldo(120000.0)
                 .estado(EstadoContrato.ACTIVO)
                 .build();
 
         contratoRepository.saveAll(List.of(contratoActivo, contratoFinalizado, contratoFuturo));
+        contratoRepository.flush();
 
-        // Guardar IDs para los tests
-        this.idJugador1 = ID_JUGADOR_1;
-        this.idJugador2 = ID_JUGADOR_2;
-        this.idClub1 = ID_CLUB_1;
-        this.idClub2 = ID_CLUB_2;
-        this.idContratoActivo = ID_CONTRATO_ACTIVO;
+        this.idContratoActivo     = ID_CONTRATO_ACTIVO;
         this.idContratoFinalizado = ID_CONTRATO_FINALIZADO;
-        this.idContratoFuturo = ID_CONTRATO_FUTURO;
+        this.idContratoFuturo     = ID_CONTRATO_FUTURO;
     }
 
     @Test
@@ -193,6 +189,21 @@ class ContratoJPARepositoryTest extends PostgresTestContainerConfig {
     }
 
     @Test
+    @DisplayName("findByIdWithRelations: debe traer personal y equipo en una sola query")
+    void testFindByIdWithRelations() {
+        Optional<ContratoJPAEntity> contrato =
+                contratoRepository.findByIdWithRelations(idContratoActivo);
+
+        assertThat(contrato).isPresent();
+        ContratoJPAEntity c = contrato.get();
+
+        // Al estar @Transactional, la sesión sigue abierta y el LAZY se resuelve,
+        // pero aquí verificamos que los datos son correctos.
+        assertThat(c.getPersonal().getIdPersonal()).isEqualTo(ID_JUGADOR_1);
+        assertThat(c.getEquipo().getIdEquipo()).isEqualTo(ID_CLUB_1);
+    }
+
+    @Test
     @DisplayName("findAll: debe retornar los 3 contratos del setup")
     void testFindAll() {
         List<ContratoJPAEntity> todos = contratoRepository.findAll();
@@ -202,7 +213,7 @@ class ContratoJPARepositoryTest extends PostgresTestContainerConfig {
     @Test
     @DisplayName("findByPersonalIdPersonal: debe encontrar los contratos de un jugador")
     void testFindByPersonalIdPersonal() {
-        List<ContratoJPAEntity> contratos = contratoRepository.findByPersonalIdPersonal(idJugador1);
+        List<ContratoJPAEntity> contratos = contratoRepository.findByPersonalIdPersonal(ID_JUGADOR_1);
         assertThat(contratos).hasSize(2);
         assertThat(contratos)
                 .extracting(ContratoJPAEntity::getEstado)
@@ -210,41 +221,40 @@ class ContratoJPARepositoryTest extends PostgresTestContainerConfig {
     }
 
     @Test
-    @DisplayName("findByClubIdEquipo: debe encontrar los contratos de un club")
+    @DisplayName("findByEquipoIdEquipo: debe encontrar los contratos de un club")
     void testFindByEquipoIdEquipo() {
-        List<ContratoJPAEntity> contratos = contratoRepository.findByEquipoIdEquipo(idClub1);
+        List<ContratoJPAEntity> contratos = contratoRepository.findByEquipoIdEquipo(ID_CLUB_1);
         assertThat(contratos).hasSize(2);
         assertThat(contratos)
-                .extracting(ContratoJPAEntity::getPersonal)
-                .extracting(PersonalDeportivoJPAEntity::getIdPersonal)
-                .containsExactlyInAnyOrder(idJugador1, idJugador2);
+                .extracting(c -> c.getPersonal().getIdPersonal())
+                .containsExactlyInAnyOrder(ID_JUGADOR_1, ID_JUGADOR_2);
     }
 
     @Test
     @DisplayName("findVigenteByPersonal: debe encontrar el contrato vigente de un jugador")
     void testFindVigenteByPersonal() {
-        // Jugador 1 tiene un contrato activo vigente
-        Optional<ContratoJPAEntity> contratoVigente = contratoRepository.findVigenteByPersonal(idJugador1);
+        Optional<ContratoJPAEntity> contratoVigente =
+                contratoRepository.findVigenteByPersonal(ID_JUGADOR_1);
+
         assertThat(contratoVigente).isPresent();
-        assertThat(contratoVigente.get().getIdContrato()).isEqualTo(idContratoActivo);
+        assertThat(contratoVigente.get().getIdContrato()).isEqualTo(ID_CONTRATO_ACTIVO);
         assertThat(contratoVigente.get().getEstado()).isEqualTo(EstadoContrato.ACTIVO);
 
         // Jugador 2 tiene un contrato futuro (no vigente aún)
-        Optional<ContratoJPAEntity> contratoVigente2 = contratoRepository.findVigenteByPersonal(idJugador2);
+        Optional<ContratoJPAEntity> contratoVigente2 =
+                contratoRepository.findVigenteByPersonal(ID_JUGADOR_2);
         assertThat(contratoVigente2).isEmpty();
     }
 
     @Test
-    @DisplayName("findVigentesByClub: debe encontrar los contratos vigentes de un club")
+    @DisplayName("findVigentesByEquipo: debe encontrar los contratos vigentes de un club")
     void testFindVigentesByEquipo() {
-        // Club 1 tiene 1 contrato vigente (Jugador 1)
-        List<ContratoJPAEntity> contratosVigentes = contratoRepository.findVigentesByEquipo(idClub1);
-        assertThat(contratosVigentes).hasSize(1);
-        assertThat(contratosVigentes.get(0).getIdContrato()).isEqualTo(idContratoActivo);
+        List<ContratoJPAEntity> vigentesClub1 = contratoRepository.findVigentesByEquipo(ID_CLUB_1);
+        assertThat(vigentesClub1).hasSize(1);
+        assertThat(vigentesClub1.get(0).getIdContrato()).isEqualTo(ID_CONTRATO_ACTIVO);
 
-        // Club 2 tiene 0 contratos vigentes
-        List<ContratoJPAEntity> contratosVigentes2 = contratoRepository.findVigentesByEquipo(idClub2);
-        assertThat(contratosVigentes2).isEmpty();
+        List<ContratoJPAEntity> vigentesClub2 = contratoRepository.findVigentesByEquipo(ID_CLUB_2);
+        assertThat(vigentesClub2).isEmpty();
     }
 
     @Test
@@ -256,18 +266,14 @@ class ContratoJPARepositoryTest extends PostgresTestContainerConfig {
     }
 
     @Test
-    @DisplayName("deleteById: debe eliminar un contrato")
+    @DisplayName("deleteContratoById: debe eliminar un contrato")
     void testDeleteById() {
-        // Verificar que existe
         assertThat(contratoRepository.existsById(idContratoFinalizado)).isTrue();
 
-        // Eliminar
-        contratoRepository.deleteById(idContratoFinalizado);
+        contratoRepository.deleteContratoById(idContratoFinalizado);
 
-        // Verificar que ya no existe
         assertThat(contratoRepository.existsById(idContratoFinalizado)).isFalse();
 
-        // Verificar que quedan 2 contratos
         List<ContratoJPAEntity> todos = contratoRepository.findAll();
         assertThat(todos).hasSize(2);
         assertThat(todos)
@@ -278,33 +284,28 @@ class ContratoJPARepositoryTest extends PostgresTestContainerConfig {
     @Test
     @DisplayName("save: debe guardar un nuevo contrato")
     void testSave() {
-        // Crear un nuevo contrato
         UUID nuevoId = UUID.randomUUID();
+
         ContratoJPAEntity nuevoContrato = ContratoJPAEntity.builder()
                 .idContrato(nuevoId)
-                .personal(jugadorRepository.findById(idJugador2).orElseThrow())
-                .equipo(clubRepository.findById(idClub2).orElseThrow())
-                .fechaInicio(LocalDateTime.now())
-                .fechaFin(LocalDateTime.now().plusYears(1))
+                .personal(jugadorRepository.findById(ID_JUGADOR_2).orElseThrow())
+                .equipo(clubRepository.findById(ID_CLUB_2).orElseThrow())
+                .fechaInicio(NOW)
+                .fechaFin(NOW.plusYears(1))
                 .sueldo(150000.0)
                 .estado(EstadoContrato.ACTIVO)
                 .build();
 
-        // Guardar
         ContratoJPAEntity guardado = contratoRepository.save(nuevoContrato);
 
-        // Verificar
         assertThat(guardado).isNotNull();
         assertThat(guardado.getIdContrato()).isEqualTo(nuevoId);
         assertThat(guardado.getSueldo()).isEqualTo(150000.0);
 
-        // Verificar que se encuentra en la BD
         Optional<ContratoJPAEntity> encontrado = contratoRepository.findById(nuevoId);
         assertThat(encontrado).isPresent();
         assertThat(encontrado.get().getSueldo()).isEqualTo(150000.0);
 
-        // Verificar el total
-        List<ContratoJPAEntity> todos = contratoRepository.findAll();
-        assertThat(todos).hasSize(4);
+        assertThat(contratoRepository.findAll()).hasSize(4);
     }
 }

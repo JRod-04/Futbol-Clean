@@ -186,12 +186,12 @@ public class Contrato {
             if (tieneConvocatoria) {
                 throw new IllegalStateException(
                         "El personal ya tiene un contrato de CONVOCATORIA vigente. " +
-                                "No puede tener más de una convocatoria a selección."
+                                "No puede tener más de una convocatoria a selección"
                 );
             }
         }
 
-        if (this.tipoContrato == TipoContrato.CONVOCATORIA) {
+        if (this.tipoContrato == TipoContrato.CESION) {
             boolean tieneCesion = personal.getContratos().stream()
                     .filter(Contrato::estaVigente)
                     .anyMatch(Contrato::esCesion);
@@ -222,19 +222,16 @@ public class Contrato {
             TipoEquipo tipoExistente = equipoExistente.getTipo();
             TipoEquipo tipoNuevo = equipo.getTipo();
 
-            // CLUB_PROFESIONAL + SELECCION = COMPATIBLE
             boolean esClubYSeleccion =
                     (tipoExistente == TipoEquipo.CLUB_PROFESIONAL &&
                             (tipoNuevo == TipoEquipo.SELECCION_ABSOLUTA || tipoNuevo == TipoEquipo.SELECCION_JUVENIL)) ||
                             ((tipoExistente == TipoEquipo.SELECCION_ABSOLUTA || tipoExistente == TipoEquipo.SELECCION_JUVENIL) &&
                                     tipoNuevo == TipoEquipo.CLUB_PROFESIONAL);
 
-            // CLUB_PROFESIONAL + CLUB_AMATEUR = INCOMPATIBLE
             boolean esClubYClub =
                     (tipoExistente == TipoEquipo.CLUB_PROFESIONAL && tipoNuevo == TipoEquipo.CLUB_AMATEUR) ||
                             (tipoExistente == TipoEquipo.CLUB_AMATEUR && tipoNuevo == TipoEquipo.CLUB_PROFESIONAL);
 
-            // SELECCION_ABSOLUTA + SELECCION_JUVENIL = INCOMPATIBLE
             boolean esSeleccionYSeleccion =
                     (tipoExistente == TipoEquipo.SELECCION_ABSOLUTA && tipoNuevo == TipoEquipo.SELECCION_JUVENIL) ||
                             (tipoExistente == TipoEquipo.SELECCION_JUVENIL && tipoNuevo == TipoEquipo.SELECCION_ABSOLUTA);

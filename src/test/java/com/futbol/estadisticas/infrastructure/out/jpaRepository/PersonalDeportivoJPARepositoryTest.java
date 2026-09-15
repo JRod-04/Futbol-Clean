@@ -22,6 +22,7 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+
 @SpringBootTest
 @Transactional
 class PersonalDeportivoJPARepositoryTest extends PostgresTestContainerConfig {
@@ -47,8 +48,7 @@ class PersonalDeportivoJPARepositoryTest extends PostgresTestContainerConfig {
     void setUp() {
         repository.deleteAll();
 
-        // Crear personal deportivo SIN establecer tipoPersonal
-        // JPA lo asignará automáticamente mediante el discriminador
+
         PersonalDeportivoJPAEntity personal1 = PersonalDeportivoJPAEntity.builder()
                 .idPersonal(ID_PERSONAL_1)
                 .nombre("Bukayo")
@@ -94,7 +94,6 @@ class PersonalDeportivoJPARepositoryTest extends PostgresTestContainerConfig {
         assertThat(personal).isPresent();
         assertThat(personal.get().getNombre()).isEqualTo("Bukayo");
         assertThat(personal.get().getApellido()).isEqualTo("Saka");
-        // ✅ No verificamos getTipoPersonal() porque la entidad no tiene ese campo
     }
 
     @Test
@@ -102,7 +101,6 @@ class PersonalDeportivoJPARepositoryTest extends PostgresTestContainerConfig {
     void testFindAll() {
         List<PersonalDeportivoJPAEntity> todos = repository.findAll();
         assertThat(todos).hasSize(5);
-        // ✅ Verificamos por nombre en lugar de tipoPersonal
         assertThat(todos)
                 .extracting(PersonalDeportivoJPAEntity::getNombre)
                 .containsExactlyInAnyOrder("Bukayo", "Mikel", "Doctor", "Pep", "Physical");
@@ -148,7 +146,6 @@ class PersonalDeportivoJPARepositoryTest extends PostgresTestContainerConfig {
         
         List<PersonalDeportivoJPAEntity> todos = repository.findAll();
         assertThat(todos).hasSize(4);
-        // ✅ Verificamos por nombre en lugar de tipoPersonal
         assertThat(todos)
                 .extracting(PersonalDeportivoJPAEntity::getNombre)
                 .containsExactlyInAnyOrder("Bukayo", "Mikel", "Doctor", "Pep");

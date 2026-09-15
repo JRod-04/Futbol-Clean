@@ -43,7 +43,7 @@ public class LesionController {
         return ResponseEntity.ok(lesionUseCase.obtenerLesionesPorJugador(idJugador));
     }
  
-    @GetMapping("/jugadores/{idJugador}/lesiones/activas")
+    @GetMapping("/jugadores/{idJugador}/activas")
     public ResponseEntity<List<LesionResponse>> activasPorJugador(@PathVariable UUID idJugador) {
         return ResponseEntity.ok(lesionUseCase.obtenerLesionesActivasPorJugador(idJugador));
     }
@@ -53,17 +53,17 @@ public class LesionController {
         return ResponseEntity.ok(lesionUseCase.obtenerLesionPorId(id));
     }
  
-    @GetMapping("/lesiones/activas")
+    @GetMapping("/todas-activas")
     public ResponseEntity<List<LesionResponse>> todasLasActivas() {
         return ResponseEntity.ok(lesionUseCase.obtenerLesionesActivasEnSistema());
     }
  
-    @GetMapping("/lesiones/gravedad/{gravedad}")
+    @GetMapping("/gravedad/{gravedad}")
     public ResponseEntity<List<LesionResponse>> porGravedad(@PathVariable Gravedad gravedad) {
         return ResponseEntity.ok(lesionUseCase.obtenerLesionesPorGravedad(gravedad));
     }
  
-    @PatchMapping("/lesiones/{id}/curar")
+    @PatchMapping("/{id}/curar")
     public ResponseEntity<LesionResponse> curar(@PathVariable UUID id) {
         return ResponseEntity.ok(lesionUseCase.curarLesion(id));
     }

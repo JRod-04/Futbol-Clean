@@ -12,6 +12,7 @@ import com.futbol.estadisticas.application.port.out.EventosPartidoRepositoryPort
 import com.futbol.estadisticas.application.port.out.PartidoRepositoryPort;
 import com.futbol.estadisticas.domain.model.EventosPartido;
 import com.futbol.estadisticas.domain.model.Partido;
+import com.futbol.estadisticas.domain.model.exception.ResourceNotFoundException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -26,7 +27,6 @@ import com.futbol.estadisticas.application.port.out.JugadorRepositoryPort;
 import com.futbol.estadisticas.domain.model.Jugador;
 import com.futbol.estadisticas.domain.model.enums.EstadoJugador;
 import com.futbol.estadisticas.domain.model.enums.PosicionJugador;
-import com.futbol.estadisticas.domain.model.exception.PersonalNotFoundException;
 
 import lombok.RequiredArgsConstructor;
 
@@ -77,7 +77,7 @@ public class JugadorService implements JugadoresUseCase {
     @Override
     public EstadisticasJugadorResponse obtenerEstadisticasJugador(UUID idJugador) {
         Jugador jugador = jugadorRepository.findById(idJugador)
-                .orElseThrow(() -> new PersonalNotFoundException(
+                .orElseThrow(() -> new ResourceNotFoundException(
                         "Jugador no encontrado con id: " + idJugador));
 
         List<EventosPartido> eventos = eventosRepository.findByPersonalConCompeticion(idJugador);
@@ -89,7 +89,7 @@ public class JugadorService implements JugadoresUseCase {
     @Override
     public List<EstadisticasPartidoJugadorResponse> obtenerPartidosConEstadisticas(UUID idJugador) {
         if (!jugadorRepository.existsById(idJugador)) {
-            throw new PersonalNotFoundException("Jugador no encontrado con id: " + idJugador);
+            throw new ResourceNotFoundException("Jugador no encontrado con id: " + idJugador);
         }
 
         List<Partido> partidos = partidoRepository.findPartidosByJugador(idJugador);
@@ -116,7 +116,7 @@ public class JugadorService implements JugadoresUseCase {
     public JugadorResponse obtenerJugadorPorId(UUID idJugador) {
         return jugadorRepository.findById(idJugador)
                 .map(jugadorMapper::toResponse)
-                .orElseThrow(() -> new PersonalNotFoundException(
+                .orElseThrow(() -> new ResourceNotFoundException(
                         "Jugador no encontrado con id: " + idJugador));
     }
  
@@ -211,7 +211,7 @@ public class JugadorService implements JugadoresUseCase {
     @Override
     public void eliminarJugador(UUID idJugador) {
         if (!jugadorRepository.existsById(idJugador)) {
-            throw new PersonalNotFoundException("Jugador no encontrado con id: " + idJugador);
+            throw new ResourceNotFoundException("Jugador no encontrado con id: " + idJugador);
         }
         jugadorRepository.deleteById(idJugador);
     }
@@ -219,7 +219,7 @@ public class JugadorService implements JugadoresUseCase {
  
     private Jugador findJugadorOrThrow(UUID idJugador) {
         return jugadorRepository.findById(idJugador)
-                .orElseThrow(() -> new PersonalNotFoundException(
+                .orElseThrow(() -> new ResourceNotFoundException(
                         "Jugador no encontrado con id: " + idJugador));
     }
     
