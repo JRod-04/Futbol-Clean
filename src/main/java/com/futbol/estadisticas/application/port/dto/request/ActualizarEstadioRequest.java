@@ -1,7 +1,9 @@
 package com.futbol.estadisticas.application.port.dto.request;
 
 import jakarta.validation.constraints.Positive;
+import lombok.Builder;
 
+@Builder
 public record ActualizarEstadioRequest(
         String nombre,
         String direccion,

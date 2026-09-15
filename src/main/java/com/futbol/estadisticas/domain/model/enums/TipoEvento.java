@@ -43,7 +43,7 @@ public enum TipoEvento {
     FIN_PRIMERO_EXTRA("Finalizado Primer Tiempo Prorroga", "1ExT"),
     INICIO_SEGUNDO_EXTRA("Inicio Primer Tiempo Prorroga", "2ExT"),
     FIN_SEGUNDO_EXTRA("Finalizado Primer Tiempo Prorroga", "2ExT"),
-    INICIO_PENALTIS("Inicio de los penaltis", "PDR"),
+    INICIO_PENALTIS("Inicio de los penaltis", "PEN"),
     FIN_PARTIDO("Fin del partido", "FP"),
     AGREGADO("Ocurre Tiempo Agregado", "ET"),
 

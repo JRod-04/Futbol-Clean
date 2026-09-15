@@ -1,232 +1,314 @@
 package com.futbol.estadisticas.domain.model;
 
 import com.futbol.estadisticas.domain.model.enums.EstadoJugador;
+import com.futbol.estadisticas.domain.model.enums.JuegoPies;
+import com.futbol.estadisticas.domain.model.enums.Nacion;
 import com.futbol.estadisticas.domain.model.enums.PosicionJugador;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+@DisplayName("DatosDeportivos")
 class DatosDeportivosTest {
 
-    private DatosDeportivos datosDeportivos;
+    private DatosDeportivos datos;
 
     @BeforeEach
     void setUp() {
-        datosDeportivos = DatosDeportivos.builder()
+        datos = DatosDeportivos.builder()
                 .idHistorialDeportivo(UUID.randomUUID())
-                .estadoJugador(EstadoJugador.TITULAR)
-                .valorMercado(85_000_000.0)
-                .posiciones(new ArrayList<>(List.of(PosicionJugador.EXTREMO_DERECHO)))  
-                .dorsal(7)  
-                .fechaActualizacion(LocalDate.now())
                 .build();
     }
 
+    @Nested
+    @DisplayName("actualizarEstado")
+    class ActualizarEstado {
 
-    @Test
-    @DisplayName("actualizarEstado: debe cambiar el estado y actualizar la fecha")
-    void testActualizarEstado() {
-        datosDeportivos.actualizarEstado(EstadoJugador.SUPLENTE);
-        assertThat(datosDeportivos.getEstadoJugador()).isEqualTo(EstadoJugador.SUPLENTE);
-        assertThat(datosDeportivos.getFechaActualizacion()).isEqualTo(LocalDate.now());
+        @Test
+        @DisplayName("lanza excepción si el nuevo estado es nulo")
+        void lanzaExcepcionSiEstadoEsNulo() {
+            assertThatThrownBy(() -> datos.actualizarEstado(null))
+                    .isInstanceOf(IllegalArgumentException.class);
+        }
+
+        @Test
+        @DisplayName("un jugador RETIRADO no puede cambiar de estado")
+        void retiradoNoPuedeCambiar() {
+            datos.setEstadoJugador(EstadoJugador.RETIRADO);
+
+            assertThatThrownBy(() -> datos.actualizarEstado(EstadoJugador.TITULAR))
+                    .isInstanceOf(IllegalStateException.class)
+                    .hasMessageContaining("retirado no puede cambiar");
+        }
+
+        @Test
+        @DisplayName("permite mantenerse en RETIRADO")
+        void permiteMantenerseRetirado() {
+            datos.setEstadoJugador(EstadoJugador.RETIRADO);
+
+            datos.actualizarEstado(EstadoJugador.RETIRADO);
+
+            assertThat(datos.getEstadoJugador()).isEqualTo(EstadoJugador.RETIRADO);
+        }
+
+        @Test
+        @DisplayName("actualiza el estado y la fecha de actualización")
+        void actualizaEstadoYFecha() {
+            datos.actualizarEstado(EstadoJugador.SUPLENTE);
+
+            assertThat(datos.getEstadoJugador()).isEqualTo(EstadoJugador.SUPLENTE);
+            assertThat(datos.getFechaActualizacion()).isEqualTo(LocalDate.now());
+        }
     }
 
-    @Test
-    @DisplayName("actualizarEstado: debe lanzar excepción cuando el estado es nulo")
-    void testActualizarEstado_Nulo() {
-        assertThatThrownBy(() -> datosDeportivos.actualizarEstado(null))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("El estado no puede ser nulo");
+    @Nested
+    @DisplayName("actualizarValorMercado")
+    class ActualizarValorMercado {
+
+        @Test
+        @DisplayName("lanza excepción si el valor es nulo o negativo")
+        void lanzaExcepcionSiValorInvalido() {
+            assertThatThrownBy(() -> datos.actualizarValorMercado(null))
+                    .isInstanceOf(IllegalArgumentException.class);
+            assertThatThrownBy(() -> datos.actualizarValorMercado(-1.0))
+                    .isInstanceOf(IllegalArgumentException.class);
+        }
+
+        @Test
+        @DisplayName("acepta valor cero y lo asigna")
+        void aceptaValorCero() {
+            datos.actualizarValorMercado(0.0);
+
+            assertThat(datos.getValorMercado()).isZero();
+        }
+
+        @Test
+        @DisplayName("actualiza el valor de mercado")
+        void actualizaValor() {
+            datos.actualizarValorMercado(5_000_000.0);
+
+            assertThat(datos.getValorMercado()).isEqualTo(5_000_000.0);
+            assertThat(datos.getFechaActualizacion()).isEqualTo(LocalDate.now());
+        }
     }
 
-    @Test
-    @DisplayName("actualizarValorMercado: debe actualizar el valor")
-    void testActualizarValorMercado() {
-        datosDeportivos.actualizarValorMercado(100_000_000.0);
-        assertThat(datosDeportivos.getValorMercado()).isEqualTo(100_000_000.0);
+    @Nested
+    @DisplayName("posiciones (agregarPosicion / eliminarPosicion / getPosicionActual)")
+    class Posiciones {
+
+        @Test
+        @DisplayName("agregarPosicion lanza excepción si la posición es nula")
+        void agregarPosicionLanzaExcepcionSiNula() {
+            assertThatThrownBy(() -> datos.agregarPosicion(null))
+                    .isInstanceOf(IllegalArgumentException.class);
+        }
+
+        @Test
+        @DisplayName("la posición agregada más recientemente es la posición actual")
+        void ultimaPosicionEsLaActual() {
+            datos.agregarPosicion(PosicionJugador.LATERAL_DERECHO);
+            datos.agregarPosicion(PosicionJugador.DELANTERO_CENTRO);
+
+            assertThat(datos.getPosicionActual()).isEqualTo(PosicionJugador.DELANTERO_CENTRO);
+        }
+
+        @Test
+        @DisplayName("agregar una posición ya existente la mueve al frente sin duplicarla")
+        void agregarPosicionExistenteLaMueveAlFrente() {
+            datos.agregarPosicion(PosicionJugador.LATERAL_DERECHO);
+            datos.agregarPosicion(PosicionJugador.DELANTERO_CENTRO);
+            datos.agregarPosicion(PosicionJugador.LATERAL_DERECHO);
+
+            assertThat(datos.getPosiciones()).containsExactly(
+                    PosicionJugador.LATERAL_DERECHO, PosicionJugador.DELANTERO_CENTRO);
+        }
+
+        @Test
+        @DisplayName("getPosicionActual devuelve null si no hay posiciones")
+        void posicionActualNullSinPosiciones() {
+            assertThat(datos.getPosicionActual()).isNull();
+        }
+
+        @Test
+        @DisplayName("eliminarPosicion lanza excepción si la posición es nula")
+        void eliminarPosicionLanzaExcepcionSiNula() {
+            assertThatThrownBy(() -> datos.eliminarPosicion(null))
+                    .isInstanceOf(IllegalArgumentException.class);
+        }
+
+        @Test
+        @DisplayName("eliminarPosicion lanza excepción si la posición no está en la lista")
+        void eliminarPosicionLanzaExcepcionSiNoExiste() {
+            assertThatThrownBy(() -> datos.eliminarPosicion(PosicionJugador.PORTERO))
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessageContaining("no está en la lista");
+        }
+
+        @Test
+        @DisplayName("eliminarPosicion quita la posición de la lista")
+        void eliminarPosicionQuitaLaPosicion() {
+            datos.agregarPosicion(PosicionJugador.LATERAL_DERECHO);
+            datos.agregarPosicion(PosicionJugador.DELANTERO_CENTRO);
+
+            datos.eliminarPosicion(PosicionJugador.LATERAL_DERECHO);
+
+            assertThat(datos.getPosiciones()).containsExactly(PosicionJugador.DELANTERO_CENTRO);
+        }
     }
 
-    @Test
-    @DisplayName("actualizarValorMercado: debe lanzar excepción cuando el valor es negativo")
-    void testActualizarValorMercado_Negativo() {
-        assertThatThrownBy(() -> datosDeportivos.actualizarValorMercado(-1000.0))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("El valor de mercado debe ser positivo");
+    @Nested
+    @DisplayName("actualizarDorsal")
+    class ActualizarDorsal {
+
+        @Test
+        @DisplayName("lanza excepción si el dorsal es nulo")
+        void lanzaExcepcionSiEsNulo() {
+            assertThatThrownBy(() -> datos.actualizarDorsal(null))
+                    .isInstanceOf(IllegalArgumentException.class);
+        }
+
+        @Test
+        @DisplayName("lanza excepción si el dorsal no es positivo")
+        void lanzaExcepcionSiNoEsPositivo() {
+            assertThatThrownBy(() -> datos.actualizarDorsal(0))
+                    .isInstanceOf(IllegalArgumentException.class);
+            assertThatThrownBy(() -> datos.actualizarDorsal(-5))
+                    .isInstanceOf(IllegalArgumentException.class);
+        }
+
+        @Test
+        @DisplayName("asigna el dorsal cuando es válido")
+        void asignaDorsalValido() {
+            datos.actualizarDorsal(10);
+
+            assertThat(datos.getDorsal()).isEqualTo(10);
+        }
     }
 
-    @Test
-    @DisplayName("esTitular: debe retornar true cuando el estado es TITULAR")
-    void testEsTitular() {
-        assertThat(datosDeportivos.esTitular()).isTrue();
-        datosDeportivos.setEstadoJugador(EstadoJugador.SUPLENTE);
-        assertThat(datosDeportivos.esTitular()).isFalse();
+    @Nested
+    @DisplayName("consultas de estado (esTitular, esSuplente, estaLesionado, estaDisponible)")
+    class ConsultasDeEstado {
+
+        @Test
+        @DisplayName("esTitular es true solo en estado TITULAR")
+        void esTitular() {
+            datos.setEstadoJugador(EstadoJugador.TITULAR);
+            assertThat(datos.esTitular()).isTrue();
+
+            datos.setEstadoJugador(EstadoJugador.SUPLENTE);
+            assertThat(datos.esTitular()).isFalse();
+        }
+
+        @Test
+        @DisplayName("esSuplente es true solo en estado SUPLENTE")
+        void esSuplente() {
+            datos.setEstadoJugador(EstadoJugador.SUPLENTE);
+            assertThat(datos.esSuplente()).isTrue();
+
+            datos.setEstadoJugador(EstadoJugador.TITULAR);
+            assertThat(datos.esSuplente()).isFalse();
+        }
+
+        @Test
+        @DisplayName("estaDisponible es true solo para TITULAR o SUPLENTE")
+        void estaDisponible() {
+            datos.setEstadoJugador(EstadoJugador.TITULAR);
+            assertThat(datos.estaDisponible()).isTrue();
+
+            datos.setEstadoJugador(EstadoJugador.SUPLENTE);
+            assertThat(datos.estaDisponible()).isTrue();
+
+            datos.setEstadoJugador(EstadoJugador.LESIONADO);
+            assertThat(datos.estaDisponible()).isFalse();
+        }
     }
 
-    @Test
-    @DisplayName("esSuplente: debe retornar true cuando el estado es SUPLENTE")
-    void testEsSuplente() {
-        datosDeportivos.setEstadoJugador(EstadoJugador.SUPLENTE);
-        assertThat(datosDeportivos.esSuplente()).isTrue();
+    @Nested
+    @DisplayName("getValorMercadoEnMillones")
+    class GetValorMercadoEnMillones {
+
+        @Test
+        @DisplayName("devuelve 0 si no hay valor de mercado")
+        void devuelveCeroSinValor() {
+            assertThat(datos.getValorMercadoEnMillones()).isZero();
+        }
+
+        @Test
+        @DisplayName("convierte el valor de mercado a millones")
+        void convierteAMillones() {
+            datos.setValorMercado(45_000_000.0);
+
+            assertThat(datos.getValorMercadoEnMillones()).isEqualTo(45.0);
+        }
     }
 
-    @Test
-    @DisplayName("estaLesionado: debe retornar true cuando el estado es LESIONADO")
-    void testEstaLesionado() {
-        datosDeportivos.setEstadoJugador(EstadoJugador.LESIONADO);
-        assertThat(datosDeportivos.estaLesionado()).isTrue();
+    @Nested
+    @DisplayName("promoverATitular")
+    class PromoverATitular {
+
+        @Test
+        @DisplayName("lanza excepción si el jugador está RETIRADO")
+        void lanzaExcepcionSiRetirado() {
+            datos.setEstadoJugador(EstadoJugador.RETIRADO);
+
+            assertThatThrownBy(() -> datos.promoverATitular())
+                    .isInstanceOf(IllegalStateException.class)
+                    .hasMessageContaining("retirado no puede ser titular");
+        }
+
+        @Test
+        @DisplayName("lanza excepción si el jugador está LESIONADO")
+        void lanzaExcepcionSiLesionado() {
+            Jugador jugador = new Jugador(UUID.randomUUID(), "Nombre", "Apellido",
+                    LocalDate.now().minusYears(20), Nacion.ARGENTINA, JuegoPies.DERECHO, 180, 75);
+            datos.setJugador(jugador);
+            datos.setEstadoJugador(EstadoJugador.LESIONADO);
+
+            assertThatThrownBy(() -> datos.promoverATitular())
+                    .isInstanceOf(IllegalStateException.class)
+                    .hasMessageContaining("no puede ser titular, está lesionado");
+        }
+
+        @Test
+        @DisplayName("promueve al jugador a TITULAR cuando es válido")
+        void promueveATitular() {
+            datos.setEstadoJugador(EstadoJugador.SUPLENTE);
+
+            datos.promoverATitular();
+
+            assertThat(datos.getEstadoJugador()).isEqualTo(EstadoJugador.TITULAR);
+        }
     }
 
-    @Test
-    @DisplayName("estaDisponible: debe retornar true para TITULAR o SUPLENTE")
-    void testEstaDisponible() {
-        assertThat(datosDeportivos.estaDisponible()).isTrue();
-        datosDeportivos.setEstadoJugador(EstadoJugador.SUPLENTE);
-        assertThat(datosDeportivos.estaDisponible()).isTrue();
-        datosDeportivos.setEstadoJugador(EstadoJugador.LESIONADO);
-        assertThat(datosDeportivos.estaDisponible()).isFalse();
-    }
+    @Nested
+    @DisplayName("cambiarASuplente")
+    class CambiarASuplente {
 
-    @Test
-    @DisplayName("getValorMercadoEnMillones: debe convertir el valor a millones")
-    void testGetValorMercadoEnMillones() {
-        assertThat(datosDeportivos.getValorMercadoEnMillones()).isEqualTo(85.0);
-    }
+        @Test
+        @DisplayName("lanza excepción si el jugador está RETIRADO")
+        void lanzaExcepcionSiRetirado() {
+            datos.setEstadoJugador(EstadoJugador.RETIRADO);
 
-    @Test
-    @DisplayName("promoverATitular: debe cambiar a TITULAR")
-    void testPromoverATitular() {
-        datosDeportivos.setEstadoJugador(EstadoJugador.SUPLENTE);
-        datosDeportivos.promoverATitular();
-        assertThat(datosDeportivos.getEstadoJugador()).isEqualTo(EstadoJugador.TITULAR);
-    }
+            assertThatThrownBy(() -> datos.cambiarASuplente())
+                    .isInstanceOf(IllegalStateException.class)
+                    .hasMessageContaining("retirado no puede ser suplente");
+        }
 
-    @Test
-    @DisplayName("cambiarASuplente: debe cambiar a SUPLENTE")
-    void testCambiarASuplente() {
-        datosDeportivos.cambiarASuplente();
-        assertThat(datosDeportivos.getEstadoJugador()).isEqualTo(EstadoJugador.SUPLENTE);
-    }
+        @Test
+        @DisplayName("cambia al jugador a SUPLENTE cuando es válido")
+        void cambiaASuplente() {
+            datos.setEstadoJugador(EstadoJugador.TITULAR);
 
+            datos.cambiarASuplente();
 
-    @Test
-    @DisplayName("getPosiciones: debe retornar la lista de posiciones")
-    void testGetPosiciones() {
-        assertThat(datosDeportivos.getPosiciones()).hasSize(1);
-        assertThat(datosDeportivos.getPosiciones())
-                .containsExactly(PosicionJugador.EXTREMO_DERECHO);
-    }
-
-    @Test
-    @DisplayName("getPosicionActual: debe retornar la última posición de la lista")
-    void testGetPosicionActual() {
-        assertThat(datosDeportivos.getPosicionActual())
-                .isEqualTo(PosicionJugador.EXTREMO_DERECHO);
-
-        datosDeportivos.agregarPosicion(PosicionJugador.DELANTERO);
-        assertThat(datosDeportivos.getPosicionActual())
-                .isEqualTo(PosicionJugador.DELANTERO);
-    }
-
-    @Test
-    @DisplayName("getPosicionActual: debe retornar null cuando la lista está vacía")
-    void testGetPosicionActual_ListaVacia() {
-        DatosDeportivos datos = DatosDeportivos.builder()
-                .posiciones(new ArrayList<>())
-                .build();
-
-        assertThat(datos.getPosicionActual()).isNull();
-    }
-
-    @Test
-    @DisplayName("agregarPosicion: debe agregar una nueva posición a la lista")
-    void testAgregarPosicion() {
-        assertThat(datosDeportivos.getPosiciones()).hasSize(1);
-
-        datosDeportivos.agregarPosicion(PosicionJugador.DELANTERO);
-
-        assertThat(datosDeportivos.getPosiciones()).hasSize(2);
-        assertThat(datosDeportivos.getPosiciones())
-                .containsExactly(PosicionJugador.EXTREMO_DERECHO, PosicionJugador.DELANTERO);
-        assertThat(datosDeportivos.getFechaActualizacion()).isEqualTo(LocalDate.now());
-    }
-
-    @Test
-    @DisplayName("agregarPosicion: no debe agregar posiciones duplicadas")
-    void testAgregarPosicion_Duplicada() {
-        assertThat(datosDeportivos.getPosiciones()).hasSize(1);
-
-        datosDeportivos.agregarPosicion(PosicionJugador.EXTREMO_DERECHO);
-
-        assertThat(datosDeportivos.getPosiciones()).hasSize(1);
-        assertThat(datosDeportivos.getPosiciones())
-                .containsExactly(PosicionJugador.EXTREMO_DERECHO);
-    }
-
-    @Test
-    @DisplayName("agregarPosicion: debe lanzar excepción cuando la posición es nula")
-    void testAgregarPosicion_Nula() {
-        assertThatThrownBy(() -> datosDeportivos.agregarPosicion(null))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("La posición no puede ser nula");
-    }
-
-
-    @Test
-    @DisplayName("getDorsal: debe retornar el dorsal actual")
-    void testGetDorsal() {
-        assertThat(datosDeportivos.getDorsal()).isEqualTo(7);
-    }
-
-    @Test
-    @DisplayName("actualizarDorsal: debe actualizar el dorsal correctamente")
-    void testActualizarDorsal() {
-        assertThat(datosDeportivos.getDorsal()).isEqualTo(7);
-
-        datosDeportivos.actualizarDorsal(10);
-
-        assertThat(datosDeportivos.getDorsal()).isEqualTo(10);
-        assertThat(datosDeportivos.getFechaActualizacion()).isEqualTo(LocalDate.now());
-    }
-
-    @Test
-    @DisplayName("actualizarDorsal: debe lanzar excepción cuando el dorsal es nulo")
-    void testActualizarDorsal_Nulo() {
-        assertThatThrownBy(() -> datosDeportivos.actualizarDorsal(null))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("El dorsal no puede ser nulo");
-    }
-
-    @Test
-    @DisplayName("actualizarDorsal: debe lanzar excepción cuando el dorsal es negativo")
-    void testActualizarDorsal_Negativo() {
-        assertThatThrownBy(() -> datosDeportivos.actualizarDorsal(-1))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("El dorsal debe ser positivo");
-    }
-
-    @Test
-    @DisplayName("actualizarDorsal: debe lanzar excepción cuando el dorsal es cero")
-    void testActualizarDorsal_Cero() {
-        assertThatThrownBy(() -> datosDeportivos.actualizarDorsal(0))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("El dorsal debe ser positivo");
-    }
-
-    @Test
-    @DisplayName("actualizarDorsal: debe actualizar la fecha de actualización")
-    void testActualizarDorsal_ActualizaFecha() {
-        LocalDate fechaAntes = datosDeportivos.getFechaActualizacion();
-
-        datosDeportivos.actualizarDorsal(10);
-
-        assertThat(datosDeportivos.getFechaActualizacion()).isAfterOrEqualTo(fechaAntes);
+            assertThat(datos.getEstadoJugador()).isEqualTo(EstadoJugador.SUPLENTE);
+        }
     }
 }

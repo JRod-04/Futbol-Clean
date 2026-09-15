@@ -141,14 +141,4 @@ public enum EstadoPartido {
                 this == AGREGADO_PRORROGA_SEGUNDO ||
                 this == PENALTIS;
     }
-
-    public EstadoPartido getEstadoBase() {
-        return switch (this) {
-            case AGREGADO_PRIMER_TIEMPO -> PRIMER_TIEMPO;
-            case AGREGADO_SEGUNDO_TIEMPO -> SEGUNDO_TIEMPO;
-            case AGREGADO_PRORROGA_PRIMER -> PRIMER_TIEMPO_PRORROGA;
-            case AGREGADO_PRORROGA_SEGUNDO -> SEGUNDO_TIEMPO_PRORROGA;
-            default -> this;
-        };
-    }
 }

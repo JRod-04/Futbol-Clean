@@ -79,6 +79,11 @@ public class Jugador extends PersonalDeportivo {
         boolean estadoValido = datosDeportivos != null &&
                 datosDeportivos.getEstadoJugador() != EstadoJugador.SUSPENDIDO &&
                 datosDeportivos.getEstadoJugador() != EstadoJugador.RETIRADO &&
+                datosDeportivos.getEstadoJugador() != EstadoJugador.CEDIDO &&
+                datosDeportivos.getEstadoJugador() != EstadoJugador.DUDOSO &&
+                datosDeportivos.getEstadoJugador() != EstadoJugador.LESIONADO &&
+                datosDeportivos.getEstadoJugador() != EstadoJugador.EN_RECUPERACION &&
+                datosDeportivos.getEstadoJugador() != EstadoJugador.NO_CONVOCADO &&
                 datosDeportivos.getEstadoJugador() != EstadoJugador.APARTADO;
         return noLesionado && estadoValido;
     }

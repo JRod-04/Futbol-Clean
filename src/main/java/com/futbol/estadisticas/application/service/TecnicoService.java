@@ -8,6 +8,7 @@ import com.futbol.estadisticas.application.port.dto.response.TecnicoResponseEsta
 import com.futbol.estadisticas.application.port.mapper.PartidoMapper;
 import com.futbol.estadisticas.application.port.out.PartidoRepositoryPort;
 import com.futbol.estadisticas.domain.model.Partido;
+import com.futbol.estadisticas.domain.model.exception.ResourceNotFoundException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -21,7 +22,6 @@ import com.futbol.estadisticas.application.port.mapper.TecnicoMapper;
 import com.futbol.estadisticas.application.port.out.EquipoRepositoryPort;
 import com.futbol.estadisticas.application.port.out.TecnicoRepositoryPort;
 import com.futbol.estadisticas.domain.model.Tecnico;
-import com.futbol.estadisticas.domain.model.exception.PersonalNotFoundException;
 
 import lombok.RequiredArgsConstructor;
 
@@ -56,14 +56,14 @@ public class TecnicoService implements TecnicoUseCase{
     public TecnicoResponse obtenerTecnicoPorId(UUID idTecnico) {
         return tecnicoRepository.findById(idTecnico)
                 .map(tecnicoMapper::toResponse)
-                .orElseThrow(() -> new PersonalNotFoundException(
+                .orElseThrow(() -> new ResourceNotFoundException(
                         "Técnico no encontrado con id: " + idTecnico));
     }
 
     @Override
     public List<PartidoResponse> obtenerPartidosPorTecnico(UUID idTecnico) {
         if (!tecnicoRepository.existsById(idTecnico)) {
-            throw new PersonalNotFoundException("Técnico no encontrado con id: " + idTecnico);
+            throw new ResourceNotFoundException("Técnico no encontrado con id: " + idTecnico);
         }
         List<Partido> partidos = partidoRepository.findPartidosBytecnico(idTecnico);
         return partidos.stream()
@@ -95,7 +95,7 @@ public class TecnicoService implements TecnicoUseCase{
     public TecnicoResponse obtenerTecnicoActualDeEquipo(UUID idEquipo) {
         return tecnicoRepository.findTecnicoActualByEquipo(idEquipo)
                 .map(tecnicoMapper::toResponse)
-                .orElseThrow(() -> new PersonalNotFoundException(
+                .orElseThrow(() -> new ResourceNotFoundException(
                         "No hay técnico asignado al club con id: " + idEquipo));
     }
  
@@ -117,7 +117,7 @@ public class TecnicoService implements TecnicoUseCase{
     @Override
     public void eliminarTecnico(UUID idTecnico) {
         if (!tecnicoRepository.existsById(idTecnico)) {
-            throw new PersonalNotFoundException("Técnico no encontrado con id: " + idTecnico);
+            throw new ResourceNotFoundException("Técnico no encontrado con id: " + idTecnico);
         }
         tecnicoRepository.deleteById(idTecnico);
     }
@@ -126,7 +126,7 @@ public class TecnicoService implements TecnicoUseCase{
  
     private Tecnico findTecnicoOrThrow(UUID idTecnico) {
         return tecnicoRepository.findById(idTecnico)
-                .orElseThrow(() -> new PersonalNotFoundException(
+                .orElseThrow(() -> new ResourceNotFoundException(
                         "Técnico no encontrado con id: " + idTecnico));
     }
 }

@@ -1,15 +1,16 @@
-/*package com.futbol.estadisticas.application.service;
+package com.futbol.estadisticas.application.service;
 
 import com.futbol.estadisticas.application.port.dto.request.CrearCompeticionRequest;
 import com.futbol.estadisticas.application.port.dto.response.CompeticionResponse;
-import com.futbol.estadisticas.application.port.dto.response.PartidoResponse;
 import com.futbol.estadisticas.application.port.mapper.CompeticionMapper;
+import com.futbol.estadisticas.application.port.mapper.EquipoMapper;
 import com.futbol.estadisticas.application.port.mapper.PartidoMapper;
 import com.futbol.estadisticas.application.port.out.CompeticionRepositoryPort;
+import com.futbol.estadisticas.application.port.out.EquipoRepositoryPort;
 import com.futbol.estadisticas.application.port.out.PartidoRepositoryPort;
-import com.futbol.estadisticas.application.service.CompeticionService;
 import com.futbol.estadisticas.domain.model.Competicion;
-import com.futbol.estadisticas.domain.model.Partido;
+import com.futbol.estadisticas.domain.model.enums.EstadoCompeticion;
+import com.futbol.estadisticas.domain.model.enums.Temporada;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -26,27 +27,24 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class CompeticionServiceTest {
 
-    @Mock
-    private CompeticionRepositoryPort competicionRepository;
-
-    @Mock
-    private PartidoRepositoryPort partidoRepository;
-
-    @Mock
-    private CompeticionMapper competicionMapper;
-
-    @Mock
-    private PartidoMapper partidoMapper;
+    @Mock private EquipoRepositoryPort clubRepository;
+    @Mock private CompeticionRepositoryPort competicionRepository;
+    @Mock private PartidoRepositoryPort partidoRepository;
+    @Mock private CompeticionMapper competicionMapper;
+    @Mock private PartidoMapper partidoMapper;
+    @Mock private EquipoMapper equipoMapper;
 
     @InjectMocks
     private CompeticionService competicionService;
 
     private static final UUID ID_COMPETICION = UUID.fromString("55555555-5555-5555-5555-555555555555");
+
     private Competicion competicion;
     private CompeticionResponse response;
     private CrearCompeticionRequest request;
@@ -55,6 +53,7 @@ class CompeticionServiceTest {
     void setUp() {
         request = new CrearCompeticionRequest(
                 "Premier League",
+                Temporada.T2024_25,
                 LocalDateTime.of(2024, 8, 16, 0, 0),
                 LocalDateTime.of(2025, 5, 25, 23, 59)
         );
@@ -62,16 +61,27 @@ class CompeticionServiceTest {
         competicion = Competicion.builder()
                 .idCompeticion(ID_COMPETICION)
                 .nombre("Premier League")
+                .temporada(Temporada.T2024_25)
                 .fechaInicio(LocalDateTime.of(2024, 8, 16, 0, 0))
                 .fechaFin(LocalDateTime.of(2025, 5, 25, 23, 59))
+                .estado(EstadoCompeticion.POR_INICIAR)
                 .build();
 
-        response = new CompeticionResponse(
-                ID_COMPETICION, "Premier League",
-                LocalDateTime.of(2024, 8, 16, 0, 0),
-                LocalDateTime.of(2025, 5, 25, 23, 59),
-                false, false, false, 0, 0, 0, 0.0
-        );
+        response = CompeticionResponse.builder()
+                .idCompeticion(ID_COMPETICION)
+                .nombre("Premier League")
+                .nombreCompleto("Premier League 2024-25")
+                .fechaInicio(LocalDateTime.of(2024, 8, 16, 0, 0))
+                .fechaFin(LocalDateTime.of(2025, 5, 25, 23, 59))
+                .estado(EstadoCompeticion.POR_INICIAR)
+                .activa(false)
+                .finalizada(false)
+                .noHaComenzado(true)
+                .totalPartidos(0)
+                .partidosJugados(0)
+                .partidosPendientes(0)
+                .porcentajeAvance(0.0)
+                .build();
     }
 
     @Test
@@ -90,10 +100,11 @@ class CompeticionServiceTest {
     }
 
     @Test
-    @DisplayName("crearCompeticion: debe lanzar excepción cuando fechaFin es anterior a fechaInicio")
+    @DisplayName("crearCompeticion: lanza excepción si fechaFin es anterior a fechaInicio")
     void testCrearCompeticion_FechaFinInvalida() {
         CrearCompeticionRequest requestInvalido = new CrearCompeticionRequest(
                 "Premier League",
+                Temporada.T2024_25,
                 LocalDateTime.of(2025, 5, 25, 23, 59),
                 LocalDateTime.of(2024, 8, 16, 0, 0)
         );
@@ -107,6 +118,7 @@ class CompeticionServiceTest {
     @DisplayName("obtenerCompeticionPorId: debe retornar cuando existe")
     void testObtenerCompeticionPorId_CuandoExiste() {
         when(competicionRepository.findById(ID_COMPETICION)).thenReturn(Optional.of(competicion));
+        when(partidoRepository.findByCompeticion(ID_COMPETICION)).thenReturn(List.of());
         when(competicionMapper.toResponse(competicion)).thenReturn(response);
 
         CompeticionResponse result = competicionService.obtenerCompeticionPorId(ID_COMPETICION);
@@ -116,12 +128,13 @@ class CompeticionServiceTest {
     }
 
     @Test
-    @DisplayName("obtenerCompeticionPorId: debe lanzar excepción cuando no existe")
+    @DisplayName("obtenerCompeticionPorId: lanza excepción cuando no existe")
     void testObtenerCompeticionPorId_CuandoNoExiste() {
         when(competicionRepository.findById(ID_COMPETICION)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> competicionService.obtenerCompeticionPorId(ID_COMPETICION))
-                .isInstanceOf(IllegalArgumentException.class);
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Competición no encontrada");
     }
 
     @Test
@@ -137,15 +150,22 @@ class CompeticionServiceTest {
     }
 
     @Test
-    @DisplayName("eliminarCompeticion: debe lanzar excepción si está activa")
-    void testEliminarCompeticion_Activa() {
-    Competicion competicionMock = mock(Competicion.class);
-    when(competicionMock.estaActiva()).thenReturn(true);
-    
-    when(competicionRepository.findById(ID_COMPETICION)).thenReturn(Optional.of(competicionMock));
+    @DisplayName("eliminarCompeticion: elimina si existe")
+    void testEliminarCompeticion() {
+        when(competicionRepository.findById(ID_COMPETICION)).thenReturn(Optional.of(competicion));
 
-    assertThatThrownBy(() -> competicionService.eliminarCompeticion(ID_COMPETICION))
-            .isInstanceOf(IllegalStateException.class)
-            .hasMessageContaining("No se puede eliminar una competición activa");
+        competicionService.eliminarCompeticion(ID_COMPETICION);
+
+        verify(competicionRepository).deleteById(ID_COMPETICION);
+    }
+
+    @Test
+    @DisplayName("eliminarCompeticion: lanza excepción si no existe")
+    void testEliminarCompeticion_NoExiste() {
+        when(competicionRepository.findById(ID_COMPETICION)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> competicionService.eliminarCompeticion(ID_COMPETICION))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Competición no encontrada");
+    }
 }
-}*/

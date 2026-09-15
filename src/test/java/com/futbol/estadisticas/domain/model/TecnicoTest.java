@@ -1,114 +1,149 @@
 package com.futbol.estadisticas.domain.model;
 
 import com.futbol.estadisticas.domain.model.enums.Nacion;
+import com.futbol.estadisticas.domain.model.enums.TipoContrato;
+import com.futbol.estadisticas.domain.model.enums.TipoEquipo;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+@DisplayName("Tecnico")
 class TecnicoTest {
 
     private Tecnico tecnico;
-    private static final UUID ID_TECNICO = UUID.randomUUID();
+    private Equipo equipo;
 
     @BeforeEach
     void setUp() {
-        tecnico = Tecnico.builder()
-                .idPersonal(ID_TECNICO)
-                .nombre("Mikel")
-                .apellido("Arteta")
-                .fechaNacimiento(LocalDate.of(1982, 3, 26))
-                .nacionalidad(Nacion.ESPAÑA)
-                .estiloJuego("Presión alta y posesión")
-                .alineacionFavorita("4-3-3")
-                .build();
-    }
+        tecnico = new Tecnico(UUID.randomUUID(), "Marcelo", "Gallardo",
+                LocalDate.now().minusYears(48), Nacion.ARGENTINA,
+                "Posesión ofensiva", "4-3-3");
 
-    @Test
-    @DisplayName("asignarClub: debe asignar un club al técnico")
-    void testAsignarClub() {
-        Equipo club = Equipo.builder()
+        equipo = Equipo.builder()
                 .idEquipo(UUID.randomUUID())
-                .nombre("Arsenal FC")
+                .nombre("River Plate")
+                .tipo(TipoEquipo.CLUB_PROFESIONAL)
                 .build();
-
-        tecnico.asignarClub(club);
-        assertThat(tecnico.getEquipoActualAsignado()).isEqualTo(club);
     }
 
-    @Test
-    @DisplayName("asignarClub: debe lanzar excepción cuando el club es nulo")
-    void testAsignarClub_Nulo() {
-        assertThatThrownBy(() -> tecnico.asignarClub(null))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("El club no puede ser nulo");
+    @Nested
+    @DisplayName("getClubActual")
+    class GetClubActual {
+
+        @Test
+        @DisplayName("devuelve el equipo asignado manualmente si no hay contrato vigente")
+        void devuelveEquipoAsignadoSinContrato() {
+            tecnico.asignarClub(equipo);
+
+            assertThat(tecnico.getClubActual()).isEqualTo(equipo);
+        }
+
+        @Test
+        @DisplayName("prioriza el equipo del contrato vigente sobre el asignado manualmente")
+        void priorizaContratoVigente() {
+            Equipo equipoDelContrato = Equipo.builder()
+                    .idEquipo(UUID.randomUUID())
+                    .tipo(TipoEquipo.CLUB_PROFESIONAL)
+                    .build();
+            Contrato contrato = Contrato.builder()
+                    .idContrato(UUID.randomUUID())
+                    .tipoContrato(TipoContrato.PROFESIONAL)
+                    .equipo(equipoDelContrato)
+                    .fechaInicio(LocalDateTime.now().minusDays(1))
+                    .fechaFin(LocalDateTime.now().plusDays(1))
+                    .build();
+            tecnico.getContratos().add(contrato);
+            tecnico.asignarClub(equipo);
+
+            assertThat(tecnico.getClubActual()).isEqualTo(equipoDelContrato);
+        }
+
+        @Test
+        @DisplayName("devuelve null si no hay contrato vigente ni club asignado")
+        void devuelveNullSinNada() {
+            assertThat(tecnico.getClubActual()).isNull();
+        }
     }
 
-    @Test
-    @DisplayName("desvincularClub: debe desvincular al técnico del club")
-    void testDesvincularClub() {
-        Equipo club = Equipo.builder()
-                .idEquipo(UUID.randomUUID())
-                .nombre("Arsenal FC")
-                .build();
+    @Nested
+    @DisplayName("asignarClub / desvincularClub")
+    class AsignarYDesvincularClub {
 
-        tecnico.asignarClub(club);
-        tecnico.desvincularClub();
-        assertThat(tecnico.getEquipoActualAsignado()).isNull();
+        @Test
+        @DisplayName("asignarClub lanza excepción si el club es nulo")
+        void asignarClubLanzaExcepcionSiEsNulo() {
+            assertThatThrownBy(() -> tecnico.asignarClub(null))
+                    .isInstanceOf(IllegalArgumentException.class);
+        }
+
+        @Test
+        @DisplayName("asignarClub establece el equipo actual asignado")
+        void asignarClubEstableceEquipo() {
+            tecnico.asignarClub(equipo);
+
+            assertThat(tecnico.getEquipoActualAsignado()).isEqualTo(equipo);
+        }
+
+        @Test
+        @DisplayName("desvincularClub limpia el equipo asignado")
+        void desvincularClubLimpiaEquipo() {
+            tecnico.asignarClub(equipo);
+
+            tecnico.desvincularClub();
+
+            assertThat(tecnico.getEquipoActualAsignado()).isNull();
+        }
     }
 
-    @Test
-    @DisplayName("actualizarEstiloJuego: debe actualizar el estilo de juego")
-    void testActualizarEstiloJuego() {
-        tecnico.actualizarEstiloJuego("Fútbol posicional");
-        assertThat(tecnico.getEstiloJuego()).isEqualTo("Fútbol posicional");
+    @Nested
+    @DisplayName("actualizarEstiloJuego")
+    class ActualizarEstiloJuego {
+
+        @Test
+        @DisplayName("lanza excepción si el nuevo estilo es nulo o vacío")
+        void lanzaExcepcionSiEsInvalido() {
+            assertThatThrownBy(() -> tecnico.actualizarEstiloJuego(null))
+                    .isInstanceOf(IllegalArgumentException.class);
+            assertThatThrownBy(() -> tecnico.actualizarEstiloJuego("   "))
+                    .isInstanceOf(IllegalArgumentException.class);
+        }
+
+        @Test
+        @DisplayName("actualiza el estilo de juego cuando es válido")
+        void actualizaEstiloJuego() {
+            tecnico.actualizarEstiloJuego("Contragolpe");
+
+            assertThat(tecnico.getEstiloJuego()).isEqualTo("Contragolpe");
+        }
     }
 
-    @Test
-    @DisplayName("actualizarEstiloJuego: debe lanzar excepción cuando el estilo es vacío")
-    void testActualizarEstiloJuego_Vacio() {
-        assertThatThrownBy(() -> tecnico.actualizarEstiloJuego(""))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("El estilo de juego no puede ser vacío");
+    @Nested
+    @DisplayName("actualizarAlineacion")
+    class ActualizarAlineacion {
 
-        assertThatThrownBy(() -> tecnico.actualizarEstiloJuego(null))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("El estilo de juego no puede ser vacío");
-    }
+        @Test
+        @DisplayName("lanza excepción si la nueva alineación es nula o vacía")
+        void lanzaExcepcionSiEsInvalida() {
+            assertThatThrownBy(() -> tecnico.actualizarAlineacion(null))
+                    .isInstanceOf(IllegalArgumentException.class);
+            assertThatThrownBy(() -> tecnico.actualizarAlineacion(""))
+                    .isInstanceOf(IllegalArgumentException.class);
+        }
 
-    @Test
-    @DisplayName("actualizarAlineacion: debe actualizar la alineación favorita")
-    void testActualizarAlineacion() {
-        tecnico.actualizarAlineacion("4-2-3-1");
-        assertThat(tecnico.getAlineacionFavorita()).isEqualTo("4-2-3-1");
-    }
+        @Test
+        @DisplayName("actualiza la alineación cuando es válida")
+        void actualizaAlineacion() {
+            tecnico.actualizarAlineacion("4-4-2");
 
-    @Test
-    @DisplayName("actualizarAlineacion: debe lanzar excepción cuando la alineación es vacía")
-    void testActualizarAlineacion_Vacia() {
-        assertThatThrownBy(() -> tecnico.actualizarAlineacion(""))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("La alineación no puede ser vacía");
-
-        assertThatThrownBy(() -> tecnico.actualizarAlineacion(null))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("La alineación no puede ser vacía");
-    }
-
-    @Test
-    @DisplayName("getClubActual: debe retornar el club actual si tiene contrato vigente")
-    void testGetClubActual() {
-        // No hay contrato, debería retornar clubActualAsignado
-        Equipo club = Equipo.builder()
-                .idEquipo(UUID.randomUUID())
-                .nombre("Arsenal FC")
-                .build();
-        tecnico.asignarClub(club);
-        assertThat(tecnico.getClubActual()).isEqualTo(club);
+            assertThat(tecnico.getAlineacionFavorita()).isEqualTo("4-4-2");
+        }
     }
 }

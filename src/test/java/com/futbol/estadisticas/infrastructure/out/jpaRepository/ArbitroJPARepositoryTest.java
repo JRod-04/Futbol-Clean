@@ -19,15 +19,19 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@SpringBootTest
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
 class ArbitroJPARepositoryTest extends PostgresTestContainerConfig {
+
 
     @DynamicPropertySource
     static void properties(DynamicPropertyRegistry registry) {
-        registry.add("spring.datasource.url", POSTGRES::getJdbcUrl);
+        registry.add("spring.datasource.url",      POSTGRES::getJdbcUrl);
         registry.add("spring.datasource.username", POSTGRES::getUsername);
         registry.add("spring.datasource.password", POSTGRES::getPassword);
+        registry.add("spring.datasource.driver-class-name", () -> "org.postgresql.Driver");
         registry.add("spring.jpa.hibernate.ddl-auto", () -> "create-drop");
+        registry.add("spring.jpa.database-platform", () -> "org.hibernate.dialect.PostgreSQLDialect");
+        registry.add("spring.jpa.show-sql", () -> "true");
     }
 
     @Autowired
@@ -43,29 +47,28 @@ class ArbitroJPARepositoryTest extends PostgresTestContainerConfig {
     @BeforeEach
     void setUp() {
         repository.deleteAll();
+        repository.flush();
 
-        ArbitroJPAEntity arbitro1 = ArbitroJPAEntity.builder()
-                .idArbitro(ID_ARBITRO_1)
-                .nombre("Michael")
-                .apellido("Oliver")
-                .fechaNacimiento(LocalDate.of(1985, 2, 20))
-                .build();
-
-        ArbitroJPAEntity arbitro2 = ArbitroJPAEntity.builder()
-                .idArbitro(ID_ARBITRO_2)
-                .nombre("Anthony")
-                .apellido("Taylor")
-                .fechaNacimiento(LocalDate.of(1978, 10, 20))
-                .build();
-
-        ArbitroJPAEntity arbitro3 = ArbitroJPAEntity.builder()
-                .idArbitro(ID_ARBITRO_3)
-                .nombre("Stuart")
-                .apellido("Attwell")
-                .fechaNacimiento(LocalDate.of(1982, 10, 6))
-                .build();
-
-        repository.saveAll(List.of(arbitro1, arbitro2, arbitro3));
+        repository.saveAll(List.of(
+                ArbitroJPAEntity.builder()
+                        .idArbitro(ID_ARBITRO_1)
+                        .nombre("Michael")
+                        .apellido("Oliver")
+                        .fechaNacimiento(LocalDate.of(1985, 2, 20))
+                        .build(),
+                ArbitroJPAEntity.builder()
+                        .idArbitro(ID_ARBITRO_2)
+                        .nombre("Anthony")
+                        .apellido("Taylor")
+                        .fechaNacimiento(LocalDate.of(1978, 10, 20))
+                        .build(),
+                ArbitroJPAEntity.builder()
+                        .idArbitro(ID_ARBITRO_3)
+                        .nombre("Stuart")
+                        .apellido("Attwell")
+                        .fechaNacimiento(LocalDate.of(1982, 10, 6))
+                        .build()
+        ));
     }
 
     @Test
@@ -75,6 +78,12 @@ class ArbitroJPARepositoryTest extends PostgresTestContainerConfig {
         assertThat(arbitro).isPresent();
         assertThat(arbitro.get().getNombre()).isEqualTo("Michael");
         assertThat(arbitro.get().getApellido()).isEqualTo("Oliver");
+    }
+
+    @Test
+    @DisplayName("findById: debe devolver vacío si no existe")
+    void testFindByIdNoExiste() {
+        assertThat(adapter.findById(UUID.randomUUID())).isEmpty();
     }
 
     @Test
@@ -88,15 +97,21 @@ class ArbitroJPARepositoryTest extends PostgresTestContainerConfig {
     }
 
     @Test
-    @DisplayName("findByNombreOrApellido: debe buscar por nombre o apellido")
+    @DisplayName("findByNombreOrApellido: debe buscar por nombre o apellido ignorando mayúsculas")
     void testFindByNombreOrApellido() {
-        List<Arbitro> resultados = adapter.findByNombreOrApellido("oliv");
-        assertThat(resultados).hasSize(1);
-        assertThat(resultados.get(0).getApellido()).isEqualTo("Oliver");
+        assertThat(adapter.findByNombreOrApellido("oliv"))
+                .hasSize(1)
+                .first()
+                .extracting(Arbitro::getApellido)
+                .isEqualTo("Oliver");
 
-        List<Arbitro> resultados2 = adapter.findByNombreOrApellido("anth");
-        assertThat(resultados2).hasSize(1);
-        assertThat(resultados2.get(0).getNombre()).isEqualTo("Anthony");
+        assertThat(adapter.findByNombreOrApellido("ANTH"))
+                .hasSize(1)
+                .first()
+                .extracting(Arbitro::getNombre)
+                .isEqualTo("Anthony");
+
+        assertThat(adapter.findByNombreOrApellido("zzz")).isEmpty();
     }
 
     @Test
@@ -130,8 +145,7 @@ class ArbitroJPARepositoryTest extends PostgresTestContainerConfig {
         assertThat(guardado).isNotNull();
         assertThat(guardado.getIdArbitro()).isEqualTo(nuevoId);
 
-        Optional<Arbitro> encontrado = adapter.findById(nuevoId);
-        assertThat(encontrado).isPresent();
+        assertThat(adapter.findById(nuevoId)).isPresent();
         assertThat(adapter.findAll()).hasSize(4);
     }
 }

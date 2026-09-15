@@ -18,7 +18,6 @@ public abstract class PostgresTestContainerConfig {
 
     static {
         try {
-            // 1. Construir el cliente docker-java con el pipe que sabemos funciona
             var config = DefaultDockerClientConfig.createDefaultConfigBuilder()
                     .withDockerHost("npipe:////./pipe/docker_engine")
                     .build();
@@ -32,19 +31,16 @@ public abstract class PostgresTestContainerConfig {
 
             var dockerClient = DockerClientImpl.getInstance(config, httpClient);
 
-            // 2. Inyectar el cliente directamente en el campo "client" de la factory
             DockerClientFactory factory = DockerClientFactory.instance();
 
             Field clientField = DockerClientFactory.class.getDeclaredField("client");
             clientField.setAccessible(true);
             clientField.set(factory, dockerClient);
 
-            // 3. Inyectar una estrategia dummy en "strategy" para que no intente detectar Docker
             Field strategyField = DockerClientFactory.class.getDeclaredField("strategy");
             strategyField.setAccessible(true);
             strategyField.set(factory, new NpipeSocketClientProviderStrategy());
 
-            // 4. Limpiar cachedClientFailure para que no bloquee el arranque
             Field failureField = DockerClientFactory.class.getDeclaredField("cachedClientFailure");
             failureField.setAccessible(true);
             failureField.set(factory, null);

@@ -17,6 +17,9 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,16 +33,18 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+
 @SpringBootTest
 @Transactional
 class JugadorJPARepositoryTest extends PostgresTestContainerConfig {
 
     @DynamicPropertySource
     static void properties(DynamicPropertyRegistry registry) {
-        registry.add("spring.datasource.url", POSTGRES::getJdbcUrl);
+        registry.add("spring.datasource.url",      POSTGRES::getJdbcUrl);
         registry.add("spring.datasource.username", POSTGRES::getUsername);
         registry.add("spring.datasource.password", POSTGRES::getPassword);
-        registry.add("spring.jpa.hibernate.ddl-auto", () -> "create-drop");
+        registry.add("spring.datasource.driver-class-name", () -> "org.postgresql.Driver");
+        registry.add("spring.jpa.hibernate.ddl-auto", () -> "create");
     }
 
     @Autowired
@@ -51,6 +56,9 @@ class JugadorJPARepositoryTest extends PostgresTestContainerConfig {
     @Autowired
     private EquipoJPARepository clubRepository;
 
+    @Autowired
+    private ContratoJPARepository contratoRepository;
+
     private static final UUID ID_JUGADOR_1 = UUID.fromString("ffffffff-ffff-ffff-ffff-ffffffffffff");
     private static final UUID ID_JUGADOR_2 = UUID.fromString("11111111-2222-3333-4444-555555555555");
     private static final UUID ID_JUGADOR_3 = UUID.fromString("22222222-3333-4444-5555-666666666666");
@@ -60,10 +68,15 @@ class JugadorJPARepositoryTest extends PostgresTestContainerConfig {
 
     @BeforeEach
     void setUp() {
+        // Orden por FKs: contratos -> jugadores -> clubes
+        contratoRepository.deleteAll();
         repository.deleteAll();
         clubRepository.deleteAll();
+        contratoRepository.flush();
+        repository.flush();
+        clubRepository.flush();
 
-        // Crear club
+        // Club
         EquipoJPAEntity club = EquipoJPAEntity.builder()
                 .idEquipo(ID_CLUB)
                 .nombre("FC Barcelona")
@@ -71,6 +84,7 @@ class JugadorJPARepositoryTest extends PostgresTestContainerConfig {
                 .fechaFundacion(LocalDate.of(1899, 11, 29))
                 .build();
         clubRepository.save(club);
+        clubRepository.flush();
 
         // JUGADOR 1: TITULAR - EXTREMO DERECHO - CONTRATO ACTIVO
         JugadorJPAEntity jugador1 = JugadorJPAEntity.builder()
@@ -91,23 +105,14 @@ class JugadorJPARepositoryTest extends PostgresTestContainerConfig {
                 .posiciones(new ArrayList<>(List.of(PosicionJugador.EXTREMO_DERECHO)))
                 .dorsal(7)
                 .estadoJugador(EstadoJugador.TITULAR)
-                .valorMercado(85000000.0)
+                .valorMercado(85_000_000.0)
                 .fechaActualizacion(LocalDate.now())
                 .build();
         jugador1.setDatosDeportivos(datos1);
 
-        ContratoJPAEntity contrato1 = ContratoJPAEntity.builder()
-                .idContrato(UUID.randomUUID())
-                .fechaInicio(LocalDateTime.now().minusMonths(6))
-                .fechaFin(LocalDateTime.now().plusMonths(6))
-                .sueldo(5000000.0)
-                .estado(EstadoContrato.ACTIVO)
-                .personal(jugador1)
-                .equipo(club)
-                .build();
-        jugador1.setContratos(List.of(contrato1));
+        repository.save(jugador1);
 
-        // JUGADOR 2: SUPLENTE - MEDIOCAMPISTA - CONTRATO ACTIVO
+        // JUGADOR 2: SUPLENTE - CENTROCAMPISTA - CONTRATO ACTIVO
         JugadorJPAEntity jugador2 = JugadorJPAEntity.builder()
                 .idPersonal(ID_JUGADOR_2)
                 .nombre("Andrés")
@@ -123,26 +128,17 @@ class JugadorJPARepositoryTest extends PostgresTestContainerConfig {
         DatosDeportivosJPAEntity datos2 = DatosDeportivosJPAEntity.builder()
                 .idHistorialDeportivo(UUID.randomUUID())
                 .jugador(jugador2)
-                .posiciones(new ArrayList<>(List.of(PosicionJugador.MEDIOCENTRO)))
+                .posiciones(new ArrayList<>(List.of(PosicionJugador.CENTROCAMPISTA)))
                 .dorsal(8)
                 .estadoJugador(EstadoJugador.SUPLENTE)
-                .valorMercado(8000000.0)
+                .valorMercado(8_000_000.0)
                 .fechaActualizacion(LocalDate.now())
                 .build();
         jugador2.setDatosDeportivos(datos2);
 
-        ContratoJPAEntity contrato2 = ContratoJPAEntity.builder()
-                .idContrato(UUID.randomUUID())
-                .fechaInicio(LocalDateTime.now().minusMonths(6))
-                .fechaFin(LocalDateTime.now().plusMonths(6))
-                .sueldo(3000000.0)
-                .estado(EstadoContrato.ACTIVO)
-                .personal(jugador2)
-                .equipo(club)
-                .build();
-        jugador2.setContratos(List.of(contrato2));
+        repository.save(jugador2);
 
-        // JUGADOR 3: LESIONADO - DEFENSA - CONTRATO ACTIVO
+        // JUGADOR 3: LESIONADO - DEFENSA CENTRAL - CONTRATO ACTIVO
         JugadorJPAEntity jugador3 = JugadorJPAEntity.builder()
                 .idPersonal(ID_JUGADOR_3)
                 .nombre("Gerard")
@@ -158,26 +154,17 @@ class JugadorJPARepositoryTest extends PostgresTestContainerConfig {
         DatosDeportivosJPAEntity datos3 = DatosDeportivosJPAEntity.builder()
                 .idHistorialDeportivo(UUID.randomUUID())
                 .jugador(jugador3)
-                .posiciones(new ArrayList<>(List.of(PosicionJugador.CENTRAL)))
+                .posiciones(new ArrayList<>(List.of(PosicionJugador.DEFENSA_CENTRAL)))
                 .dorsal(3)
                 .estadoJugador(EstadoJugador.LESIONADO)
-                .valorMercado(5000000.0)
+                .valorMercado(5_000_000.0)
                 .fechaActualizacion(LocalDate.now())
                 .build();
         jugador3.setDatosDeportivos(datos3);
 
-        ContratoJPAEntity contrato3 = ContratoJPAEntity.builder()
-                .idContrato(UUID.randomUUID())
-                .fechaInicio(LocalDateTime.now().minusMonths(6))
-                .fechaFin(LocalDateTime.now().plusMonths(6))
-                .sueldo(4000000.0)
-                .estado(EstadoContrato.ACTIVO)
-                .personal(jugador3)
-                .equipo(club)
-                .build();
-        jugador3.setContratos(List.of(contrato3));
+        repository.save(jugador3);
 
-        // JUGADOR 4: TITULAR - DELANTERO - SIN CONTRATO
+        // JUGADOR 4: TITULAR - DELANTERO CENTRO - SIN CONTRATO
         JugadorJPAEntity jugador4 = JugadorJPAEntity.builder()
                 .idPersonal(ID_JUGADOR_4)
                 .nombre("Kylian")
@@ -193,22 +180,58 @@ class JugadorJPARepositoryTest extends PostgresTestContainerConfig {
         DatosDeportivosJPAEntity datos4 = DatosDeportivosJPAEntity.builder()
                 .idHistorialDeportivo(UUID.randomUUID())
                 .jugador(jugador4)
-                .posiciones(new ArrayList<>(List.of(PosicionJugador.DELANTERO)))
+                .posiciones(new ArrayList<>(List.of(PosicionJugador.DELANTERO_CENTRO)))
                 .dorsal(7)
                 .estadoJugador(EstadoJugador.TITULAR)
-                .valorMercado(200000000.0)
+                .valorMercado(200_000_000.0)
                 .fechaActualizacion(LocalDate.now())
                 .build();
         jugador4.setDatosDeportivos(datos4);
 
-        repository.saveAll(List.of(jugador1, jugador2, jugador3, jugador4));
+        repository.save(jugador4);
+
+        repository.flush();
+
+        // Contratos: se guardan explícitamente porque JugadorJPAEntity NO tiene cascade en contratos
+        ContratoJPAEntity contrato1 = ContratoJPAEntity.builder()
+                .idContrato(UUID.randomUUID())
+                .fechaInicio(LocalDateTime.now().minusMonths(6))
+                .fechaFin(LocalDateTime.now().plusMonths(6))
+                .sueldo(5_000_000.0)
+                .estado(EstadoContrato.ACTIVO)
+                .personal(jugador1)
+                .equipo(club)
+                .build();
+
+        ContratoJPAEntity contrato2 = ContratoJPAEntity.builder()
+                .idContrato(UUID.randomUUID())
+                .fechaInicio(LocalDateTime.now().minusMonths(6))
+                .fechaFin(LocalDateTime.now().plusMonths(6))
+                .sueldo(3_000_000.0)
+                .estado(EstadoContrato.ACTIVO)
+                .personal(jugador2)
+                .equipo(club)
+                .build();
+
+        ContratoJPAEntity contrato3 = ContratoJPAEntity.builder()
+                .idContrato(UUID.randomUUID())
+                .fechaInicio(LocalDateTime.now().minusMonths(6))
+                .fechaFin(LocalDateTime.now().plusMonths(6))
+                .sueldo(4_000_000.0)
+                .estado(EstadoContrato.ACTIVO)
+                .personal(jugador3)
+                .equipo(club)
+                .build();
+
+        contratoRepository.saveAll(List.of(contrato1, contrato2, contrato3));
+        contratoRepository.flush();
     }
 
     @Test
-    @DisplayName("findByClub: debe encontrar jugadores con contrato activo en un club")
+    @DisplayName("findByEquipo: debe encontrar jugadores con contrato activo en un club")
     void testFindByEquipo() {
         List<Jugador> jugadores = adapter.findByEquipo(ID_CLUB);
-        
+
         assertThat(jugadores).hasSize(3);
         assertThat(jugadores)
                 .extracting(Jugador::getNombre)
@@ -218,13 +241,16 @@ class JugadorJPARepositoryTest extends PostgresTestContainerConfig {
                 .containsExactlyInAnyOrder("Saka", "Iniesta", "Piqué");
         assertThat(jugadores)
                 .extracting(j -> j.getDatosDeportivos().getEstadoJugador())
-                .containsExactlyInAnyOrder(EstadoJugador.TITULAR, EstadoJugador.SUPLENTE, EstadoJugador.LESIONADO);
+                .containsExactlyInAnyOrder(
+                        EstadoJugador.TITULAR,
+                        EstadoJugador.SUPLENTE,
+                        EstadoJugador.LESIONADO
+                );
     }
 
     @Test
     @DisplayName("findByEstado: debe encontrar jugadores por estado")
     void testFindByEstado() {
-        // Buscar titulares
         List<Jugador> titulares = adapter.findByEstado(EstadoJugador.TITULAR);
         assertThat(titulares).hasSize(2);
         assertThat(titulares)
@@ -233,13 +259,11 @@ class JugadorJPARepositoryTest extends PostgresTestContainerConfig {
         assertThat(titulares)
                 .allMatch(j -> j.getDatosDeportivos().getEstadoJugador() == EstadoJugador.TITULAR);
 
-        // Buscar suplentes
         List<Jugador> suplentes = adapter.findByEstado(EstadoJugador.SUPLENTE);
         assertThat(suplentes).hasSize(1);
         assertThat(suplentes.get(0).getNombre()).isEqualTo("Andrés");
         assertThat(suplentes.get(0).getDatosDeportivos().getEstadoJugador()).isEqualTo(EstadoJugador.SUPLENTE);
 
-        // Buscar lesionados
         List<Jugador> lesionados = adapter.findByEstado(EstadoJugador.LESIONADO);
         assertThat(lesionados).hasSize(1);
         assertThat(lesionados.get(0).getNombre()).isEqualTo("Gerard");
@@ -249,29 +273,24 @@ class JugadorJPARepositoryTest extends PostgresTestContainerConfig {
     @Test
     @DisplayName("findByPosicion: debe encontrar jugadores por posición")
     void testFindByPosicion() {
-        // Buscar extremos derechos
         List<Jugador> extremosDerechos = adapter.findByPosicion(PosicionJugador.EXTREMO_DERECHO);
         assertThat(extremosDerechos).hasSize(1);
         assertThat(extremosDerechos.get(0).getNombre()).isEqualTo("Bukayo");
         assertThat(extremosDerechos.get(0).getDatosDeportivos().getPosiciones())
                 .contains(PosicionJugador.EXTREMO_DERECHO);
 
-        // Buscar mediocentros
-        List<Jugador> mediocentros = adapter.findByPosicion(PosicionJugador.MEDIOCENTRO);
-        assertThat(mediocentros).hasSize(1);
-        assertThat(mediocentros.get(0).getNombre()).isEqualTo("Andrés");
+        List<Jugador> centrocampistas = adapter.findByPosicion(PosicionJugador.CENTROCAMPISTA);
+        assertThat(centrocampistas).hasSize(1);
+        assertThat(centrocampistas.get(0).getNombre()).isEqualTo("Andrés");
 
-        // Buscar centrales
-        List<Jugador> centrales = adapter.findByPosicion(PosicionJugador.CENTRAL);
+        List<Jugador> centrales = adapter.findByPosicion(PosicionJugador.DEFENSA_CENTRAL);
         assertThat(centrales).hasSize(1);
         assertThat(centrales.get(0).getNombre()).isEqualTo("Gerard");
 
-        // Buscar delanteros
-        List<Jugador> delanteros = adapter.findByPosicion(PosicionJugador.DELANTERO);
+        List<Jugador> delanteros = adapter.findByPosicion(PosicionJugador.DELANTERO_CENTRO);
         assertThat(delanteros).hasSize(1);
         assertThat(delanteros.get(0).getNombre()).isEqualTo("Kylian");
 
-        // Buscar posición sin jugadores
         List<Jugador> porteros = adapter.findByPosicion(PosicionJugador.PORTERO);
         assertThat(porteros).isEmpty();
     }
@@ -280,14 +299,14 @@ class JugadorJPARepositoryTest extends PostgresTestContainerConfig {
     @DisplayName("findDisponibles: debe encontrar jugadores disponibles (TITULAR o SUPLENTE)")
     void testFindDisponibles() {
         List<Jugador> disponibles = adapter.findDisponibles();
-        
+
         assertThat(disponibles).hasSize(3);
         assertThat(disponibles)
                 .extracting(Jugador::getNombre)
                 .containsExactlyInAnyOrder("Bukayo", "Andrés", "Kylian");
         assertThat(disponibles)
                 .allMatch(j -> j.getDatosDeportivos().getEstadoJugador() == EstadoJugador.TITULAR ||
-                              j.getDatosDeportivos().getEstadoJugador() == EstadoJugador.SUPLENTE);
+                        j.getDatosDeportivos().getEstadoJugador() == EstadoJugador.SUPLENTE);
         assertThat(disponibles)
                 .extracting(j -> j.getDatosDeportivos().getEstadoJugador())
                 .doesNotContain(EstadoJugador.LESIONADO);
@@ -297,7 +316,7 @@ class JugadorJPARepositoryTest extends PostgresTestContainerConfig {
     @DisplayName("findLesionados: debe encontrar jugadores lesionados")
     void testFindLesionados() {
         List<Jugador> lesionados = adapter.findLesionados();
-        
+
         assertThat(lesionados).hasSize(1);
         assertThat(lesionados.get(0).getNombre()).isEqualTo("Gerard");
         assertThat(lesionados.get(0).getApellido()).isEqualTo("Piqué");
@@ -308,7 +327,7 @@ class JugadorJPARepositoryTest extends PostgresTestContainerConfig {
     @DisplayName("findById: debe encontrar un jugador por su ID")
     void testFindById() {
         Optional<Jugador> jugador = adapter.findById(ID_JUGADOR_1);
-        
+
         assertThat(jugador).isPresent();
         assertThat(jugador.get().getNombre()).isEqualTo("Bukayo");
         assertThat(jugador.get().getApellido()).isEqualTo("Saka");
@@ -321,8 +340,9 @@ class JugadorJPARepositoryTest extends PostgresTestContainerConfig {
     @Test
     @DisplayName("findAll: debe encontrar todos los jugadores")
     void testFindAll() {
-        List<Jugador> todos = adapter.findAll();
-        
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Jugador> todos = adapter.findAll(pageable);
+
         assertThat(todos).hasSize(4);
         assertThat(todos)
                 .extracting(Jugador::getNombre)
@@ -343,9 +363,9 @@ class JugadorJPARepositoryTest extends PostgresTestContainerConfig {
     @DisplayName("deleteById: debe eliminar un jugador")
     void testDeleteById() {
         assertThat(adapter.existsById(ID_JUGADOR_4)).isTrue();
-        
+
         adapter.deleteById(ID_JUGADOR_4);
-        
+
         assertThat(adapter.existsById(ID_JUGADOR_4)).isFalse();
         assertThat(adapter.existsById(ID_JUGADOR_1)).isTrue();
         assertThat(adapter.existsById(ID_JUGADOR_2)).isTrue();
@@ -356,7 +376,7 @@ class JugadorJPARepositoryTest extends PostgresTestContainerConfig {
     @DisplayName("save: debe guardar un nuevo jugador")
     void testSave() {
         UUID nuevoId = UUID.randomUUID();
-        
+
         Jugador nuevoJugador = Jugador.builder()
                 .idPersonal(nuevoId)
                 .nombre("Nuevo")
@@ -370,15 +390,15 @@ class JugadorJPARepositoryTest extends PostgresTestContainerConfig {
                 .build();
 
         Jugador guardado = adapter.save(nuevoJugador);
-        
+
         assertThat(guardado).isNotNull();
         assertThat(guardado.getIdPersonal()).isEqualTo(nuevoId);
         assertThat(guardado.getNombre()).isEqualTo("Nuevo");
         assertThat(guardado.getApellido()).isEqualTo("Jugador");
         assertThat(guardado.getNacionalidad()).isEqualTo(Nacion.ESPAÑA);
-        
+
         assertThat(adapter.existsById(nuevoId)).isTrue();
-        
+
         Optional<Jugador> encontrado = adapter.findById(nuevoId);
         assertThat(encontrado).isPresent();
         assertThat(encontrado.get().getNombre()).isEqualTo("Nuevo");
@@ -392,7 +412,7 @@ class JugadorJPARepositoryTest extends PostgresTestContainerConfig {
     }
 
     @Test
-    @DisplayName("findByClub: debe retornar lista vacía cuando el club no tiene jugadores con contrato activo")
+    @DisplayName("findByEquipo: debe retornar lista vacía cuando el club no tiene jugadores con contrato activo")
     void testFindByEquipo_SinJugadores() {
         UUID clubSinJugadores = UUID.randomUUID();
         List<Jugador> jugadores = adapter.findByEquipo(clubSinJugadores);

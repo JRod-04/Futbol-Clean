@@ -58,7 +58,6 @@ public class PartidoJPAEntity {
     @Column(name = "jornada_torneo")
     private JornadaPartido jornadaTorneo;
  
-    // FK equipo local
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_equipo_local", nullable = false,
                 foreignKey = @ForeignKey(name = "fk_partido_local"))
@@ -69,7 +68,6 @@ public class PartidoJPAEntity {
     @Column(name = "alineacion_local", length = 20)
     private Alineacion alineacionLocal;
 
-    // FK equipo visitante
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_equipo_visitante", nullable = false,
                 foreignKey = @ForeignKey(name = "fk_partido_visitante"))
@@ -79,25 +77,21 @@ public class PartidoJPAEntity {
     @Column(name = "alineacion_visitante", length = 20)
     private Alineacion alineacionVisitante;
 
-    // FK estadio
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_estadio",
                 foreignKey = @ForeignKey(name = "fk_partido_estadio"))
     private EstadioJPAEntity estadio;
  
-    // FK árbitro
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_arbitro",
                 foreignKey = @ForeignKey(name = "fk_partido_arbitro"))
     private ArbitroJPAEntity arbitro;
  
-    // FK competición
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_competicion",
                 foreignKey = @ForeignKey(name = "fk_partido_competicion"))
     private CompeticionJPAEntity competicion;
  
-    // Eventos del partido (relación inversa)
     @OneToMany(mappedBy = "partido", cascade = CascadeType.ALL,
                orphanRemoval = true, fetch = FetchType.LAZY)
     @Builder.Default

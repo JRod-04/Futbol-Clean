@@ -31,12 +31,10 @@ public class Arbitro {
      @Builder.Default
     private List<Partido> partidosArbitrados = new ArrayList<>();
     
-    //Obtiene el nombre completo del árbitro
     public String getNombreCompleto() {
         return nombre + " " + apellido;
     }
     
-    //Calcula la edad del árbitro
     public int getEdad() {
         if (fechaNacimiento == null) {
             return 0;
@@ -44,7 +42,6 @@ public class Arbitro {
         return Period.between(fechaNacimiento, LocalDate.now()).getYears();
     }
     
-    //Agrega un partido arbitrado
     public void agregarPartido(Partido partido) {
         if (partido != null) {
             this.partidosArbitrados.add(partido);
@@ -52,17 +49,9 @@ public class Arbitro {
         }
     }
     
-    //Obtiene la cantidad de partidos arbitrados
     public int getCantidadPartidos() {
         return partidosArbitrados.size();
     }
     
-    //Obtiene los partidos arbitrados en una temporada específica
-    public List<Partido> getPartidosPorTemporada(int año) {
-        return partidosArbitrados.stream()
-            .filter(p -> p.getFechaYHora() != null && 
-                        p.getFechaYHora().getYear() == año)
-            .toList();
-    }
 
 }

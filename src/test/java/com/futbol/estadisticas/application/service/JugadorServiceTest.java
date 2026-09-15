@@ -2,33 +2,41 @@ package com.futbol.estadisticas.application.service;
 
 import com.futbol.estadisticas.application.port.dto.request.ActualizarJugadorRequest;
 import com.futbol.estadisticas.application.port.dto.request.CrearJugadorRequest;
+import com.futbol.estadisticas.application.port.dto.response.EstadisticasJugadorResponse;
+import com.futbol.estadisticas.application.port.dto.response.EstadisticasPartidoJugadorResponse;
 import com.futbol.estadisticas.application.port.dto.response.JugadorResponse;
+import com.futbol.estadisticas.application.port.dto.response.PartidoResponse;
+import com.futbol.estadisticas.application.port.mapper.EstadisticasJugadorMapper;
+import com.futbol.estadisticas.application.port.mapper.EstadisticasPartidoMapper;
 import com.futbol.estadisticas.application.port.mapper.JugadorMapper;
+import com.futbol.estadisticas.application.port.out.EventosPartidoRepositoryPort;
 import com.futbol.estadisticas.application.port.out.JugadorRepositoryPort;
-import com.futbol.estadisticas.domain.model.Equipo;
-import com.futbol.estadisticas.domain.model.Contrato;
+import com.futbol.estadisticas.application.port.out.PartidoRepositoryPort;
 import com.futbol.estadisticas.domain.model.DatosDeportivos;
+import com.futbol.estadisticas.domain.model.EventosPartido;
 import com.futbol.estadisticas.domain.model.Jugador;
-import com.futbol.estadisticas.domain.model.Lesion;
-import com.futbol.estadisticas.domain.model.enums.EstadoContrato;
+import com.futbol.estadisticas.domain.model.Partido;
 import com.futbol.estadisticas.domain.model.enums.EstadoJugador;
-import com.futbol.estadisticas.domain.model.enums.Gravedad;
 import com.futbol.estadisticas.domain.model.enums.JuegoPies;
 import com.futbol.estadisticas.domain.model.enums.Nacion;
 import com.futbol.estadisticas.domain.model.enums.PosicionJugador;
-import com.futbol.estadisticas.domain.model.enums.TipoPersonal;
-import com.futbol.estadisticas.domain.model.exception.PersonalNotFoundException;
+import com.futbol.estadisticas.domain.model.exception.ResourceNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
+import java.util.ArrayDeque;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -36,752 +44,410 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class JugadorServiceTest {
 
-    @Mock
-    private JugadorRepositoryPort jugadorRepository;
-
-    @Mock
-    private JugadorMapper jugadorMapper;
+    @Mock private EventosPartidoRepositoryPort eventosRepository;
+    @Mock private EstadisticasJugadorMapper estadisticasMapper;
+    @Mock private PartidoRepositoryPort partidoRepository;
+    @Mock private JugadorRepositoryPort jugadorRepository;
+    @Mock private JugadorMapper jugadorMapper;
+    @Mock private EstadisticasPartidoMapper partidoConEstadisticasJugadorMapper;
 
     @InjectMocks
     private JugadorService jugadorService;
 
-    private static final UUID ID_JUGADOR = UUID.randomUUID();
-    private static final UUID ID_JUGADOR_2 = UUID.randomUUID();
-    private static final UUID ID_CLUB = UUID.randomUUID();
-    private static final UUID ID_CLUB_2 = UUID.randomUUID();
+    private static final UUID ID_JUGADOR = UUID.fromString("11111111-1111-1111-1111-111111111111");
+    private static final UUID ID_PARTIDO = UUID.fromString("22222222-2222-2222-2222-222222222222");
+    private static final UUID ID_EQUIPO = UUID.fromString("33333333-3333-3333-3333-333333333333");
 
     private Jugador jugador;
-    private Jugador jugador2;
-    private DatosDeportivos datosDeportivos;
-    private Equipo club;
-    private Equipo club2;
-    private Lesion lesion;
-    private Lesion lesion2;
+    private DatosDeportivos datos;
     private JugadorResponse response;
-    private JugadorResponse response2;
     private CrearJugadorRequest crearRequest;
     private ActualizarJugadorRequest actualizarRequest;
+    private Pageable pageable;
 
     @BeforeEach
     void setUp() {
-        // Crear clubes
-        club = Equipo.builder()
-                .idEquipo(ID_CLUB)
-                .nombre("Arsenal FC")
-                .nombreCorto("Arsenal")
-                .fechaFundacion(LocalDate.of(1886, 10, 1))
-                .build();
-
-        club2 = Equipo.builder()
-                .idEquipo(ID_CLUB_2)
-                .nombre("FC Barcelona")
-                .nombreCorto("Barça")
-                .fechaFundacion(LocalDate.of(1899, 11, 29))
-                .build();
-
-        // Crear datos deportivos
-        datosDeportivos = DatosDeportivos.builder()
+        datos = DatosDeportivos.builder()
                 .idHistorialDeportivo(UUID.randomUUID())
                 .estadoJugador(EstadoJugador.TITULAR)
                 .valorMercado(85_000_000.0)
-                .posiciones(new ArrayList<>(List.of(PosicionJugador.EXTREMO_DERECHO)))
+                .posiciones(new ArrayDeque<>(List.of(PosicionJugador.EXTREMO_DERECHO)))
                 .dorsal(7)
                 .fechaActualizacion(LocalDate.now())
                 .build();
 
-        // Crear lesiones
-        lesion = Lesion.builder()
-                .idLesion(UUID.randomUUID())
-                .nombreLesion("Lesión de tobillo")
-                .gravedad(Gravedad.MODERADA)
-                .fechaInicio(LocalDate.now().minusDays(10))
-                .fechaFin(LocalDate.now().plusDays(5))
-                .curada(false)
-                .build();
-
-        lesion2 = Lesion.builder()
-                .idLesion(UUID.randomUUID())
-                .nombreLesion("Lesión de rodilla")
-                .gravedad(Gravedad.LEVE)
-                .fechaInicio(LocalDate.now().minusDays(20))
-                .fechaFin(LocalDate.now().minusDays(5))
-                .curada(true)
-                .build();
-
-        // Crear jugador
         jugador = Jugador.builder()
                 .idPersonal(ID_JUGADOR)
                 .nombre("Bukayo")
                 .apellido("Saka")
                 .fechaNacimiento(LocalDate.of(2001, 9, 5))
                 .nacionalidad(Nacion.INGLATERRA)
-                .tipoPersonal(TipoPersonal.JUGADOR)
                 .pieHabil(JuegoPies.ZURDO)
                 .altura(178)
                 .peso(70)
+                .datosDeportivos(datos)
                 .fechaActualizacion(LocalDate.now())
-                .datosDeportivos(datosDeportivos)
-                .lesiones(new ArrayList<>(List.of(lesion)))
                 .build();
 
-        // Agregar contrato al jugador
-        Contrato contrato = Contrato.builder()
-                .idContrato(UUID.randomUUID())
-                .equipo(club)
-                .fechaInicio(LocalDateTime.now().minusMonths(6))
-                .fechaFin(LocalDateTime.now().plusMonths(6))
-                .sueldo(5_000_000.0)
-                .estado(EstadoContrato.ACTIVO)
-                .build();
-        jugador.agregarContrato(contrato);
-
-        // Crear jugador 2 (sin datos deportivos y sin lesiones)
-        jugador2 = Jugador.builder()
-                .idPersonal(ID_JUGADOR_2)
-                .nombre("Nuevo")
-                .apellido("Jugador")
-                .fechaNacimiento(LocalDate.of(2000, 1, 1))
-                .nacionalidad(Nacion.ESPAÑA)
-                .tipoPersonal(TipoPersonal.JUGADOR)
-                .pieHabil(JuegoPies.DERECHO)
-                .altura(180)
-                .peso(75)
-                .fechaActualizacion(LocalDate.now())
-                .lesiones(new ArrayList<>())
-                .build();
-
-        // Crear response
         response = JugadorResponse.builder()
                 .idPersonal(ID_JUGADOR)
                 .nombre("Bukayo")
                 .apellido("Saka")
                 .nombreCompleto("Bukayo Saka")
                 .fechaNacimiento(LocalDate.of(2001, 9, 5))
-                .edad(23)
+                .edad(24)
                 .nacionalidad(Nacion.INGLATERRA)
                 .pieHabil(JuegoPies.ZURDO)
                 .altura(178)
                 .peso(70)
-                .posiciones(PosicionJugador.EXTREMO_DERECHO)
+                .posiciones(List.of(PosicionJugador.EXTREMO_DERECHO))
                 .dorsal(7)
                 .estadoJugador(EstadoJugador.TITULAR)
                 .valorMercado(85_000_000.0)
                 .valorMercadoEnMillones(85.0)
-                .clubActual("Arsenal FC")
-                .idClubActual(ID_CLUB)
                 .disponible(true)
-                .lesionesActivas(1)
-                .build();
-
-        response2 = JugadorResponse.builder()
-                .idPersonal(ID_JUGADOR_2)
-                .nombre("Nuevo")
-                .apellido("Jugador")
-                .nombreCompleto("Nuevo Jugador")
-                .fechaNacimiento(LocalDate.of(2000, 1, 1))
-                .edad(24)
-                .nacionalidad(Nacion.ESPAÑA)
-                .pieHabil(JuegoPies.DERECHO)
-                .altura(180)
-                .peso(75)
-                .disponible(false)
                 .lesionesActivas(0)
                 .build();
 
-        // Crear requests
         crearRequest = CrearJugadorRequest.builder()
-                .nombre("Nuevo")
-                .apellido("Jugador")
-                .fechaNacimiento(LocalDate.of(2000, 1, 1))
-                .nacionalidad(Nacion.ESPAÑA)
-                .pieHabil(JuegoPies.DERECHO)
-                .altura(180)
-                .peso(75)
+                .nombre("Bukayo")
+                .apellido("Saka")
+                .fechaNacimiento(LocalDate.of(2001, 9, 5))
+                .nacionalidad(Nacion.INGLATERRA)
+                .pieHabil(JuegoPies.ZURDO)
+                .altura(178)
+                .peso(70)
+                .dorsal(7)
+                .posiciones(List.of(PosicionJugador.EXTREMO_DERECHO))
+                .valorMercado(85_000_000.0)
                 .build();
 
         actualizarRequest = ActualizarJugadorRequest.builder()
-                .nombre("Bukayo Actualizado")
-                .apellido("Saka Actualizado")
-                .pieHabil(JuegoPies.DERECHO)
-                .altura(180)
-                .peso(75)
-                .dorsal(10)
-                .posicion(PosicionJugador.DELANTERO)
-                .valorMercado(100_000_000.0)
-                .build();
-    }
-
-
-    @Test
-    @DisplayName("crearJugador: debe crear un nuevo jugador correctamente")
-    void testCrearJugador() {
-        Jugador nuevoJugador = Jugador.builder()
-                .idPersonal(UUID.randomUUID())
                 .nombre("Nuevo")
-                .apellido("Jugador")
-                .fechaNacimiento(LocalDate.of(2000, 1, 1))
-                .nacionalidad(Nacion.ESPAÑA)
-                .tipoPersonal(TipoPersonal.JUGADOR)
+                .apellido("Apellido")
                 .pieHabil(JuegoPies.DERECHO)
                 .altura(180)
                 .peso(75)
-                .fechaActualizacion(LocalDate.now())
-                .lesiones(new ArrayList<>())
                 .build();
 
-        when(jugadorMapper.toEntity(crearRequest)).thenReturn(nuevoJugador);
-        when(jugadorRepository.save(nuevoJugador)).thenReturn(nuevoJugador);
-        when(jugadorMapper.toResponse(nuevoJugador)).thenReturn(response2);
-
-        JugadorResponse result = jugadorService.crearJugador(crearRequest);
-
-        assertThat(result).isNotNull();
-        assertThat(result.nombre()).isEqualTo("Nuevo");
-        assertThat(result.apellido()).isEqualTo("Jugador");
-        assertThat(result.lesionesActivas()).isEqualTo(0);
-
-        verify(jugadorMapper).toEntity(crearRequest);
-        verify(jugadorRepository).save(nuevoJugador);
-        verify(jugadorMapper).toResponse(nuevoJugador);
+        pageable = PageRequest.of(0, 10);
     }
 
-    // ── TESTS: OBTENER POR ID ──
+    @Nested
+    @DisplayName("buscarJugadores")
+    class BuscarJugadores {
 
-    @Test
-    @DisplayName("obtenerJugadorPorId: debe retornar el jugador cuando existe")
-    void testObtenerJugadorPorId_Existe() {
-        when(jugadorRepository.findById(ID_JUGADOR)).thenReturn(Optional.of(jugador));
-        when(jugadorMapper.toResponse(jugador)).thenReturn(response);
+        @Test
+        @DisplayName("devuelve página vacía si el texto es nulo o vacío")
+        void textoVacio() {
+            assertThat(jugadorService.buscarJugadores(null, pageable)).isEmpty();
+            assertThat(jugadorService.buscarJugadores("   ", pageable)).isEmpty();
+            verify(jugadorRepository, never()).buscarJugadorPorTexto(any(), any());
+        }
 
-        JugadorResponse result = jugadorService.obtenerJugadorPorId(ID_JUGADOR);
+        @Test
+        @DisplayName("delega en el repositorio y mapea la página")
+        void delega() {
+            Page<Jugador> page = new PageImpl<>(List.of(jugador));
+            when(jugadorRepository.buscarJugadorPorTexto(eq("Saka"), eq(pageable))).thenReturn(page);
+            when(jugadorMapper.toResponse(jugador)).thenReturn(response);
 
-        assertThat(result).isNotNull();
-        assertThat(result.idPersonal()).isEqualTo(ID_JUGADOR);
-        assertThat(result.nombre()).isEqualTo("Bukayo");
-        assertThat(result.apellido()).isEqualTo("Saka");
-        assertThat(result.nombreCompleto()).isEqualTo("Bukayo Saka");
-        assertThat(result.posicion()).isEqualTo(PosicionJugador.EXTREMO_DERECHO);
-        assertThat(result.dorsal()).isEqualTo(7);
-        assertThat(result.estadoJugador()).isEqualTo(EstadoJugador.TITULAR);
-        assertThat(result.equipoActual()).isEqualTo("Arsenal FC");
-        assertThat(result.idEquipoActual()).isEqualTo(ID_CLUB);
-        assertThat(result.lesionesActivas()).isEqualTo(1);
+            Page<JugadorResponse> result = jugadorService.buscarJugadores("Saka", pageable);
 
-        verify(jugadorRepository).findById(ID_JUGADOR);
-        verify(jugadorMapper).toResponse(jugador);
+            assertThat(result.getContent()).hasSize(1);
+            verify(jugadorRepository).buscarJugadorPorTexto("Saka", pageable);
+        }
     }
 
-    @Test
-    @DisplayName("obtenerJugadorPorId: debe lanzar excepción cuando el jugador no existe")
-    void testObtenerJugadorPorId_NoExiste() {
-        UUID idInexistente = UUID.randomUUID();
-        when(jugadorRepository.findById(idInexistente)).thenReturn(Optional.empty());
+    @Nested
+    @DisplayName("crearJugador / crearVariosJugadores")
+    class Crear {
 
-        assertThatThrownBy(() -> jugadorService.obtenerJugadorPorId(idInexistente))
-                .isInstanceOf(PersonalNotFoundException.class)
-                .hasMessageContaining("Jugador no encontrado con id: " + idInexistente);
+        @Test
+        @DisplayName("crearJugador: mapea, guarda y devuelve response")
+        void crearUno() {
+            when(jugadorMapper.toEntity(crearRequest)).thenReturn(jugador);
+            when(jugadorRepository.save(jugador)).thenReturn(jugador);
+            when(jugadorMapper.toResponse(jugador)).thenReturn(response);
 
-        verify(jugadorRepository).findById(idInexistente);
-        verify(jugadorMapper, never()).toResponse(any());
+            JugadorResponse result = jugadorService.crearJugador(crearRequest);
+
+            assertThat(result).isSameAs(response);
+            verify(jugadorRepository).save(jugador);
+        }
+
+        @Test
+        @DisplayName("crearVariosJugadores: guarda todos y mapea la lista")
+        void crearVarios() {
+            List<CrearJugadorRequest> requests = List.of(crearRequest, crearRequest);
+            when(jugadorMapper.toEntity(any(CrearJugadorRequest.class))).thenReturn(jugador);
+            when(jugadorRepository.saveAll(anyList())).thenReturn(List.of(jugador, jugador));
+            when(jugadorMapper.toResponse(jugador)).thenReturn(response);
+
+            List<JugadorResponse> result = jugadorService.crearVariosJugadores(requests);
+
+            assertThat(result).hasSize(2);
+            verify(jugadorRepository).saveAll(anyList());
+        }
     }
 
-    // ── TESTS: OBTENER TODOS ──
+    @Nested
+    @DisplayName("estadísticas")
+    class Estadisticas {
 
-    @Test
-    @DisplayName("obtenerTodosLosJugadores: debe retornar todos los jugadores")
-    void testObtenerTodosLosJugadores() {
-        List<Jugador> jugadores = List.of(jugador);
-        List<JugadorResponse> responses = List.of(response);
+        @Test
+        @DisplayName("obtenerEstadisticasJugador: delega en mapper con eventos")
+        void estadisticasOk() {
+            EventosPartido evento = mock(EventosPartido.class);
+            List<EventosPartido> eventos = List.of(evento);
+            EstadisticasJugadorResponse estadisticas = mock(EstadisticasJugadorResponse.class);
 
-        when(jugadorRepository.findAll()).thenReturn(jugadores);
-        when(jugadorMapper.toResponse(jugador)).thenReturn(response);
+            when(jugadorRepository.findById(ID_JUGADOR)).thenReturn(Optional.of(jugador));
+            when(eventosRepository.findByPersonalConCompeticion(ID_JUGADOR)).thenReturn(eventos);
+            when(estadisticasMapper.toResponse(jugador, eventos)).thenReturn(estadisticas);
 
-        List<JugadorResponse> result = jugadorService.obtenerTodosLosJugadores();
+            assertThat(jugadorService.obtenerEstadisticasJugador(ID_JUGADOR))
+                    .isSameAs(estadisticas);
+        }
 
-        assertThat(result).hasSize(1);
-        assertThat(result.get(0).nombre()).isEqualTo("Bukayo");
-        assertThat(result.get(0).apellido()).isEqualTo("Saka");
+        @Test
+        @DisplayName("obtenerEstadisticasJugador: lanza si el jugador no existe")
+        void estadisticasJugadorNoExiste() {
+            when(jugadorRepository.findById(ID_JUGADOR)).thenReturn(Optional.empty());
 
-        verify(jugadorRepository).findAll();
-        verify(jugadorMapper).toResponse(jugador);
+            assertThatThrownBy(() -> jugadorService.obtenerEstadisticasJugador(ID_JUGADOR))
+                    .isInstanceOf(ResourceNotFoundException.class);
+        }
+
+        @Test
+        @DisplayName("obtenerPartidosConEstadisticas: agrupa eventos por partido y ordena")
+        void partidosConEstadisticas() {
+            Partido partido1 = Partido.builder()
+                    .idPartido(ID_PARTIDO)
+                    .fechaYHora(LocalDateTime.now().minusDays(1))
+                    .build();
+
+            EventosPartido evento1 = EventosPartido.builder()
+                    .idEvento(UUID.randomUUID())
+                    .partido(partido1)
+                    .build();
+
+            PartidoResponse partidoResponse = PartidoResponse.builder()
+                    .fechaYHora(LocalDateTime.now().minusDays(1))
+                    .build();
+
+            EstadisticasPartidoJugadorResponse responsePartido =
+                    EstadisticasPartidoJugadorResponse.builder()
+                            .partido(partidoResponse)
+                            .build();
+
+            when(jugadorRepository.existsById(ID_JUGADOR)).thenReturn(true);
+            when(partidoRepository.findPartidosByJugador(ID_JUGADOR)).thenReturn(List.of(partido1));
+            when(eventosRepository.findByPersonalConCompeticion(ID_JUGADOR)).thenReturn(List.of(evento1));
+            when(partidoConEstadisticasJugadorMapper.toResponse(eq(partido1), anyList()))
+                    .thenReturn(responsePartido);
+
+            List<EstadisticasPartidoJugadorResponse> result =
+                    jugadorService.obtenerPartidosConEstadisticas(ID_JUGADOR);
+
+            assertThat(result).hasSize(1);
+        }
+
+        @Test
+        @DisplayName("obtenerPartidosConEstadisticas: lanza si el jugador no existe")
+        void partidosJugadorNoExiste() {
+            when(jugadorRepository.existsById(ID_JUGADOR)).thenReturn(false);
+
+            assertThatThrownBy(() -> jugadorService.obtenerPartidosConEstadisticas(ID_JUGADOR))
+                    .isInstanceOf(ResourceNotFoundException.class);
+        }
     }
 
-    @Test
-    @DisplayName("obtenerTodosLosJugadores: debe retornar lista vacía cuando no hay jugadores")
-    void testObtenerTodosLosJugadores_Vacio() {
-        when(jugadorRepository.findAll()).thenReturn(List.of());
+    @Nested
+    @DisplayName("consultas varias")
+    class Consultas {
 
-        List<JugadorResponse> result = jugadorService.obtenerTodosLosJugadores();
+        @Test
+        @DisplayName("obtenerJugadorPorId: retorna response")
+        void porId() {
+            when(jugadorRepository.findById(ID_JUGADOR)).thenReturn(Optional.of(jugador));
+            when(jugadorMapper.toResponse(jugador)).thenReturn(response);
 
-        assertThat(result).isEmpty();
-        verify(jugadorRepository).findAll();
-        verify(jugadorMapper, never()).toResponse(any());
+            assertThat(jugadorService.obtenerJugadorPorId(ID_JUGADOR)).isSameAs(response);
+        }
+
+        @Test
+        @DisplayName("obtenerJugadorPorId: lanza si no existe")
+        void porIdNoExiste() {
+            when(jugadorRepository.findById(ID_JUGADOR)).thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> jugadorService.obtenerJugadorPorId(ID_JUGADOR))
+                    .isInstanceOf(ResourceNotFoundException.class);
+        }
+
+        @Test
+        @DisplayName("obtenerTodosLosJugadores: mapea página")
+        void todos() {
+            Page<Jugador> page = new PageImpl<>(List.of(jugador));
+            when(jugadorRepository.findAll(pageable)).thenReturn(page);
+            when(jugadorMapper.toResponse(jugador)).thenReturn(response);
+
+            assertThat(jugadorService.obtenerTodosLosJugadores(pageable).getContent()).hasSize(1);
+        }
+
+        @Test
+        @DisplayName("obtenerJugadoresPorEquipo: mapea lista")
+        void porEquipo() {
+            when(jugadorRepository.findByEquipo(ID_EQUIPO)).thenReturn(List.of(jugador));
+            when(jugadorMapper.toResponse(jugador)).thenReturn(response);
+
+            assertThat(jugadorService.obtenerJugadoresPorEquipo(ID_EQUIPO)).hasSize(1);
+        }
+
+        @Test
+        @DisplayName("obtenerJugadoresPorPosicion: mapea lista")
+        void porPosicion() {
+            when(jugadorRepository.findByPosicion(PosicionJugador.EXTREMO_DERECHO))
+                    .thenReturn(List.of(jugador));
+            when(jugadorMapper.toResponse(jugador)).thenReturn(response);
+
+            assertThat(jugadorService.obtenerJugadoresPorPosicion(PosicionJugador.EXTREMO_DERECHO))
+                    .hasSize(1);
+        }
+
+        @Test
+        @DisplayName("obtenerJugadoresDisponibles: mapea lista")
+        void disponibles() {
+            when(jugadorRepository.findDisponibles()).thenReturn(List.of(jugador));
+            when(jugadorMapper.toResponse(jugador)).thenReturn(response);
+
+            assertThat(jugadorService.obtenerJugadoresDisponibles()).hasSize(1);
+        }
+
+        @Test
+        @DisplayName("obtenerJugadoresLesionados: mapea lista")
+        void lesionados() {
+            when(jugadorRepository.findLesionados()).thenReturn(List.of(jugador));
+            when(jugadorMapper.toResponse(jugador)).thenReturn(response);
+
+            assertThat(jugadorService.obtenerJugadoresLesionados()).hasSize(1);
+        }
     }
 
-    // ── TESTS: OBTENER POR CLUB ──
+    @Nested
+    @DisplayName("actualizarJugador")
+    class Actualizar {
 
-    @Test
-    @DisplayName("obtenerJugadoresPorClub: debe retornar jugadores de un club")
-    void testObtenerJugadoresPorEquipo() {
-        List<Jugador> jugadores = List.of(jugador);
-        List<JugadorResponse> responses = List.of(response);
+        @Test
+        @DisplayName("actualiza solo los campos no nulos")
+        void actualizaCamposNoNulos() {
+            when(jugadorRepository.findById(ID_JUGADOR)).thenReturn(Optional.of(jugador));
+            when(jugadorRepository.save(jugador)).thenReturn(jugador);
+            when(jugadorMapper.toResponse(jugador)).thenReturn(response);
 
-        when(jugadorRepository.findByEquipo(ID_CLUB)).thenReturn(jugadores);
-        when(jugadorMapper.toResponse(jugador)).thenReturn(response);
+            jugadorService.actualizarJugador(ID_JUGADOR, actualizarRequest);
 
-        List<JugadorResponse> result = jugadorService.obtenerJugadoresPorEquipo(ID_CLUB);
+            assertThat(jugador.getNombre()).isEqualTo("Nuevo");
+            assertThat(jugador.getApellido()).isEqualTo("Apellido");
+            assertThat(jugador.getPieHabil()).isEqualTo(JuegoPies.DERECHO);
+            assertThat(jugador.getAltura()).isEqualTo(180);
+            assertThat(jugador.getPeso()).isEqualTo(75);
+        }
 
-        assertThat(result).hasSize(1);
-        assertThat(result.get(0).equipoActual()).isEqualTo("Arsenal FC");
-        assertThat(result.get(0).idEquipoActual()).isEqualTo(ID_CLUB);
+        @Test
+        @DisplayName("lanza si el jugador no existe")
+        void noExiste() {
+            when(jugadorRepository.findById(ID_JUGADOR)).thenReturn(Optional.empty());
 
-        verify(jugadorRepository).findByEquipo(ID_CLUB);
-        verify(jugadorMapper).toResponse(jugador);
+            assertThatThrownBy(() -> jugadorService.actualizarJugador(ID_JUGADOR, actualizarRequest))
+                    .isInstanceOf(ResourceNotFoundException.class);
+        }
     }
 
-    @Test
-    @DisplayName("obtenerJugadoresPorClub: debe retornar lista vacía cuando el club no tiene jugadores")
-    void testObtenerJugadoresPorEquipo_Vacio() {
-        UUID clubSinJugadores = UUID.randomUUID();
-        when(jugadorRepository.findByEquipo(clubSinJugadores)).thenReturn(List.of());
+    @Nested
+    @DisplayName("cambiarEstadoJugador / actualizarValorMercado")
+    class Cambios {
 
-        List<JugadorResponse> result = jugadorService.obtenerJugadoresPorEquipo(clubSinJugadores);
+        @Test
+        @DisplayName("cambiarEstadoJugador: actualiza el estado")
+        void cambiarEstado() {
+            when(jugadorRepository.findById(ID_JUGADOR)).thenReturn(Optional.of(jugador));
+            when(jugadorRepository.save(jugador)).thenReturn(jugador);
+            when(jugadorMapper.toResponse(jugador)).thenReturn(response);
 
-        assertThat(result).isEmpty();
-        verify(jugadorRepository).findByEquipo(clubSinJugadores);
-        verify(jugadorMapper, never()).toResponse(any());
+            jugadorService.cambiarEstadoJugador(ID_JUGADOR, EstadoJugador.LESIONADO);
+
+            assertThat(jugador.getDatosDeportivos().getEstadoJugador())
+                    .isEqualTo(EstadoJugador.LESIONADO);
+        }
+
+        @Test
+        @DisplayName("cambiarEstadoJugador: lanza si no tiene datos")
+        void cambiarEstadoSinDatos() {
+            jugador.setDatosDeportivos(null);
+            when(jugadorRepository.findById(ID_JUGADOR)).thenReturn(Optional.of(jugador));
+
+            assertThatThrownBy(() ->
+                    jugadorService.cambiarEstadoJugador(ID_JUGADOR, EstadoJugador.LESIONADO))
+                    .isInstanceOf(IllegalStateException.class);
+        }
+
+        @Test
+        @DisplayName("actualizarValorMercado: actualiza el valor")
+        void actualizarValor() {
+            when(jugadorRepository.findById(ID_JUGADOR)).thenReturn(Optional.of(jugador));
+            when(jugadorRepository.save(jugador)).thenReturn(jugador);
+            when(jugadorMapper.toResponse(jugador)).thenReturn(response);
+
+            jugadorService.actualizarValorMercado(ID_JUGADOR, 100_000_000.0);
+
+            assertThat(jugador.getDatosDeportivos().getValorMercado()).isEqualTo(100_000_000.0);
+        }
+
+        @Test
+        @DisplayName("actualizarValorMercado: lanza si no tiene datos")
+        void actualizarValorSinDatos() {
+            jugador.setDatosDeportivos(null);
+            when(jugadorRepository.findById(ID_JUGADOR)).thenReturn(Optional.of(jugador));
+
+            assertThatThrownBy(() ->
+                    jugadorService.actualizarValorMercado(ID_JUGADOR, 100_000_000.0))
+                    .isInstanceOf(IllegalStateException.class);
+        }
     }
 
-    // ── TESTS: OBTENER POR POSICIÓN ──
-
-    @Test
-    @DisplayName("obtenerJugadoresPorPosicion: debe retornar jugadores por posición")
-    void testObtenerJugadoresPorPosicion() {
-        List<Jugador> jugadores = List.of(jugador);
-        List<JugadorResponse> responses = List.of(response);
-
-        when(jugadorRepository.findByPosicion(PosicionJugador.EXTREMO_DERECHO)).thenReturn(jugadores);
-        when(jugadorMapper.toResponse(jugador)).thenReturn(response);
-
-        List<JugadorResponse> result = jugadorService.obtenerJugadoresPorPosicion(PosicionJugador.EXTREMO_DERECHO);
-
-        assertThat(result).hasSize(1);
-        assertThat(result.get(0).posicion()).isEqualTo(PosicionJugador.EXTREMO_DERECHO);
-
-        verify(jugadorRepository).findByPosicion(PosicionJugador.EXTREMO_DERECHO);
-        verify(jugadorMapper).toResponse(jugador);
-    }
-
-    @Test
-    @DisplayName("obtenerJugadoresPorPosicion: debe retornar lista vacía cuando no hay jugadores en esa posición")
-    void testObtenerJugadoresPorPosicion_Vacio() {
-        when(jugadorRepository.findByPosicion(PosicionJugador.PORTERO)).thenReturn(List.of());
-
-        List<JugadorResponse> result = jugadorService.obtenerJugadoresPorPosicion(PosicionJugador.PORTERO);
-
-        assertThat(result).isEmpty();
-        verify(jugadorRepository).findByPosicion(PosicionJugador.PORTERO);
-        verify(jugadorMapper, never()).toResponse(any());
-    }
-
-    // ── TESTS: OBTENER DISPONIBLES ──
-
-    @Test
-    @DisplayName("obtenerJugadoresDisponibles: debe retornar jugadores disponibles")
-    void testObtenerJugadoresDisponibles() {
-        List<Jugador> jugadores = List.of(jugador);
-        List<JugadorResponse> responses = List.of(response);
-
-        when(jugadorRepository.findDisponibles()).thenReturn(jugadores);
-        when(jugadorMapper.toResponse(jugador)).thenReturn(response);
-
-        List<JugadorResponse> result = jugadorService.obtenerJugadoresDisponibles();
-
-        assertThat(result).hasSize(1);
-        assertThat(result.get(0).disponible()).isTrue();
-
-        verify(jugadorRepository).findDisponibles();
-        verify(jugadorMapper).toResponse(jugador);
-    }
-
-
-    @Test
-    @DisplayName("obtenerJugadoresLesionados: debe retornar jugadores lesionados")
-    void testObtenerJugadoresLesionados() {
-        DatosDeportivos datosLesionado = DatosDeportivos.builder()
-                .idHistorialDeportivo(UUID.randomUUID())
-                .estadoJugador(EstadoJugador.LESIONADO)
-                .posiciones(new ArrayList<>(List.of(PosicionJugador.CENTRAL)))
-                .dorsal(3)
-                .fechaActualizacion(LocalDate.now())
-                .build();
-
-        Lesion lesionActiva = Lesion.builder()
-                .idLesion(UUID.randomUUID())
-                .nombreLesion("Lesión de rodilla")
-                .gravedad(Gravedad.GRAVE)
-                .fechaInicio(LocalDate.now().minusDays(5))
-                .fechaFin(LocalDate.now().plusDays(10))
-                .curada(false)
-                .build();
-
-        Jugador jugadorLesionado = Jugador.builder()
-                .idPersonal(UUID.randomUUID())
-                .nombre("Gerard")
-                .apellido("Piqué")
-                .datosDeportivos(datosLesionado)
-                .lesiones(new ArrayList<>(List.of(lesionActiva)))
-                .build();
-
-        JugadorResponse responseLesionado = JugadorResponse.builder()
-                .idPersonal(jugadorLesionado.getIdPersonal())
-                .nombre("Gerard")
-                .apellido("Piqué")
-                .nombreCompleto("Gerard Piqué")
-                .estadoJugador(EstadoJugador.LESIONADO)
-                .disponible(false)
-                .lesionesActivas(1)
-                .build();
-
-        when(jugadorRepository.findLesionados()).thenReturn(List.of(jugadorLesionado));
-        when(jugadorMapper.toResponse(jugadorLesionado)).thenReturn(responseLesionado);
-
-        List<JugadorResponse> result = jugadorService.obtenerJugadoresLesionados();
-
-        assertThat(result).hasSize(1);
-        assertThat(result.get(0).estadoJugador()).isEqualTo(EstadoJugador.LESIONADO);
-        assertThat(result.get(0).disponible()).isFalse();
-        assertThat(result.get(0).lesionesActivas()).isEqualTo(1);
-
-        verify(jugadorRepository).findLesionados();
-        verify(jugadorMapper).toResponse(jugadorLesionado);
-    }
-
-    // ── TESTS: ACTUALIZAR ──
-
-    @Test
-    @DisplayName("actualizarJugador: debe actualizar un jugador existente")
-    void testActualizarJugador() {
-        when(jugadorRepository.findById(ID_JUGADOR)).thenReturn(Optional.of(jugador));
-        when(jugadorRepository.save(jugador)).thenReturn(jugador);
-        when(jugadorMapper.toResponse(jugador)).thenReturn(response);
-
-        JugadorResponse result = jugadorService.actualizarJugador(ID_JUGADOR, actualizarRequest);
-
-        assertThat(result).isNotNull();
-        assertThat(result.nombre()).isEqualTo("Bukayo");
-
-        assertThat(jugador.getNombre()).isEqualTo("Bukayo Actualizado");
-        assertThat(jugador.getApellido()).isEqualTo("Saka Actualizado");
-        assertThat(jugador.getPieHabil()).isEqualTo(JuegoPies.DERECHO);
-        assertThat(jugador.getAltura()).isEqualTo(180);
-        assertThat(jugador.getPeso()).isEqualTo(75);
-        assertThat(jugador.getDatosDeportivos().getDorsal()).isEqualTo(10);
-        assertThat(jugador.getDatosDeportivos().getPosiciones()).contains(PosicionJugador.DELANTERO);
-        assertThat(jugador.getDatosDeportivos().getValorMercado()).isEqualTo(100_000_000.0);
-
-        verify(jugadorRepository).findById(ID_JUGADOR);
-        verify(jugadorRepository).save(jugador);
-        verify(jugadorMapper).toResponse(jugador);
-    }
-
-    @Test
-    @DisplayName("actualizarJugador: debe lanzar excepción cuando el jugador no existe")
-    void testActualizarJugador_NoExiste() {
-        UUID idInexistente = UUID.randomUUID();
-        when(jugadorRepository.findById(idInexistente)).thenReturn(Optional.empty());
-
-        assertThatThrownBy(() -> jugadorService.actualizarJugador(idInexistente, actualizarRequest))
-                .isInstanceOf(PersonalNotFoundException.class)
-                .hasMessageContaining("Jugador no encontrado con id: " + idInexistente);
-
-        verify(jugadorRepository).findById(idInexistente);
-        verify(jugadorRepository, never()).save(any());
-        verify(jugadorMapper, never()).toResponse(any());
-    }
-
-    @Test
-    @DisplayName("actualizarJugador: debe actualizar solo los campos proporcionados")
-    void testActualizarJugador_Parcial() {
-        ActualizarJugadorRequest requestSoloNombre = ActualizarJugadorRequest.builder()
-                .nombre("Nuevo Nombre")
-                .build();
-
-        when(jugadorRepository.findById(ID_JUGADOR)).thenReturn(Optional.of(jugador));
-        when(jugadorRepository.save(jugador)).thenReturn(jugador);
-        when(jugadorMapper.toResponse(jugador)).thenReturn(response);
-
-        jugadorService.actualizarJugador(ID_JUGADOR, requestSoloNombre);
-
-        assertThat(jugador.getNombre()).isEqualTo("Nuevo Nombre");
-        assertThat(jugador.getApellido()).isEqualTo("Saka");
-        assertThat(jugador.getAltura()).isEqualTo(178);
-
-        verify(jugadorRepository).findById(ID_JUGADOR);
-        verify(jugadorRepository).save(jugador);
-    }
-
-    @Test
-    @DisplayName("actualizarJugador: debe manejar datos deportivos nulos correctamente")
-    void testActualizarJugador_SinDatosDeportivos() {
-        when(jugadorRepository.findById(ID_JUGADOR_2)).thenReturn(Optional.of(jugador2));
-        when(jugadorRepository.save(jugador2)).thenReturn(jugador2);
-        when(jugadorMapper.toResponse(jugador2)).thenReturn(response2);
-
-        JugadorResponse result = jugadorService.actualizarJugador(ID_JUGADOR_2, actualizarRequest);
-
-        assertThat(result).isNotNull();
-        assertThat(result.nombre()).isEqualTo("Nuevo");
-        assertThat(jugador2.getDatosDeportivos()).isNull();
-
-        verify(jugadorRepository).findById(ID_JUGADOR_2);
-        verify(jugadorRepository).save(jugador2);
-        verify(jugadorMapper).toResponse(jugador2);
-    }
-
-    @Test
-    @DisplayName("actualizarJugador: debe actualizar fecha de actualización")
-    void testActualizarJugador_ActualizaFecha() {
-        LocalDate fechaAntes = jugador.getFechaActualizacion();
-        
-        when(jugadorRepository.findById(ID_JUGADOR)).thenReturn(Optional.of(jugador));
-        when(jugadorRepository.save(jugador)).thenReturn(jugador);
-        when(jugadorMapper.toResponse(jugador)).thenReturn(response);
-
-        jugadorService.actualizarJugador(ID_JUGADOR, actualizarRequest);
-
-        assertThat(jugador.getFechaActualizacion()).isAfterOrEqualTo(fechaAntes);
-        assertThat(jugador.getFechaActualizacion()).isEqualTo(LocalDate.now());
-
-        verify(jugadorRepository).findById(ID_JUGADOR);
-        verify(jugadorRepository).save(jugador);
-    }
-
-    // ── TESTS: CAMBIAR ESTADO ──
-
-    @Test
-    @DisplayName("cambiarEstadoJugador: debe cambiar el estado del jugador")
-    void testCambiarEstadoJugador() {
-        when(jugadorRepository.findById(ID_JUGADOR)).thenReturn(Optional.of(jugador));
-        when(jugadorRepository.save(jugador)).thenReturn(jugador);
-        when(jugadorMapper.toResponse(jugador)).thenReturn(response);
-
-        JugadorResponse result = jugadorService.cambiarEstadoJugador(ID_JUGADOR, EstadoJugador.SUPLENTE);
-
-        assertThat(result).isNotNull();
-        assertThat(jugador.getDatosDeportivos().getEstadoJugador()).isEqualTo(EstadoJugador.SUPLENTE);
-
-        verify(jugadorRepository).findById(ID_JUGADOR);
-        verify(jugadorRepository).save(jugador);
-        verify(jugadorMapper).toResponse(jugador);
-    }
-
-    @Test
-    @DisplayName("cambiarEstadoJugador: debe lanzar excepción cuando el jugador no existe")
-    void testCambiarEstadoJugador_NoExiste() {
-        UUID idInexistente = UUID.randomUUID();
-        when(jugadorRepository.findById(idInexistente)).thenReturn(Optional.empty());
-
-        assertThatThrownBy(() -> jugadorService.cambiarEstadoJugador(idInexistente, EstadoJugador.SUPLENTE))
-                .isInstanceOf(PersonalNotFoundException.class)
-                .hasMessageContaining("Jugador no encontrado con id: " + idInexistente);
-
-        verify(jugadorRepository).findById(idInexistente);
-        verify(jugadorRepository, never()).save(any());
-        verify(jugadorMapper, never()).toResponse(any());
-    }
-
-    @Test
-    @DisplayName("cambiarEstadoJugador: debe lanzar excepción cuando el jugador no tiene datos deportivos")
-    void testCambiarEstadoJugador_SinDatosDeportivos() {
-        when(jugadorRepository.findById(ID_JUGADOR_2)).thenReturn(Optional.of(jugador2));
-
-        assertThatThrownBy(() -> jugadorService.cambiarEstadoJugador(ID_JUGADOR_2, EstadoJugador.SUPLENTE))
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessageContaining("no tiene datos deportivos registrados");
-
-        verify(jugadorRepository).findById(ID_JUGADOR_2);
-        verify(jugadorRepository, never()).save(any());
-        verify(jugadorMapper, never()).toResponse(any());
-    }
-
-   @Test
-@DisplayName("cambiarEstadoJugador: debe lanzar excepción si el estado es nulo")
-void testCambiarEstadoJugador_EstadoNulo() {
-    when(jugadorRepository.findById(ID_JUGADOR)).thenReturn(Optional.of(jugador));
-
-    assertThatThrownBy(() -> jugadorService.cambiarEstadoJugador(ID_JUGADOR, null))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("El estado no puede ser nulo");
-
-    verify(jugadorRepository).findById(ID_JUGADOR);
-    verify(jugadorRepository, never()).save(any());
-}
-
-@Test
-@DisplayName("cambiarEstadoJugador: debe lanzar excepción si el jugador está retirado y se intenta cambiar de estado")
-void testCambiarEstadoJugador_JugadorRetirado() {
-    // Primero cambiamos el estado a RETIRADO
-    DatosDeportivos datosRetirado = DatosDeportivos.builder()
-            .idHistorialDeportivo(UUID.randomUUID())
-            .estadoJugador(EstadoJugador.RETIRADO)
-            .posiciones(new ArrayList<>(List.of(PosicionJugador.DELANTERO)))
-            .dorsal(9)
-            .fechaActualizacion(LocalDate.now())
-            .build();
-    
-    Jugador jugadorRetirado = Jugador.builder()
-            .idPersonal(UUID.randomUUID())
-            .nombre("Jugador")
-            .apellido("Retirado")
-            .datosDeportivos(datosRetirado)
-            .build();
-    
-    when(jugadorRepository.findById(jugadorRetirado.getIdPersonal())).thenReturn(Optional.of(jugadorRetirado));
-
-    assertThatThrownBy(() -> jugadorService.cambiarEstadoJugador(jugadorRetirado.getIdPersonal(), EstadoJugador.TITULAR))
-            .isInstanceOf(IllegalStateException.class)
-            .hasMessage("Un jugador retirado no puede cambiar de estado");
-
-    verify(jugadorRepository).findById(jugadorRetirado.getIdPersonal());
-    verify(jugadorRepository, never()).save(any());
-}
-
-    @Test
-    @DisplayName("actualizarValorMercado: debe actualizar el valor de mercado del jugador")
-    void testActualizarValorMercado() {
-        when(jugadorRepository.findById(ID_JUGADOR)).thenReturn(Optional.of(jugador));
-        when(jugadorRepository.save(jugador)).thenReturn(jugador);
-        when(jugadorMapper.toResponse(jugador)).thenReturn(response);
-
-        JugadorResponse result = jugadorService.actualizarValorMercado(ID_JUGADOR, 150_000_000.0);
-
-        assertThat(result).isNotNull();
-        assertThat(jugador.getDatosDeportivos().getValorMercado()).isEqualTo(150_000_000.0);
-
-        verify(jugadorRepository).findById(ID_JUGADOR);
-        verify(jugadorRepository).save(jugador);
-        verify(jugadorMapper).toResponse(jugador);
-    }
-
-    @Test
-    @DisplayName("actualizarValorMercado: debe lanzar excepción cuando el jugador no existe")
-    void testActualizarValorMercado_NoExiste() {
-        UUID idInexistente = UUID.randomUUID();
-        when(jugadorRepository.findById(idInexistente)).thenReturn(Optional.empty());
-
-        assertThatThrownBy(() -> jugadorService.actualizarValorMercado(idInexistente, 100_000_000.0))
-                .isInstanceOf(PersonalNotFoundException.class)
-                .hasMessageContaining("Jugador no encontrado con id: " + idInexistente);
-
-        verify(jugadorRepository).findById(idInexistente);
-        verify(jugadorRepository, never()).save(any());
-        verify(jugadorMapper, never()).toResponse(any());
-    }
-
-    @Test
-    @DisplayName("actualizarValorMercado: debe lanzar excepción cuando el jugador no tiene datos deportivos")
-    void testActualizarValorMercado_SinDatosDeportivos() {
-        when(jugadorRepository.findById(ID_JUGADOR_2)).thenReturn(Optional.of(jugador2));
-
-        assertThatThrownBy(() -> jugadorService.actualizarValorMercado(ID_JUGADOR_2, 100_000_000.0))
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessageContaining("no tiene datos deportivos registrados");
-
-        verify(jugadorRepository).findById(ID_JUGADOR_2);
-        verify(jugadorRepository, never()).save(any());
-        verify(jugadorMapper, never()).toResponse(any());
-    }
-
-
-    @Test
-    @DisplayName("eliminarJugador: debe eliminar un jugador existente")
-    void testEliminarJugador() {
-        when(jugadorRepository.existsById(ID_JUGADOR)).thenReturn(true);
-        doNothing().when(jugadorRepository).deleteById(ID_JUGADOR);
-
-        jugadorService.eliminarJugador(ID_JUGADOR);
-
-        verify(jugadorRepository).existsById(ID_JUGADOR);
-        verify(jugadorRepository).deleteById(ID_JUGADOR);
-    }
-
-    @Test
-    @DisplayName("eliminarJugador: debe lanzar excepción cuando el jugador no existe")
-    void testEliminarJugador_NoExiste() {
-        UUID idInexistente = UUID.randomUUID();
-        when(jugadorRepository.existsById(idInexistente)).thenReturn(false);
-
-        assertThatThrownBy(() -> jugadorService.eliminarJugador(idInexistente))
-                .isInstanceOf(PersonalNotFoundException.class)
-                .hasMessageContaining("Jugador no encontrado con id: " + idInexistente);
-
-        verify(jugadorRepository).existsById(idInexistente);
-        verify(jugadorRepository, never()).deleteById(any());
-    }
-
-
-    @Test
-    @DisplayName("obtenerJugadorPorId: debe retornar información completa del jugador")
-    void testObtenerJugadorPorId_InformacionCompleta() {
-        when(jugadorRepository.findById(ID_JUGADOR)).thenReturn(Optional.of(jugador));
-        when(jugadorMapper.toResponse(jugador)).thenReturn(response);
-
-        JugadorResponse result = jugadorService.obtenerJugadorPorId(ID_JUGADOR);
-
-        assertThat(result.nombreCompleto()).isEqualTo("Bukayo Saka");
-        assertThat(result.edad()).isNotNull();
-        assertThat(result.edad()).isGreaterThan(0);
-        assertThat(result.valorMercadoEnMillones()).isEqualTo(85.0);
-        assertThat(result.lesionesActivas()).isEqualTo(1);
-        assertThat(result.disponible()).isTrue();
-    }
-
-    @Test
-    @DisplayName("actualizarJugador: debe manejar actualización de dorsal con datos deportivos nulos")
-    void testActualizarJugador_DorsalSinDatos() {
-        ActualizarJugadorRequest requestSoloDorsal = ActualizarJugadorRequest.builder()
-                .dorsal(10)
-                .build();
-
-        when(jugadorRepository.findById(ID_JUGADOR_2)).thenReturn(Optional.of(jugador2));
-        when(jugadorRepository.save(jugador2)).thenReturn(jugador2);
-        when(jugadorMapper.toResponse(jugador2)).thenReturn(response2);
-
-        jugadorService.actualizarJugador(ID_JUGADOR_2, requestSoloDorsal);
-
-        assertThat(jugador2.getDatosDeportivos()).isNull();
-
-        verify(jugadorRepository).findById(ID_JUGADOR_2);
-        verify(jugadorRepository).save(jugador2);
-    }
-
-    @Test
-    @DisplayName("obtenerJugadoresLesionados: debe retornar lista vacía cuando no hay lesionados")
-    void testObtenerJugadoresLesionados_Vacio() {
-        when(jugadorRepository.findLesionados()).thenReturn(List.of());
-
-        List<JugadorResponse> result = jugadorService.obtenerJugadoresLesionados();
-
-        assertThat(result).isEmpty();
-        verify(jugadorRepository).findLesionados();
-        verify(jugadorMapper, never()).toResponse(any());
-    }
-
-    @Test
-    @DisplayName("obtenerJugadoresDisponibles: debe retornar lista vacía cuando no hay disponibles")
-    void testObtenerJugadoresDisponibles_Vacio() {
-        when(jugadorRepository.findDisponibles()).thenReturn(List.of());
-
-        List<JugadorResponse> result = jugadorService.obtenerJugadoresDisponibles();
-
-        assertThat(result).isEmpty();
-        verify(jugadorRepository).findDisponibles();
-        verify(jugadorMapper, never()).toResponse(any());
+    @Nested
+    @DisplayName("eliminarJugador")
+    class Eliminar {
+
+        @Test
+        @DisplayName("elimina si existe")
+        void elimina() {
+            when(jugadorRepository.existsById(ID_JUGADOR)).thenReturn(true);
+
+            jugadorService.eliminarJugador(ID_JUGADOR);
+
+            verify(jugadorRepository).deleteById(ID_JUGADOR);
+        }
+
+        @Test
+        @DisplayName("lanza si no existe")
+        void noExiste() {
+            when(jugadorRepository.existsById(ID_JUGADOR)).thenReturn(false);
+
+            assertThatThrownBy(() -> jugadorService.eliminarJugador(ID_JUGADOR))
+                    .isInstanceOf(ResourceNotFoundException.class);
+        }
     }
 }

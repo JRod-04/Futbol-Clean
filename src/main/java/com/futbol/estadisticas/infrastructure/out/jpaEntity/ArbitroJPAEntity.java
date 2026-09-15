@@ -37,7 +37,6 @@ public class ArbitroJPAEntity {
     @Column(name = "fecha_nacimiento")
     private LocalDate fechaNacimiento;
  
-    // Partidos arbitrados — relación inversa (PartidoJPAEntity es dueño)
     @OneToMany(mappedBy = "arbitro", fetch = FetchType.LAZY)
     @Builder.Default
     private List<PartidoJPAEntity> partidos = new ArrayList<>();

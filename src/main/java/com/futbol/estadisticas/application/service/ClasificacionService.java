@@ -386,16 +386,13 @@ public class ClasificacionService implements ClasificacionUseCase {
                 RankingEstadisticasDTO stats = statsMap.computeIfAbsent(idJugador,
                         k -> crearStatsBase(jugador));
 
-                // Procesar eventos
                 for (EventosPartido evento : eventos) {
                     stats = procesarEvento(stats, evento);
                 }
 
-                // Calcular minutos jugados
                 int minutos = calcularMinutosJugados(partido, eventos);
                 stats = stats.withMinutosJugados(stats.minutosJugados() + minutos);
 
-                // Verificar portería a cero (para porteros)
                 if (esPortero(jugador) && haMantenidoPorteriaCero(partido, jugador)) {
                     stats = stats.withPorteriasCero(stats.porteriasCero() + 1);
                 }

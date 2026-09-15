@@ -13,6 +13,7 @@ import com.futbol.estadisticas.domain.model.*;
 import com.futbol.estadisticas.domain.model.enums.EstadoJugador;
 import com.futbol.estadisticas.domain.model.enums.TipoContrato;
 import com.futbol.estadisticas.domain.model.enums.TipoPersonal;
+import com.futbol.estadisticas.domain.model.exception.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,7 +22,6 @@ import com.futbol.estadisticas.application.port.dto.response.ContratoResponse;
 import com.futbol.estadisticas.application.port.in.ContratoUseCase;
 import com.futbol.estadisticas.application.port.mapper.ContratoMapper;
 import com.futbol.estadisticas.domain.model.enums.EstadoContrato;
-import com.futbol.estadisticas.domain.model.exception.PersonalNotFoundException;
 
 import lombok.RequiredArgsConstructor;
 
@@ -40,7 +40,7 @@ public class ContratoService implements ContratoUseCase {
     @Override
     public ContratoResponse crearContrato(CrearContratoRequest request) {
         PersonalDeportivo personal = personalRepository.findById(request.idPersonal())
-                .orElseThrow(() -> new PersonalNotFoundException(
+                .orElseThrow(() -> new ResourceNotFoundException(
                         "Personal no encontrado con id: " + request.idPersonal()));
 
         Equipo equipo = equipoRepository.findById(request.idEquipo())
@@ -91,7 +91,7 @@ public class ContratoService implements ContratoUseCase {
 
         for (CrearContratoRequest request : requests) {
             PersonalDeportivo personal = personalRepository.findById(request.idPersonal())
-                    .orElseThrow(() -> new PersonalNotFoundException("Personal no encontrado"));
+                    .orElseThrow(() -> new ResourceNotFoundException("Personal no encontrado"));
 
             Equipo equipo = equipoRepository.findById(request.idEquipo())
                     .orElseThrow(() -> new IllegalArgumentException("Club no encontrado"));
@@ -213,7 +213,6 @@ public class ContratoService implements ContratoUseCase {
         Equipo club = contrato.getEquipo();
 
         contrato.finalizar(fechaFin);
-        contratoRepository.save(contrato);
 
         if (personal instanceof Tecnico && club != null) {
             if (club.getTecnicoActual() != null &&

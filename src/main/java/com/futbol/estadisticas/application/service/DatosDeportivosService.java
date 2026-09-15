@@ -4,6 +4,7 @@ import java.util.Deque;
 import java.util.List;
 import java.util.UUID;
 
+import com.futbol.estadisticas.domain.model.exception.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,8 +18,6 @@ import com.futbol.estadisticas.domain.model.DatosDeportivos;
 import com.futbol.estadisticas.domain.model.Jugador;
 import com.futbol.estadisticas.domain.model.enums.EstadoJugador;
 import com.futbol.estadisticas.domain.model.enums.PosicionJugador;
-import com.futbol.estadisticas.domain.model.exception.PersonalNotFoundException;
-
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -138,8 +137,7 @@ public class DatosDeportivosService implements DatosDeportivosUseCase {
         DatosDeportivos saved = datosDeportivosRepository.save(datos);
         return datosDeportivosMapper.toResponse(saved, jugador);
     }
-    // ── VALIDACIÓN PRIVADA ──
-    
+
     private void validarDorsalUnicoEnClub(Jugador jugador, Integer dorsal) {
         if (dorsal == null) return;
         
@@ -163,7 +161,7 @@ public class DatosDeportivosService implements DatosDeportivosUseCase {
  
     private Jugador findJugadorOrThrow(UUID idJugador) {
         return jugadorRepository.findById(idJugador)
-                .orElseThrow(() -> new PersonalNotFoundException(
+                .orElseThrow(() -> new ResourceNotFoundException(
                         "Jugador no encontrado con id: " + idJugador));
     }
  

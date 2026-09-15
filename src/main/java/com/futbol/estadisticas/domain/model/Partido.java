@@ -141,6 +141,9 @@ public class Partido {
 
     }
     private void agregarEventoBanquilloTecnico(Tecnico tecnico, Equipo club) {
+        if (tecnico == null) {
+            return;
+        }
         EventosPartido eventoConvocado = EventosPartido.builder()
                 .idEvento(UUID.randomUUID())
                 .minuto(LocalTime.of(0, 0))
@@ -153,28 +156,9 @@ public class Partido {
         agregarEvento(eventoConvocado);
 
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     public void reanudarPartido() {
         if (this.estado == EstadoPartido.FINALIZADO ||
-                this.estado == EstadoPartido.CANCELADO ||
-                this.estado == EstadoPartido.SUSPENDIDO) {
+                this.estado == EstadoPartido.CANCELADO) {
             throw new IllegalStateException("El partido ya está finalizado");
         }
 
@@ -185,6 +169,7 @@ public class Partido {
         EstadoPartido siguiente = this.estado.getSiguienteEstado();
 
         EstadoPartido estadoActual = this.estado;
+
 
         this.estado = siguiente;
 
@@ -542,7 +527,12 @@ public class Partido {
         this.eventos.add(eventoFin);
         eventoFin.setPartido(this);
 
-        this.estado = siguienteEstado;
+        if(!hayEmpate() && estadoActual.Finalizable()){
+            finalizarPartido(minutoFin);
+        }else{
+            this.estado = siguienteEstado;
+        }
+
     }
 
 
@@ -606,30 +596,8 @@ public class Partido {
     
 
     public boolean hayEmpate() {
-        return haFinalizado() && golesLocal == golesVisitante;
+        return golesLocal == golesVisitante;
     }
-    
-
-    public long getDuracionMinutos() {
-        if (eventos.isEmpty()) {
-            return 0;
-        }
-        EventosPartido inicio = eventos.stream()
-            .filter(e -> e.getTipoEvento() == com.futbol.estadisticas.domain.model.enums.TipoEvento.INICIO_PARTIDO)
-            .findFirst()
-            .orElse(null);
-        EventosPartido fin = eventos.stream()
-            .filter(e -> e.getTipoEvento() == com.futbol.estadisticas.domain.model.enums.TipoEvento.FIN_PARTIDO)
-            .findFirst()
-            .orElse(null);
-        
-        if (inicio == null || fin == null) {
-            return 0;
-        }
-        
-        return 90;
-    }
-
 
     public boolean esFuturo() {
         return fechaYHora != null && fechaYHora.isAfter(LocalDateTime.now());
@@ -641,30 +609,6 @@ public class Partido {
         }
         LocalDateTime hoy = LocalDateTime.now();
         return fechaYHora.toLocalDate().equals(hoy.toLocalDate());
-    }
-    public int getPuntosParaClub(UUID idClub) {
-        if (this.estado == EstadoPartido.CANCELADO ||
-                this.estado == EstadoPartido.SUSPENDIDO) {
-            return 0;
-        }
-
-        if (!haFinalizado() && !estaEnCurso()) {
-            return 0;
-        }
-
-        boolean esLocal = equipoLocal.getIdEquipo().equals(idClub);
-        int golesFavor = esLocal ? golesLocal : golesVisitante;
-        int golesContra = esLocal ? golesVisitante : golesLocal;
-
-        if (!haFinalizado() && estaEnCurso()) {
-            if (golesFavor > golesContra) return 3;
-            if (golesFavor == golesContra) return 1;
-            return 0;
-        }
-
-        if (golesFavor > golesContra) return 3;
-        if (golesFavor == golesContra) return 1;
-        return 0;
     }
 
 

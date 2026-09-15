@@ -6,7 +6,9 @@ import com.futbol.estadisticas.domain.model.enums.Temporada;
 import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import lombok.Builder;
 
+@Builder
 public record CrearCompeticionRequest(
         @NotBlank(message = "El nombre es obligatorio")
         String nombre,

@@ -3,6 +3,7 @@ package com.futbol.estadisticas.application.service;
 import java.util.List;
 import java.util.UUID;
 
+import com.futbol.estadisticas.domain.model.exception.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,7 +40,7 @@ public class EstadioService implements EstadioUseCase{
     public EstadioResponse obtenerEstadioPorId(UUID idEstadio) {
         return estadioRepository.findById(idEstadio)
                 .map(estadioMapper::toResponse)
-                .orElseThrow(() -> new IllegalArgumentException(
+                .orElseThrow(() -> new ResourceNotFoundException(
                         "Estadio no encontrado con id: " + idEstadio));
     }
  
@@ -54,7 +55,7 @@ public class EstadioService implements EstadioUseCase{
     @Override
     public EstadioResponse actualizarEstadio(UUID idEstadio, ActualizarEstadioRequest request) {
         Estadio estadio = estadioRepository.findById(idEstadio)
-                .orElseThrow(() -> new IllegalArgumentException(
+                .orElseThrow(() -> new ResourceNotFoundException(
                         "Estadio no encontrado con id: " + idEstadio));
  
         if (request.nombre() != null)    estadio.setNombre(request.nombre());
@@ -67,10 +68,10 @@ public class EstadioService implements EstadioUseCase{
     @Override
     public EstadioResponse asignarEstadioAEquipo(UUID idEstadio, UUID idEquipo) {
         Estadio estadio = estadioRepository.findById(idEstadio)
-                .orElseThrow(() -> new IllegalArgumentException(
+                .orElseThrow(() -> new ResourceNotFoundException(
                         "Estadio no encontrado con id: " + idEstadio));
         Equipo club = clubRepository.findById(idEquipo)
-                .orElseThrow(() -> new IllegalArgumentException(
+                .orElseThrow(() -> new ResourceNotFoundException(
                         "Club no encontrado con id: " + idEquipo));
  
         estadio.setEquipoPrincipal(club);
@@ -84,7 +85,7 @@ public class EstadioService implements EstadioUseCase{
     @Transactional(readOnly = true)
     public double calcularPorcentajeOcupacion(UUID idEstadio, Integer espectadores) {
         Estadio estadio = estadioRepository.findById(idEstadio)
-                .orElseThrow(() -> new IllegalArgumentException(
+                .orElseThrow(() -> new ResourceNotFoundException(
                         "Estadio no encontrado con id: " + idEstadio));
         return estadio.getPorcentajeOcupacion(espectadores);
     }
@@ -92,7 +93,7 @@ public class EstadioService implements EstadioUseCase{
     @Override
     public void eliminarEstadio(UUID idEstadio) {
         if (!estadioRepository.existsById(idEstadio)) {
-            throw new IllegalArgumentException("Estadio no encontrado con id: " + idEstadio);
+            throw new ResourceNotFoundException("Estadio no encontrado con id: " + idEstadio);
         }
         estadioRepository.deleteById(idEstadio);
     }

@@ -29,9 +29,6 @@ public class Estadio {
     private Equipo equipoPrincipal;
 
 
-
-    
-    //Calcula el porcentaje de ocupación del estadio
     public double getPorcentajeOcupacion(Integer espectadores) {
         if (capacidad == null || capacidad == 0 || espectadores == null) {
             return 0;
