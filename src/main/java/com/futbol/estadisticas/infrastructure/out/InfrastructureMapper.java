@@ -6,6 +6,7 @@ import java.util.Deque;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.futbol.estadisticas.domain.model.*;
 import com.futbol.estadisticas.domain.model.enums.PosicionJugador;
 import com.futbol.estadisticas.infrastructure.out.jpaEntity.*;
 import com.futbol.estadisticas.infrastructure.out.jpaRepository.EquipoJPARepository;
@@ -13,18 +14,6 @@ import com.futbol.estadisticas.infrastructure.out.jpaRepository.PersonalDeportiv
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
-import com.futbol.estadisticas.domain.model.Arbitro;
-import com.futbol.estadisticas.domain.model.Equipo;
-import com.futbol.estadisticas.domain.model.Competicion;
-import com.futbol.estadisticas.domain.model.Contrato;
-import com.futbol.estadisticas.domain.model.DatosDeportivos;
-import com.futbol.estadisticas.domain.model.Estadio;
-import com.futbol.estadisticas.domain.model.EventosPartido;
-import com.futbol.estadisticas.domain.model.Jugador;
-import com.futbol.estadisticas.domain.model.Lesion;
-import com.futbol.estadisticas.domain.model.Partido;
-import com.futbol.estadisticas.domain.model.PersonalDeportivo;
-import com.futbol.estadisticas.domain.model.Tecnico;
 import com.futbol.estadisticas.infrastructure.out.jpaEntity.EquipoJPAEntity;
 
 @Component
@@ -790,6 +779,28 @@ public class InfrastructureMapper {
                 .build();
     }
 
+    // ──────────────────────────── USUARIOS ────────────────────────────
+    public Usuario UsuariotoDomain(UsuarioJPAEntity e) {
+        if (e == null) return null;
+        return Usuario.builder()
+                .idUsuario(e.getIdUsuario())
+                .username(e.getUsername())
+                .password(e.getPassword())
+                .rol(e.getRol())
+                .activo(e.isActivo())
+                .build();
+    }
+
+    public UsuarioJPAEntity UsuariotoJpa(Usuario d) {
+        if (d == null) return null;
+        return UsuarioJPAEntity.builder()
+                .idUsuario(d.getIdUsuario())
+                .username(d.getUsername())
+                .password(d.getPassword())
+                .rol(d.getRol())
+                .activo(d.isActivo())
+                .build();
+    }
 
     // ──────────────────────────── PERSONAL GENÉRICO ────────────────────────────
 

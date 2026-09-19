@@ -9,14 +9,15 @@ import java.util.UUID;
 @AllArgsConstructor
 @RequiredArgsConstructor
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@Builder
 public class Usuario {
 
     @EqualsAndHashCode.Include
-    private UUID id;
+    private UUID idUsuario;
 
-    private String nombre;
-    private String constraseña;
+    private String username;
+    private String password;
     private Rol rol;
     private boolean activo;
-    
+
 }

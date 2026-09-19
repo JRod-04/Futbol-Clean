@@ -17,7 +17,6 @@ import java.util.stream.Collectors;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    // ─── Excepciones de dominio / aplicación ─────────────────────────────
 
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<Map<String, Object>> handleResourceNotFound(ResourceNotFoundException ex) {
@@ -37,7 +36,6 @@ public class GlobalExceptionHandler {
         return buildError(HttpStatus.CONFLICT, ex.getMessage());
     }
 
-    // ─── Excepciones de Spring MVC ────────────────────────────────────────
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, Object>> handleValidation(MethodArgumentNotValidException ex) {
@@ -64,14 +62,16 @@ public class GlobalExceptionHandler {
                 "El parámetro '" + ex.getName() + "' tiene un formato inválido");
     }
 
-    // ─── Fallback genérico ────────────────────────────────────────────────
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> handleGeneric(Exception ex) {
         return buildError(HttpStatus.INTERNAL_SERVER_ERROR, "Error interno del servidor");
     }
 
-    // ─── Helper ───────────────────────────────────────────────────────────
+    @ExceptionHandler(UsuarioYaExisteException.class)
+    public ResponseEntity<Map<String, Object>> handleUsuarioYaExiste(UsuarioYaExisteException ex) {
+        return buildError(HttpStatus.CONFLICT, ex.getMessage());
+    }
 
     private ResponseEntity<Map<String, Object>> buildError(HttpStatus status, String mensaje) {
         Map<String, Object> body = new HashMap<>();
