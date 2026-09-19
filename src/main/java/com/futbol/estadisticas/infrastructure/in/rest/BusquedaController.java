@@ -23,7 +23,6 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequestMapping("/apifutbol/buscar")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
 public class BusquedaController {
 
     private final JugadoresUseCase jugadorUseCase;

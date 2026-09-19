@@ -19,7 +19,6 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequestMapping("/apifutbol/estadios")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
 
 public class EstadioController {
 

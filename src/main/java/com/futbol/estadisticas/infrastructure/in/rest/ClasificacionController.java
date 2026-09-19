@@ -15,7 +15,6 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequestMapping("/apifutbol/clasificacion")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
 public class ClasificacionController {
 
     private final ClasificacionUseCase clasificacionUseCase;
