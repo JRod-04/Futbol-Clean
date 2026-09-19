@@ -17,7 +17,6 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequestMapping("/apifutbol/arbitros")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
 
 public class ArbitroController {
 
