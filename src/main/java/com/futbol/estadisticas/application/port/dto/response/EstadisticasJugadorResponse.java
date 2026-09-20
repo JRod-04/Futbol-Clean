@@ -9,6 +9,7 @@ import java.util.UUID;
 public record EstadisticasJugadorResponse(
         UUID idJugador,
         String nombreJugador,
+
         int totalPartidosJugados,
         int totalMinutosJugados,
         int totalGoles,
