@@ -18,7 +18,6 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequestMapping("/apifutbol/lesiones")
 @RequiredArgsConstructor
-
 public class LesionController {
 
     private final LesionUseCase lesionUseCase;

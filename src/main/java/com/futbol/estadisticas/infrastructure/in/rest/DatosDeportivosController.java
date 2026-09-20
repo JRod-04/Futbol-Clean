@@ -18,7 +18,6 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequestMapping("/apifutbol/jugadores/{idJugador}/datos-deportivos")
 @RequiredArgsConstructor
-
 public class DatosDeportivosController {
 
     private final DatosDeportivosUseCase datosDeportivosUseCase;

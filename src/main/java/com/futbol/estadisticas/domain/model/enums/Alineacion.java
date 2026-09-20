@@ -126,7 +126,7 @@ public enum Alineacion {
 
 
     ALINEACION_4141("4-1-4-1",
-                           "Buen control del campo. Posesión y ataque masivo",
+                           "Buen control del campo. Posesión y buen ataque",
                    List.of(
                            List.of(PosicionJugador.PORTERO),
                     List.of(
@@ -151,7 +151,6 @@ public enum Alineacion {
     private final String descripcion;
     private final List<List<PosicionJugador>> lineas;
 
-    // ─── MÉTODOS AUXILIARES ────────────────────────────────────────────────
 
     public List<PosicionJugador> getPosicionesAplanadas() {
         return lineas.stream()

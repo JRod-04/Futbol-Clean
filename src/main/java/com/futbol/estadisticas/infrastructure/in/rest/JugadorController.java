@@ -26,7 +26,6 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequestMapping("/apifutbol/jugadores")
 @RequiredArgsConstructor
-
 public class JugadorController {
 
     private final JugadoresUseCase jugadoresUseCase;

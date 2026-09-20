@@ -19,7 +19,6 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequestMapping("/apifutbol/estadios")
 @RequiredArgsConstructor
-
 public class EstadioController {
 
        private final EstadioUseCase estadioUseCase;
